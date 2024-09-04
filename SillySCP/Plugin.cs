@@ -56,7 +56,8 @@ namespace SillySCP
             if (messageEmbed == null) return;
             var embedBuilder = new EmbedBuilder()
                 .WithTitle("Silly SCP Member List")
-                .WithColor(Color.Blue);
+                .WithColor(Color.Blue)
+                .WithDescription();
             Instance.SetMessage(textChannel, 1280910252325339311, embedBuilder.Build());
         }
         
@@ -65,8 +66,25 @@ namespace SillySCP
             await Client.StopAsync();
             await Client.LogoutAsync();
         }
+
+        public void SetStatus()
+        {
+            var playerList = Player.List;
+            var textChannel = GetChannel(1279544677334253610);
+            string players = "";
+            foreach (var player in playerList)
+            {
+                players += "- " + player.Nickname + "\n";
+            }
+            var embedBuilder = new EmbedBuilder()
+                .WithTitle("Silly SCP Member List")
+                .WithColor(Color.Blue)
+                .WithDescription(players);
+            SetMessage(textChannel, 1280910252325339311, embedBuilder.Build());
+            SetCustomStatus(Server.PlayerCount + "/30 players active");
+        }
         
-        public SocketTextChannel GetChannel(ulong id)
+        private SocketTextChannel GetChannel(ulong id)
         {
             var channel = Client.GetChannel(id);
             if (channel.GetChannelType() != ChannelType.Text) return null;
@@ -74,14 +92,14 @@ namespace SillySCP
             return textChannel;
         }
 
-        public IMessage GetMessage(SocketTextChannel channel, ulong id)
+        private IMessage GetMessage(SocketTextChannel channel, ulong id)
         {
             var message = channel.GetMessageAsync(id).GetAwaiter().GetResult();
             if (message.Author.Id != Client.CurrentUser.Id) return null;
             return message;
         }
         
-        public void SetMessage(SocketTextChannel channel, ulong id, Embed embed)
+        private void SetMessage(SocketTextChannel channel, ulong id, Embed embed)
         {
             try
             {
@@ -99,7 +117,7 @@ namespace SillySCP
             }
         }
 
-        public void SetCustomStatus(string status)
+        private void SetCustomStatus(string status)
         {
             try
             {

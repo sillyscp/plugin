@@ -50,37 +50,13 @@ namespace SillySCP
         [PluginEvent(ServerEventType.PlayerJoined)]
         void OnPlayerJoined(Player player)
         {
-            var textChannel = Plugin.Instance.GetChannel(1279544677334253610);
-            var message = Plugin.Instance.GetMessage(textChannel, 1280910252325339311);
-            var messageEmbed = message.Embeds.FirstOrDefault();
-            var embedBuilder = new EmbedBuilder()
-                .WithTitle("Silly SCP Member List")
-                .WithColor(Color.Blue);
-            if (messageEmbed == null)
-            {
-                embedBuilder.WithDescription("- " + player.Nickname);
-            }
-            else
-            {
-                embedBuilder.WithDescription(Server.PlayerCount > 1 ? messageEmbed.Description + "\n- " + player.Nickname : messageEmbed.Description + "- " + player.Nickname);
-            }
-            Plugin.Instance.SetMessage(textChannel, 1280910252325339311, embedBuilder.Build());
-            Plugin.Instance.SetCustomStatus(Server.PlayerCount + "/30 players active");
+            Plugin.Instance.SetStatus();
         }
 
         [PluginEvent(ServerEventType.PlayerLeft)]
         void OnPlayerLeft(Player player)
         {
-            var textChannel = Plugin.Instance.GetChannel(1279544677334253610);
-            var message = Plugin.Instance.GetMessage(textChannel, 1280910252325339311);
-            var messageEmbed = message.Embeds.FirstOrDefault();
-            if (messageEmbed == null) return;
-            var embedBuilder = new EmbedBuilder()
-                .WithTitle("Silly SCP Member List")
-                .WithColor(Color.Blue)
-                .WithDescription(messageEmbed.Description.Replace("- " + player.Nickname, "").Replace("\n\n", "\n"));
-            Plugin.Instance.SetMessage(textChannel, 1280910252325339311, embedBuilder.Build());
-            Plugin.Instance.SetCustomStatus(Server.PlayerCount + "/30 players active");
+            Plugin.Instance.SetStatus();
         }
     }
 }
