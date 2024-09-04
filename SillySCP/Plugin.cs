@@ -49,16 +49,7 @@ namespace SillySCP
             Client.Log += Log;
             await Client.LoginAsync(TokenType.Bot, Instance.Config.Token);
             await Client.StartAsync();
-            Instance.SetCustomStatus("0/30 players active");
-            var textChannel = Instance.GetChannel(1279544677334253610);
-            var message = Instance.GetMessage(textChannel, 1280910252325339311);
-            var messageEmbed = message.Embeds.FirstOrDefault();
-            if (messageEmbed == null) return;
-            var embedBuilder = new EmbedBuilder()
-                .WithTitle("Silly SCP Member List")
-                .WithColor(Color.Blue)
-                .WithDescription();
-            Instance.SetMessage(textChannel, 1280910252325339311, embedBuilder.Build());
+            Instance.SetStatus();
         }
         
         private static async Task StopClient()
