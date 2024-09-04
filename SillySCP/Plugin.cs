@@ -20,6 +20,7 @@ namespace SillySCP
             handler = new EventHandler();
             EventManager.RegisterEvents(this, handler);
             Task.Run(StartClient);
+            Client.SetCustomStatusAsync("0/30 players active").GetAwaiter().GetResult();
             base.OnEnabled();
         }
         
