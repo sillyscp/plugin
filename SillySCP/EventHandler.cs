@@ -36,7 +36,7 @@ namespace SillySCP
         }
 
         [PluginEvent(ServerEventType.RoundEnd)]
-        void OnRoundEnd()
+        void OnRoundEnd(RoundSummary.LeadingTeam leadingTeam)
         {
             var playerStats = Plugin.Instance.PlayerStats.OrderByDescending((p) => p.Damage).ToList();
             Map.Broadcast(10, "MVP for this round is " + playerStats[0].Player.Nickname + " with " + playerStats[0].Damage + " damage!");
