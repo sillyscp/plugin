@@ -49,7 +49,6 @@ namespace SillySCP
             Client.Log += Log;
             await Client.LoginAsync(TokenType.Bot, Instance.Config.Token);
             await Client.StartAsync();
-            Instance.SetStatus();
         }
         
         private static async Task StopClient()
@@ -60,9 +59,9 @@ namespace SillySCP
 
         public void SetStatus()
         {
-            var playerList = Player.List;
-            var textChannel = GetChannel(1279544677334253610);
             string players = "";
+            var textChannel = GetChannel(1279544677334253610);
+            var playerList = Player.List;
             foreach (var player in playerList)
             {
                 players += "- " + player.Nickname + "\n";
@@ -70,7 +69,7 @@ namespace SillySCP
             var embedBuilder = new EmbedBuilder()
                 .WithTitle("Silly SCP Member List")
                 .WithColor(Color.Blue)
-                .WithDescription(players);
+                .WithDescription(players == "" ? "No players online" : players);
             SetMessage(textChannel, 1280910252325339311, embedBuilder.Build());
             SetCustomStatus(Server.PlayerCount + "/30 players active");
         }
