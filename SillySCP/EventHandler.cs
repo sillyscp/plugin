@@ -42,66 +42,45 @@ namespace SillySCP
         void OnRoundEnd(RoundSummary.LeadingTeam leadingTeam)
         {
             var playerStats = Plugin.Instance.PlayerStats.OrderByDescending((p) => p.Damage).ToList();
-            Map.Broadcast(10, "MVP for this round is " + playerStats[0].Player.Nickname + " with " + playerStats[0].Damage + " damage!");
+            var mvp = playerStats.FirstOrDefault();
+            if (mvp == null) return;
+            Map.Broadcast(10, "MVP for this round is " + mvp.Player.Nickname + " with " + mvp.Damage + " damage!");
         }
         
         [PluginEvent(ServerEventType.PlayerJoined)]
         void OnPlayerJoined(Player player)
         {
-            var textChannel = GetChannel();
-            var message = GetMessage(textChannel);
+            var textChannel = Plugin.Instance.GetChannel(1279544677334253610);
+            var message = Plugin.Instance.GetMessage(textChannel, 1280910252325339311);
             var messageEmbed = message.Embeds.FirstOrDefault();
+            var embedBuilder = new EmbedBuilder()
+                .WithTitle("Silly SCP Member List")
+                .WithColor(Color.Blue);
             if (messageEmbed == null)
             {
-                var embedBuilder = new EmbedBuilder()
-                    .WithTitle("Silly SCP Member List")
-                    .WithColor(Color.Blue)
-                    .WithDescription("- " + player.Nickname);
-                textChannel.ModifyMessageAsync(message.Id, msg => msg.Embed = embedBuilder.Build()).GetAwaiter().GetResult();
+                embedBuilder.WithDescription("- " + player.Nickname);
             }
             else
             {
-                var embedBuilder = new EmbedBuilder()
-                    .WithTitle("Silly SCP Member List")
-                    .WithColor(Color.Blue)
-                    .WithDescription(Server.PlayerCount > 1 ? messageEmbed.Description + "\n- " + player.Nickname : messageEmbed.Description + "- " + player.Nickname);
-                textChannel.ModifyMessageAsync(message.Id, msg =>
-                {
-                    msg.Embed = embedBuilder.Build();
-                    msg.Content = "";
-                }).GetAwaiter().GetResult();
+                embedBuilder.WithDescription(Server.PlayerCount > 1 ? messageEmbed.Description + "\n- " + player.Nickname : messageEmbed.Description + "- " + player.Nickname);
             }
-            Plugin.Client.SetCustomStatusAsync(Server.PlayerCount + "/30 players active").GetAwaiter().GetResult();
+            Plugin.Instance.SetMessage(textChannel, 1280910252325339311, embedBuilder.Build());
+            Plugin.Instance.SetCustomStatus(Server.PlayerCount + "/30 players active");
         }
 
         [PluginEvent(ServerEventType.PlayerLeft)]
         void OnPlayerLeft(Player player)
         {
-            var textChannel = GetChannel();
-            var message = GetMessage(textChannel);
+            var textChannel = Plugin.Instance.GetChannel(1279544677334253610);
+            var message = Plugin.Instance.GetMessage(textChannel, 1280910252325339311);
             var messageEmbed = message.Embeds.FirstOrDefault();
             if (messageEmbed == null) return;
             var embedBuilder = new EmbedBuilder()
                 .WithTitle("Silly SCP Member List")
                 .WithColor(Color.Blue)
                 .WithDescription(messageEmbed.Description.Replace("- " + player.Nickname, "").Replace("\n\n", "\n"));
-            textChannel.ModifyMessageAsync(message.Id, msg => msg.Embed = embedBuilder.Build()).GetAwaiter().GetResult();
-            Plugin.Client.SetCustomStatusAsync(Server.PlayerCount + "/30 players active").GetAwaiter().GetResult();
-        }
-
-        private SocketTextChannel GetChannel()
-        {
-            var channel = Plugin.Client.GetChannel(1279544677334253610);
-            if (channel.GetChannelType() != ChannelType.Text) return null;
-            var textChannel = (SocketTextChannel) channel;
-            return textChannel;
-        }
-
-        private IMessage GetMessage(SocketTextChannel channel)
-        {
-            var message = channel.GetMessageAsync(1280910252325339311).GetAwaiter().GetResult();
-            if (message.Author.Id != Plugin.Client.CurrentUser.Id) return null;
-            return message;
+            Plugin.Instance.SetMessage(textChannel, 1280910252325339311, embedBuilder.Build());
+            Plugin.Instance.SetCustomStatus(Server.PlayerCount + "/30 players active");
         }
     }
 }

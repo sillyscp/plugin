@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
@@ -39,17 +41,74 @@ namespace SillySCP
 
         private static async Task StartClient()
         {
-            Client = new DiscordSocketClient();
+            var config = new DiscordSocketConfig()
+            {
+                GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMessages
+            };
+            Client = new DiscordSocketClient(config);
             Client.Log += Log;
             await Client.LoginAsync(TokenType.Bot, Instance.Config.Token);
             await Client.StartAsync();
-            await Client.SetCustomStatusAsync("0/30 players active");
+            Instance.SetCustomStatus("0/30 players active");
+            var textChannel = Instance.GetChannel(1279544677334253610);
+            var message = Instance.GetMessage(textChannel, 1280910252325339311);
+            var messageEmbed = message.Embeds.FirstOrDefault();
+            if (messageEmbed == null) return;
+            var embedBuilder = new EmbedBuilder()
+                .WithTitle("Silly SCP Member List")
+                .WithColor(Color.Blue);
+            Instance.SetMessage(textChannel, 1280910252325339311, embedBuilder.Build());
         }
         
         private static async Task StopClient()
         {
             await Client.StopAsync();
             await Client.LogoutAsync();
+        }
+        
+        public SocketTextChannel GetChannel(ulong id)
+        {
+            var channel = Client.GetChannel(id);
+            if (channel.GetChannelType() != ChannelType.Text) return null;
+            var textChannel = (SocketTextChannel) channel;
+            return textChannel;
+        }
+
+        public IMessage GetMessage(SocketTextChannel channel, ulong id)
+        {
+            var message = channel.GetMessageAsync(id).GetAwaiter().GetResult();
+            if (message.Author.Id != Client.CurrentUser.Id) return null;
+            return message;
+        }
+        
+        public void SetMessage(SocketTextChannel channel, ulong id, Embed embed)
+        {
+            try
+            {
+                var message = GetMessage(channel, id);
+                if (message.Author.Id != Client.CurrentUser.Id) return;
+                channel.ModifyMessageAsync(id, msg =>
+                {
+                    msg.Embed = embed;
+                    msg.Content = "";
+                }).GetAwaiter().GetResult();
+            }
+            catch (Exception error)
+            {
+                PluginAPI.Core.Log.Error(error.ToString());
+            }
+        }
+
+        public void SetCustomStatus(string status)
+        {
+            try
+            {
+                Client.SetCustomStatusAsync(status).GetAwaiter().GetResult();
+            }
+            catch (Exception error)
+            {
+                PluginAPI.Core.Log.Error(error.ToString());
+            }
         }
     }
 }
