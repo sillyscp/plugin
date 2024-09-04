@@ -64,7 +64,7 @@ namespace SillySCP
                 var embedBuilder = new EmbedBuilder()
                     .WithTitle("Silly SCP Member List")
                     .WithColor(Color.Blue)
-                    .WithDescription(messageEmbed.Description + "- " + player.Nickname + "\n");
+                    .WithDescription(Server.PlayerCount > 1 ? messageEmbed.Description + "\n- " + player.Nickname : messageEmbed.Description + "- " + player.Nickname);
                 textChannel.ModifyMessageAsync(message.Id, msg =>
                 {
                     msg.Embed = embedBuilder.Build();
