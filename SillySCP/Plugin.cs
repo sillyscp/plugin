@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
@@ -15,6 +14,7 @@ namespace SillySCP
         public List<PlayerStat> PlayerStats;
         private EventHandler handler;
         public static DiscordSocketClient Client;
+        private bool statusUpdating;
 
         public override void OnEnabled()
         {
@@ -112,10 +112,17 @@ namespace SillySCP
             try
             {
                 Client.SetCustomStatusAsync(status).GetAwaiter().GetResult();
+                statusUpdating = false;
             }
             catch (Exception error)
             {
                 PluginAPI.Core.Log.Error(error.ToString());
+                if (statusUpdating == false)
+                {
+                    statusUpdating = true;
+                    Task.Delay(5);
+                    SetCustomStatus(status);
+                }
             }
         }
     }
