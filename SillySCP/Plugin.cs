@@ -71,7 +71,7 @@ namespace SillySCP
                 .WithColor(Color.Blue)
                 .WithDescription(players == "" ? "No players online" : players);
             SetMessage(textChannel, 1280910252325339311, embedBuilder.Build());
-            SetCustomStatus(Server.PlayerCount + "/30 players active");
+            SetCustomStatus();
         }
         
         private SocketTextChannel GetChannel(ulong id)
@@ -107,8 +107,9 @@ namespace SillySCP
             }
         }
 
-        private void SetCustomStatus(string status)
+        private void SetCustomStatus()
         {
+            var status = Server.PlayerCount + "/30 players active";
             try
             {
                 Client.SetCustomStatusAsync(status).GetAwaiter().GetResult();
@@ -121,7 +122,7 @@ namespace SillySCP
                 {
                     statusUpdating = true;
                     Task.Delay(5);
-                    SetCustomStatus(status);
+                    SetCustomStatus();
                 }
             }
         }
