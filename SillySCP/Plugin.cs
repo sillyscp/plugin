@@ -47,6 +47,7 @@ namespace SillySCP
             };
             Client = new DiscordSocketClient(config);
             Client.Log += Log;
+            Client.Ready += Instance.Ready;
             await Client.LoginAsync(TokenType.Bot, Instance.Config.Token);
             await Client.StartAsync();
         }
@@ -125,6 +126,11 @@ namespace SillySCP
                     SetCustomStatus();
                 }
             }
+        }
+
+        private async Task Ready()
+        {
+            SetStatus();
         }
     }
 }
