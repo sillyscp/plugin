@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Interop;
 using AdminToys;
-using Discord;
-using Discord.WebSocket;
 using Exiled.API.Features;
 using PlayerStatsSystem;
 using PluginAPI.Core.Attributes;
@@ -14,37 +11,40 @@ namespace SillySCP
 {
     public class EventHandler
     {
-        [PluginEvent(ServerEventType.PlayerDamagedShootingTarget)]
-        void OnPlayerDamagedShootingTarget(Player player, ShootingTarget target, DamageHandlerBase damageHandler, float damage)
+        [PluginEvent(ServerEventType.PlayerDeath)]
+        void OnPlayerDied(Player player, Player attacker, DamageHandlerBase damageHandler)
         {
-            if (player == null) return;
-            var playerStat = Plugin.Instance.PlayerStats.Find((p) => p.Player == player);
+            if (attacker == null) return;
+            var playerStat = Plugin.Instance.PlayerStats.Find((p) => p.Player == attacker);
             if (playerStat == null)
             {
                 playerStat = new PlayerStat
                 {
-                    Player = player,
-                    Damage = 0
+                    Player = attacker,
+                    Kills = 0
                 };
                 Plugin.Instance.PlayerStats.Add(playerStat);
             }
-
-            playerStat.Damage += damage;
+            
+            playerStat.Kills++;
         }
 
         [PluginEvent(ServerEventType.RoundStart)]
         void OnRoundStart()
         {
+            Server.FriendlyFire = false;
             Plugin.Instance.PlayerStats = new List<PlayerStat>();
         }
 
         [PluginEvent(ServerEventType.RoundEnd)]
         void OnRoundEnd(RoundSummary.LeadingTeam leadingTeam)
         {
-            var playerStats = Plugin.Instance.PlayerStats.OrderByDescending((p) => p.Damage).ToList();
+            PluginAPI.Core.Log.Info(Plugin.Instance.PlayerStats.ToString());
+            var playerStats = Plugin.Instance.PlayerStats.OrderByDescending((p) => p.Kills).ToList();
             var mvp = playerStats.FirstOrDefault();
+            Server.FriendlyFire = true;
             if (mvp == null) return;
-            Map.Broadcast(10, "MVP for this round is " + mvp.Player.Nickname + " with " + mvp.Damage + " damage!");
+            Map.Broadcast(10, "MVP for this round is " + mvp.Player.Nickname + " with " + mvp.Kills + " kills!");
         }
         
         [PluginEvent(ServerEventType.PlayerJoined)]

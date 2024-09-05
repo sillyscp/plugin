@@ -5,6 +5,6 @@ namespace SillySCP
     public class PlayerStat
     {
         public Player Player { get; set; }
-        public float Damage { get; set; }
+        public float Kills { get; set; }
     }
 }
