@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Exiled.API.Features;
+using MEC;
 using PluginAPI.Events;
 
 namespace SillySCP
@@ -15,6 +17,7 @@ namespace SillySCP
         private EventHandler handler;
         public static DiscordSocketClient Client;
         private bool statusUpdating;
+        private bool messageUpdating;
 
         public override void OnEnabled()
         {
@@ -71,8 +74,8 @@ namespace SillySCP
                 .WithTitle("Silly SCP Member List")
                 .WithColor(Color.Blue)
                 .WithDescription(players == "" ? "No players online" : players);
-            SetMessage(textChannel, 1280910252325339311, embedBuilder.Build());
-            SetCustomStatus();
+            Timing.RunCoroutine(SetMessage(textChannel, 1280910252325339311, embedBuilder.Build()));
+            Timing.RunCoroutine(SetCustomStatus());
         }
         
         private SocketTextChannel GetChannel(ulong id)
@@ -82,33 +85,38 @@ namespace SillySCP
             var textChannel = (SocketTextChannel) channel;
             return textChannel;
         }
-
-        private IMessage GetMessage(SocketTextChannel channel, ulong id)
-        {
-            var message = channel.GetMessageAsync(id).GetAwaiter().GetResult();
-            if (message.Author.Id != Client.CurrentUser.Id) return null;
-            return message;
-        }
         
-        private void SetMessage(SocketTextChannel channel, ulong id, Embed embed)
+        IEnumerator<float> SetMessage(SocketTextChannel channel, ulong id, Embed embed)
         {
             try
             {
-                var message = GetMessage(channel, id);
-                if (message.Author.Id != Client.CurrentUser.Id) return;
+                var message = channel.GetMessageAsync(id).GetAwaiter().GetResult();
+                if (message.Author.Id != Client.CurrentUser.Id) yield break;
                 channel.ModifyMessageAsync(id, msg =>
                 {
                     msg.Embed = embed;
                     msg.Content = "";
                 }).GetAwaiter().GetResult();
             }
-            catch (Exception error)
+            catch
             {
-                PluginAPI.Core.Log.Error(error.ToString());
+                if (messageUpdating == false)
+                {
+                    messageUpdating = true;
+                    Task.Delay(5);
+                    Timing.RunCoroutine(SetMessage(channel, id, embed));
+                }
             }
+
+            yield return 0;
         }
 
-        private void SetCustomStatus()
+        private async Task Ready()
+        {
+            SetStatus();
+        }
+
+        IEnumerator<float> SetCustomStatus()
         {
             var status = Server.PlayerCount + "/30 players active";
             try
@@ -116,21 +124,17 @@ namespace SillySCP
                 Client.SetCustomStatusAsync(status).GetAwaiter().GetResult();
                 statusUpdating = false;
             }
-            catch (Exception error)
+            catch
             {
-                PluginAPI.Core.Log.Error(error.ToString());
                 if (statusUpdating == false)
                 {
                     statusUpdating = true;
                     Task.Delay(5);
-                    SetCustomStatus();
+                    Timing.RunCoroutine(SetCustomStatus());
                 }
             }
-        }
 
-        private async Task Ready()
-        {
-            SetStatus();
+            yield return 0;
         }
     }
 }
