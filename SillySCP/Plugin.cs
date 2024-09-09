@@ -88,6 +88,7 @@ namespace SillySCP
         
         IEnumerator<float> SetMessage(SocketTextChannel channel, ulong id, Embed embed)
         {
+            bool rateLimited = false;
             try
             {
                 var message = channel.GetMessageAsync(id).GetAwaiter().GetResult();
@@ -100,12 +101,14 @@ namespace SillySCP
             }
             catch
             {
-                if (messageUpdating == false)
-                {
-                    messageUpdating = true;
-                    Task.Delay(5);
-                    Timing.RunCoroutine(SetMessage(channel, id, embed));
-                }
+                rateLimited = true;
+            }
+
+            if (rateLimited && messageUpdating == false)
+            {
+                messageUpdating = true;
+                yield return Timing.WaitForSeconds(5);
+                Timing.RunCoroutine(SetMessage(channel, id, embed));
             }
 
             yield return 0;
@@ -118,6 +121,7 @@ namespace SillySCP
 
         IEnumerator<float> SetCustomStatus()
         {
+            bool rateLimited = false;
             var status = Server.PlayerCount + "/30 players active";
             try
             {
@@ -126,13 +130,15 @@ namespace SillySCP
             }
             catch
             {
-                if (statusUpdating == false)
-                {
-                    statusUpdating = true;
-                    Task.Delay(5);
-                    Timing.RunCoroutine(SetCustomStatus());
-                }
+                rateLimited = true;
             }
+
+            if (rateLimited && statusUpdating == false)
+            {
+                statusUpdating = true;
+                yield return Timing.WaitForSeconds(5);
+                Timing.RunCoroutine(SetCustomStatus());
+            } 
 
             yield return 0;
         }
