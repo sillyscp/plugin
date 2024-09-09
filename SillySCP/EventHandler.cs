@@ -11,7 +11,7 @@ namespace SillySCP
     public class EventHandler
     {
         [PluginEvent(ServerEventType.PlayerDeath)]
-        void OnPlayerDied(Player player, Player attacker, DamageHandlerBase damageHandler)
+        void OnPlayerDied(Player _, Player attacker, DamageHandlerBase __)
         {
             if (attacker == null) return;
             var playerStat = Plugin.Instance.PlayerStats.Find((p) => p.Player == attacker);
@@ -36,7 +36,7 @@ namespace SillySCP
         }
 
         [PluginEvent(ServerEventType.RoundEnd)]
-        void OnRoundEnd(RoundSummary.LeadingTeam leadingTeam)
+        void OnRoundEnd(RoundSummary.LeadingTeam _)
         {
             var playerStats = Plugin.Instance.PlayerStats.OrderByDescending((p) => p.Kills).ToList();
             var mvp = playerStats.FirstOrDefault();
@@ -46,13 +46,13 @@ namespace SillySCP
         }
         
         [PluginEvent(ServerEventType.PlayerJoined)]
-        void OnPlayerJoined(Player player)
+        void OnPlayerJoined(Player _)
         {
             Plugin.Instance.SetStatus();
         }
 
         [PluginEvent(ServerEventType.PlayerLeft)]
-        void OnPlayerLeft(Player player)
+        void OnPlayerLeft(Player _)
         {
             Plugin.Instance.SetStatus();
         }
