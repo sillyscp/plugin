@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using AdminToys;
 using Exiled.API.Features;
 using PlayerStatsSystem;
 using PluginAPI.Core.Attributes;
@@ -39,7 +38,6 @@ namespace SillySCP
         [PluginEvent(ServerEventType.RoundEnd)]
         void OnRoundEnd(RoundSummary.LeadingTeam leadingTeam)
         {
-            PluginAPI.Core.Log.Info(Plugin.Instance.PlayerStats.ToString());
             var playerStats = Plugin.Instance.PlayerStats.OrderByDescending((p) => p.Kills).ToList();
             var mvp = playerStats.FirstOrDefault();
             Server.FriendlyFire = true;
