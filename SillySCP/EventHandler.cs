@@ -33,6 +33,8 @@ namespace SillySCP
         {
             Server.FriendlyFire = false;
             Plugin.Instance.PlayerStats = new List<PlayerStat>();
+            Plugin.Instance.RoundStarted = true;
+            Plugin.Instance.SetStatus();
         }
 
         [PluginEvent(ServerEventType.RoundEnd)]
@@ -43,18 +45,20 @@ namespace SillySCP
             Server.FriendlyFire = true;
             if (mvp == null) return;
             Map.Broadcast(10, "MVP for this round is " + mvp.Player.Nickname + " with " + mvp.Kills + " kills!");
+            Plugin.Instance.RoundStarted = false;
+            Plugin.Instance.SetStatus();
         }
         
         [PluginEvent(ServerEventType.PlayerJoined)]
         void OnPlayerJoined(Player _)
         {
-            Plugin.Instance.SetStatus();
+            if(Plugin.Instance.RoundStarted) Plugin.Instance.SetStatus();
         }
 
         [PluginEvent(ServerEventType.PlayerLeft)]
         void OnPlayerLeft(Player _)
         {
-            Plugin.Instance.SetStatus();
+            if(Plugin.Instance.RoundStarted) Plugin.Instance.SetStatus();
         }
     }
 }

@@ -14,11 +14,11 @@ namespace SillySCP
         public List<PlayerStat> PlayerStats;
         private EventHandler handler;
         public static DiscordSocketClient Client;
-        private bool statusUpdating;
-        private bool messageUpdating;
+        public bool RoundStarted { get; set; }
 
         public override void OnEnabled()
         {
+            RoundStarted = false;
             Instance = this;
             handler = new EventHandler();
             EventManager.RegisterEvents(this, handler);
@@ -28,6 +28,7 @@ namespace SillySCP
         
         public override void OnDisabled()
         {
+            RoundStarted = false;
             EventManager.UnregisterEvents(this, handler);
             handler = null;
             Task.Run(StopClient);
@@ -44,7 +45,8 @@ namespace SillySCP
         {
             var config = new DiscordSocketConfig()
             {
-                GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMessages
+                GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMessages,
+                LogLevel = LogSeverity.Error
             };
             Client = new DiscordSocketClient(config);
             Client.Log += Log;
@@ -71,9 +73,9 @@ namespace SillySCP
             var embedBuilder = new EmbedBuilder()
                 .WithTitle("Silly SCP Member List")
                 .WithColor(Color.Blue)
-                .WithDescription(players == "" ? "No players online" : players);
-            Timing.RunCoroutine(SetMessage(textChannel, 1280910252325339311, embedBuilder.Build()));
-            Timing.RunCoroutine(SetCustomStatus());
+                .WithDescription(RoundStarted ? players == "" ? "No players online" : players : "Waiting for players.");
+            SetMessage(textChannel, 1280910252325339311, embedBuilder.Build());
+            SetCustomStatus();
         }
         
         private SocketTextChannel GetChannel(ulong id)
@@ -83,62 +85,42 @@ namespace SillySCP
             var textChannel = (SocketTextChannel) channel;
             return textChannel;
         }
-        
-        IEnumerator<float> SetMessage(SocketTextChannel channel, ulong id, Embed embed)
-        {
-            bool rateLimited = false;
-            try
-            {
-                var message = channel.GetMessageAsync(id).GetAwaiter().GetResult();
-                if (message.Author.Id != Client.CurrentUser.Id) yield break;
-                channel.ModifyMessageAsync(id, msg =>
-                {
-                    msg.Embed = embed;
-                    msg.Content = "";
-                }).GetAwaiter().GetResult();
-            }
-            catch
-            {
-                rateLimited = true;
-            }
-
-            if (rateLimited && messageUpdating == false)
-            {
-                messageUpdating = true;
-                yield return Timing.WaitForSeconds(5);
-                Timing.RunCoroutine(SetMessage(channel, id, embed));
-            }
-
-            yield return 0;
-        }
 
         private async Task Ready()
         {
             SetStatus();
         }
-
-        IEnumerator<float> SetCustomStatus()
+        
+        private void SetMessage(SocketTextChannel channel, ulong messageId, Embed embed)
         {
-            bool rateLimited = false;
-            var status = Server.PlayerCount + "/30 players active";
+            var message = channel.GetMessageAsync(messageId).Result;
+
             try
             {
-                Client.SetCustomStatusAsync(status).GetAwaiter().GetResult();
-                statusUpdating = false;
+                channel.ModifyMessageAsync(message.Id, msg =>
+                {
+                    msg.Embed = embed;
+                    msg.Content = "";
+                });
             }
             catch
             {
-                rateLimited = true;
+                // ignored
             }
+        }
 
-            if (rateLimited && statusUpdating == false)
+        private void SetCustomStatus()
+        {
+            var status = RoundStarted
+                ? $"{Server.PlayerCount}/{Server.MaxPlayerCount} players"
+                : "Waiting for players.";
+            try{
+                Client.SetCustomStatusAsync(status);
+            }
+            catch
             {
-                statusUpdating = true;
-                yield return Timing.WaitForSeconds(5);
-                Timing.RunCoroutine(SetCustomStatus());
-            } 
-
-            yield return 0;
+                // ignored
+            }
         }
     }
 }
