@@ -58,7 +58,17 @@ namespace SillySCP
         [PluginEvent(ServerEventType.PlayerLeft)]
         void OnPlayerLeft(Player _)
         {
+            Plugin.Instance.RoundStarted = Server.PlayerCount > 0;
             if(Plugin.Instance.RoundStarted) Plugin.Instance.SetStatus();
+        }
+
+        [PluginEvent(ServerEventType.PlayerChangeSpectator)]
+        void OnPlayerChangeSpectator(Player player, Player _, Player spec)
+        {
+            if (spec == null) return;
+            var playerKills = Plugin.Instance.PlayerStats.Find((p) => p.Player == spec)?.Kills;
+            if (playerKills == null) playerKills = 0;
+            player.ReceiveHint("Kill count: " + playerKills + "", int.MaxValue);
         }
     }
 }
