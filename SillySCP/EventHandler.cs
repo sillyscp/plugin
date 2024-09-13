@@ -14,6 +14,7 @@ namespace SillySCP
         void OnPlayerDied(Player _, Player attacker, DamageHandlerBase __)
         {
             if (attacker == null) return;
+            if (attacker.DoNotTrack) return;
             var playerStat = Plugin.Instance.PlayerStats.Find((p) => p.Player == attacker);
             if (playerStat == null)
             {
@@ -68,7 +69,7 @@ namespace SillySCP
             if (spec == null) return;
             var playerKills = Plugin.Instance.PlayerStats.Find((p) => p.Player == spec)?.Kills;
             if (playerKills == null) playerKills = 0;
-            player.ReceiveHint("Kill count: " + playerKills + "", int.MaxValue);
+            player.ReceiveHint("Kill count: " + (spec.DoNotTrack ? "Unknown" : playerKills.ToString()) + "", int.MaxValue);
         }
     }
 }

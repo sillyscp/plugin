@@ -29,6 +29,12 @@ namespace SillySCP.Commands
                 response = "Only players can use this command!";
                 return false;
             }
+
+            if (player.DoNotTrack)
+            {
+                response = "You have do not track enabled, disable it so we can start tracking your kills!";
+                return false;
+            }
             
             var playerStat = Plugin.Instance.PlayerStats.Find((p) => p.Player == player);
             if (playerStat == null)
