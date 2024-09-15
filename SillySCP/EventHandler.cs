@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Exiled.API.Features;
+using PlayerRoles;
 using PlayerStatsSystem;
 using PluginAPI.Core.Attributes;
 using PluginAPI.Enums;
+using PluginAPI.Events;
 using Player = PluginAPI.Core.Player;
 
 namespace SillySCP
@@ -11,22 +13,11 @@ namespace SillySCP
     public class EventHandler
     {
         [PluginEvent(ServerEventType.PlayerDeath)]
-        void OnPlayerDied(Player _, Player attacker, DamageHandlerBase __)
+        void OnPlayerDied(Player player, Player attacker, DamageHandlerBase handler)
         {
             if (attacker == null) return;
-            if (attacker.DoNotTrack) return;
-            var playerStat = Plugin.Instance.PlayerStats.Find((p) => p.Player == attacker);
-            if (playerStat == null)
-            {
-                playerStat = new PlayerStat
-                {
-                    Player = attacker,
-                    Kills = 0
-                };
-                Plugin.Instance.PlayerStats.Add(playerStat);
-            }
-            
-            playerStat.Kills++;
+            if (player == attacker) return;
+            Plugin.Instance.UpdateKills(attacker);
         }
 
         [PluginEvent(ServerEventType.RoundStart)]
@@ -70,6 +61,39 @@ namespace SillySCP
             var playerKills = Plugin.Instance.PlayerStats.Find((p) => p.Player == spec)?.Kills;
             if (playerKills == null) playerKills = 0;
             player.ReceiveHint("Kill count: " + (spec.DoNotTrack ? "Unknown" : playerKills.ToString()) + "", int.MaxValue);
+        }
+
+        [PluginEvent(ServerEventType.PlayerSpawn)]
+        public void OnSpawn(Player player, RoleTypeId id)
+        {
+            if(id == RoleTypeId.Scp106 && player.DoNotTrack == false) Plugin.Instance.Scp106 = player;
+            player.ReceiveHint("", int.MaxValue);
+        }
+
+        [PluginEvent]
+        public void OnRespawn(TeamRespawnEvent ev)
+        {
+            ev.Players.ForEach((p) => p.ReceiveHint("", int.MaxValue));
+        }
+
+        [PluginEvent]
+        public void OnScp049ResurrectBody(Scp049ResurrectBodyEvent ev)
+        {
+            ev.Target.ReceiveHint("", int.MaxValue);
+        }
+
+        [PluginEvent]
+        public void OnPlayerEnterPocketDimension(PlayerEnterPocketDimensionEvent ev)
+        {
+            if(Plugin.Instance.Scp106 == null) return;
+            Plugin.Instance.UpdateKills(Plugin.Instance.Scp106);
+        }
+        
+        [PluginEvent]
+        public void OnPlayerExitPocketDimension(PlayerExitPocketDimensionEvent ev)
+        {
+            if(Plugin.Instance.Scp106 == null) return;
+            Plugin.Instance.UpdateKills(Plugin.Instance.Scp106, false);
         }
     }
 }

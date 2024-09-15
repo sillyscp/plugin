@@ -15,6 +15,7 @@ namespace SillySCP
         private EventHandler handler;
         public static DiscordSocketClient Client;
         public bool RoundStarted { get; set; }
+        public PluginAPI.Core.Player Scp106;
 
         public override void OnEnabled()
         {
@@ -121,6 +122,25 @@ namespace SillySCP
             {
                 // ignored
             }
+        }
+
+        public void UpdateKills(PluginAPI.Core.Player player, bool positive = true)
+        {
+            if (player.DoNotTrack) return;
+            var playerStat = PlayerStats.Find((p) => p.Player == player);
+            if (playerStat == null)
+            {
+                playerStat = new PlayerStat
+                {
+                    Player = player,
+                    Kills = 0
+                };
+                PlayerStats.Add(playerStat);
+            }
+            if(positive)
+                playerStat.Kills++;
+            else if(playerStat.Kills > 0)
+                playerStat.Kills--;
         }
     }
 }
