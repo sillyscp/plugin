@@ -70,6 +70,13 @@ namespace SillySCP
             player.ReceiveHint("", int.MaxValue);
         }
 
+        [PluginEvent(ServerEventType.WaitingForPlayers)]
+        public void WaitingForPlayers()
+        {
+            Plugin.Instance.RoundStarted = false;
+            Plugin.Instance.SetStatus();
+        }
+
         [PluginEvent]
         public void OnRespawn(TeamRespawnEvent ev)
         {
