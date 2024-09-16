@@ -9,7 +9,7 @@ using Player = PluginAPI.Core.Player;
 namespace SillySCP.Commands
 {
     [CommandHandler(typeof(ClientCommandHandler))]
-    public class Volunteer
+    public class Volunteer: ICommand
     {
         public string Command { get; } = "volunteer";
 

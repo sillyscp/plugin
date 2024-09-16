@@ -60,15 +60,19 @@ namespace SillySCP
         }
 
         [PluginEvent(ServerEventType.PlayerJoined)]
-        public void OnPlayerJoined(Player _)
+        public void OnPlayerJoined(Player player)
         {
             if (Plugin.Instance.RoundStarted)
+            {
                 Plugin.Instance.SetStatus();
+                if(player.Role == RoleTypeId.Spectator) Timing.RunCoroutine(Plugin.Instance.RespawnTimer(player));
+            }
         }
 
         [PluginEvent]
         public void OnChangeRole(PlayerChangeRoleEvent ev)
         {
+            if (ev.NewRole == RoleTypeId.Spectator) Timing.RunCoroutine(Plugin.Instance.RespawnTimer(ev.Player));
             if (ev.OldRole.Team == Team.SCPs && Plugin.Instance.ReadyVolunteers)
             {
                 Cassie.Clear();
@@ -168,6 +172,7 @@ namespace SillySCP
         [PluginEvent]
         public void OnPlayerExitPocketDimension(PlayerExitPocketDimensionEvent ev)
         {
+            if (ev.Player.Role == RoleTypeId.Spectator) return;
             if (Plugin.Instance.Scp106 == null)
                 return;
             Plugin.Instance.UpdateKills(Plugin.Instance.Scp106, false);

@@ -196,11 +196,10 @@ namespace SillySCP
                 var text =
                     "<voffset=-4em><size=26>Respawning "
                     + (teamText != null ? "as " + teamText : "")
-                    + " in:\n"
+                    + " in:\n</voffset>"
                     + currentTime
-                    + " seconds</size>"
-                    + (playerStat?.Spectating != null ? "\n\nKill count: " + spectatingKills : "")
-                    + "</voffset>";
+                    + "</size>"
+                    + (playerStat?.Spectating != null ? "\n\nKill count: " + spectatingKills : "");
                 player.ReceiveHint(text, 1.2f);
             }
 
@@ -223,6 +222,7 @@ namespace SillySCP
             var random = new Random();
             var replacementPlayer = volunteer.Players[random.Next(volunteer.Players.Count)];
             replacementPlayer.SetRole(volunteer.Replacement);
+            yield return 0;
         }
     }
 }
