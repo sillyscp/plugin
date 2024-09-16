@@ -228,11 +228,13 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Commands\Kills.cs" />
+        <Compile Include="Commands\Volunteer.cs" />
         <Compile Include="Config.cs" />
         <Compile Include="EventHandler.cs" />
         <Compile Include="PlayerStat.cs" />
         <Compile Include="Plugin.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="Volunteers.cs" />
     </ItemGroup>
     <ItemGroup>
       <None Include="App.config" />

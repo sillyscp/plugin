@@ -1,10 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Exiled.API.Features;
 using MEC;
+using PlayerRoles;
 using PluginAPI.Events;
+using Respawning;
 
 namespace SillySCP
 {
@@ -12,31 +16,33 @@ namespace SillySCP
     {
         public static Plugin Instance;
         public List<PlayerStat> PlayerStats;
-        private EventHandler handler;
+        private EventHandler Handler;
         public static DiscordSocketClient Client;
         public bool RoundStarted { get; set; }
         public PluginAPI.Core.Player Scp106;
+        public List<Volunteers> Volunteers;
+        public bool ReadyVolunteers;
 
         public override void OnEnabled()
         {
             RoundStarted = false;
             Instance = this;
-            handler = new EventHandler();
-            EventManager.RegisterEvents(this, handler);
+            Handler = new EventHandler();
+            EventManager.RegisterEvents(this, Handler);
             Task.Run(StartClient);
             base.OnEnabled();
         }
-        
+
         public override void OnDisabled()
         {
             RoundStarted = false;
-            EventManager.UnregisterEvents(this, handler);
-            handler = null;
+            EventManager.UnregisterEvents(this, Handler);
+            Handler = null;
             Task.Run(StopClient);
             base.OnDisabled();
         }
-        
-        private static Task Log(LogMessage msg)
+
+        private static Task DiscLog(LogMessage msg)
         {
             PluginAPI.Core.Log.Info(msg.ToString());
             return Task.CompletedTask;
@@ -47,15 +53,15 @@ namespace SillySCP
             var config = new DiscordSocketConfig()
             {
                 GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMessages,
-                LogLevel = LogSeverity.Error
+                LogLevel = LogSeverity.Error,
             };
             Client = new DiscordSocketClient(config);
-            Client.Log += Log;
+            Client.Log += DiscLog;
             Client.Ready += Instance.Ready;
             await Client.LoginAsync(TokenType.Bot, Instance.Config.Token);
             await Client.StartAsync();
         }
-        
+
         private static async Task StopClient()
         {
             await Client.StopAsync();
@@ -74,16 +80,23 @@ namespace SillySCP
             var embedBuilder = new EmbedBuilder()
                 .WithTitle("Silly SCP Member List")
                 .WithColor(Color.Blue)
-                .WithDescription(RoundStarted ? players == "" ? "No players online" : players : "Waiting for players.");
+                .WithDescription(
+                    RoundStarted
+                        ? players == ""
+                            ? "No players online"
+                            : players
+                        : "Waiting for players."
+                );
             SetMessage(textChannel, 1280910252325339311, embedBuilder.Build());
             SetCustomStatus();
         }
-        
+
         private SocketTextChannel GetChannel(ulong id)
         {
             var channel = Client.GetChannel(id);
-            if (channel.GetChannelType() != ChannelType.Text) return null;
-            var textChannel = (SocketTextChannel) channel;
+            if (channel.GetChannelType() != ChannelType.Text)
+                return null;
+            var textChannel = (SocketTextChannel)channel;
             return textChannel;
         }
 
@@ -91,18 +104,21 @@ namespace SillySCP
         {
             SetStatus();
         }
-        
+
         private void SetMessage(SocketTextChannel channel, ulong messageId, Embed embed)
         {
             var message = channel.GetMessageAsync(messageId).Result;
 
             try
             {
-                channel.ModifyMessageAsync(message.Id, msg =>
-                {
-                    msg.Embed = embed;
-                    msg.Content = "";
-                });
+                channel.ModifyMessageAsync(
+                    message.Id,
+                    msg =>
+                    {
+                        msg.Embed = embed;
+                        msg.Content = "";
+                    }
+                );
             }
             catch
             {
@@ -115,7 +131,8 @@ namespace SillySCP
             var status = RoundStarted
                 ? $"{Server.PlayerCount}/{Server.MaxPlayerCount} players"
                 : "Waiting for players.";
-            try{
+            try
+            {
                 Client.SetCustomStatusAsync(status);
             }
             catch
@@ -124,23 +141,88 @@ namespace SillySCP
             }
         }
 
-        public void UpdateKills(PluginAPI.Core.Player player, bool positive = true)
+        public PlayerStat FindOrCreatePlayerStat(PluginAPI.Core.Player player)
         {
-            if (player.DoNotTrack) return;
-            var playerStat = PlayerStats.Find((p) => p.Player == player);
+            var playerStat = FindPlayerStat(player);
             if (playerStat == null)
             {
                 playerStat = new PlayerStat
                 {
                     Player = player,
-                    Kills = 0
+                    Kills = player.DoNotTrack ? (int?)null : 0,
+                    Spectating = null,
                 };
                 PlayerStats.Add(playerStat);
             }
-            if(positive)
+
+            return playerStat;
+        }
+        
+        public PlayerStat FindPlayerStat(PluginAPI.Core.Player player)
+        {
+            return PlayerStats.Find((p) => p.Player == player);
+        }
+
+        public void UpdateKills(PluginAPI.Core.Player player, bool positive = true)
+        {
+            if (player.DoNotTrack)
+                return;
+            var playerStat = FindOrCreatePlayerStat(player);
+            if (positive)
                 playerStat.Kills++;
-            else if(playerStat.Kills > 0)
+            else if (playerStat.Kills > 0)
                 playerStat.Kills--;
+        }
+
+        public IEnumerator<float> RespawnTimer(PluginAPI.Core.Player player)
+        {
+            while (true)
+            {
+                yield return Timing.WaitForSeconds(1f);
+                player = PluginAPI.Core.Player.GetPlayers().FirstOrDefault((p) => p.UserId == player.UserId);
+                if (player == null || player.Role != RoleTypeId.Spectator)
+                    break;
+                var respawnTeam = Respawn.NextKnownTeam;
+                var teamText = respawnTeam != SpawnableTeamType.None ? "<color=" + (respawnTeam == SpawnableTeamType.ChaosInsurgency ? "green>Chaos Insurgency" : "blue>Nine-Tailed Fox") + "</color>" : null;
+                var timeUntilWave = Respawn.TimeUntilSpawnWave;
+                timeUntilWave = teamText != null ? timeUntilWave : timeUntilWave.Add(TimeSpan.FromSeconds(20));
+                var currentTime = $"{timeUntilWave.Minutes:D1}:{timeUntilWave.Seconds:D2}";
+                var playerStat = FindPlayerStat(player);
+                var spectatingPlayerStat = playerStat != null && playerStat.Spectating != null ? FindPlayerStat(playerStat?.Spectating) : null;
+                var spectatingKills =
+                    spectatingPlayerStat != null
+                        ? spectatingPlayerStat.Player.DoNotTrack == false ? spectatingPlayerStat.Kills.ToString() : "Unknown"
+                        : "0";
+                var text =
+                    "<voffset=-4em><size=26>Respawning "
+                    + (teamText != null ? "as " + teamText : "")
+                    + " in:\n"
+                    + currentTime
+                    + " seconds</size>"
+                    + (playerStat?.Spectating != null ? "\n\nKill count: " + spectatingKills : "")
+                    + "</voffset>";
+                player.ReceiveHint(text, 1.2f);
+            }
+
+            yield return 0;
+        }
+
+        public IEnumerator<float> DisableVolunteers()
+        {
+            ReadyVolunteers = true;
+            yield return Timing.WaitForSeconds(180);
+            ReadyVolunteers = false;
+        }
+
+        public IEnumerator<float> ChooseVolunteers(Volunteers volunteer)
+        {
+            yield return Timing.WaitForSeconds(15);
+            volunteer = Volunteers.FirstOrDefault((v) => v.Replacement == volunteer.Replacement);
+            if (volunteer == null)
+                yield break;
+            var random = new Random();
+            var replacementPlayer = volunteer.Players[random.Next(volunteer.Players.Count)];
+            replacementPlayer.SetRole(volunteer.Replacement);
         }
     }
 }
