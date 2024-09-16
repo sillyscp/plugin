@@ -92,6 +92,9 @@ namespace SillySCP
                     case RoleTypeId.Scp106:
                         scpNumber = "106";
                         break;
+                    case RoleTypeId.Scp173:
+                        scpNumber = "173";
+                        break;
                     case RoleTypeId.Scp939:
                         scpNumber = "939";
                         break;
