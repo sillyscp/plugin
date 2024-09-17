@@ -73,12 +73,13 @@ namespace SillySCP
         public void OnChangeRole(PlayerChangeRoleEvent ev)
         {
             if (ev.NewRole == RoleTypeId.Spectator) Timing.RunCoroutine(Plugin.Instance.RespawnTimer(ev.Player));
-            if (ev.OldRole.Team == Team.SCPs && Plugin.Instance.ReadyVolunteers)
+            if (ev.OldRole.Team == Team.SCPs && (ev.NewRole == RoleTypeId.Spectator || ev.NewRole == RoleTypeId.None) && Plugin.Instance.ReadyVolunteers)
             {
                 Cassie.Clear();
                 var volunteer = new Volunteers
                 {
                     Replacement = ev.Player.Role,
+                    Players = new List<Exiled.API.Features.Player>()
                 };
                 Plugin.Instance.Volunteers.Add(volunteer);
                 string scpNumber;

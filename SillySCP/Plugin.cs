@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Exiled.API.Features;
+using Exiled.Events.EventArgs.Player;
 using MEC;
 using PlayerRoles;
 using PluginAPI.Events;
@@ -29,6 +30,8 @@ namespace SillySCP
             Instance = this;
             Handler = new EventHandler();
             EventManager.RegisterEvents(this, Handler);
+            Exiled.Events.Handlers.Player.Left += OnPlayerLeave;
+            Exiled.Events.Handlers.Server.WaitingForPlayers += OnWaitingForPlayers;
             Task.Run(StartClient);
             base.OnEnabled();
         }
@@ -37,9 +40,25 @@ namespace SillySCP
         {
             RoundStarted = false;
             EventManager.UnregisterEvents(this, Handler);
+            Exiled.Events.Handlers.Player.Left -= OnPlayerLeave;
+            Exiled.Events.Handlers.Server.WaitingForPlayers -= OnWaitingForPlayers;
             Handler = null;
             Task.Run(StopClient);
             base.OnDisabled();
+        }
+
+        private void OnWaitingForPlayers()
+        {
+            RoundStarted = false;
+            SetStatus();
+        }
+
+        private void OnPlayerLeave(LeftEventArgs ev)
+        {
+            if(Volunteers == null)
+                return;
+            var volunteeredScp = Volunteers.FirstOrDefault((v) => v.Players.Contains(ev.Player));
+            if (volunteeredScp != null) volunteeredScp.Players.Remove(ev.Player);
         }
 
         private static Task DiscLog(LogMessage msg)
@@ -185,8 +204,8 @@ namespace SillySCP
                 var respawnTeam = Respawn.NextKnownTeam;
                 var teamText = respawnTeam != SpawnableTeamType.None ? "<color=" + (respawnTeam == SpawnableTeamType.ChaosInsurgency ? "green>Chaos Insurgency" : "blue>Nine-Tailed Fox") + "</color>" : null;
                 var timeUntilWave = Respawn.TimeUntilSpawnWave;
-                timeUntilWave = teamText != null ? timeUntilWave : timeUntilWave.Add(TimeSpan.FromSeconds(20));
-                var currentTime = $"{timeUntilWave.Minutes:D1}:{timeUntilWave.Seconds:D2}";
+                timeUntilWave = teamText != null ? timeUntilWave : timeUntilWave.Add(TimeSpan.FromSeconds(Respawn.NtfTickets >= Respawn.ChaosTickets ? 17 : 12));
+                var currentTime = $"{timeUntilWave.Minutes:D1}M {timeUntilWave.Seconds:D2}S";
                 var playerStat = FindPlayerStat(player);
                 var spectatingPlayerStat = playerStat != null && playerStat.Spectating != null ? FindPlayerStat(playerStat?.Spectating) : null;
                 var spectatingKills =
@@ -195,8 +214,8 @@ namespace SillySCP
                         : "0";
                 var text =
                     "<voffset=-4em><size=26>Respawning "
-                    + (teamText != null ? "as " + teamText : "")
-                    + " in:\n</voffset>"
+                    + (teamText != null ? "as " + teamText + " " : "")
+                    + "in:\n</voffset>"
                     + currentTime
                     + "</size>"
                     + (playerStat?.Spectating != null ? "\n\nKill count: " + spectatingKills : "");
@@ -221,7 +240,7 @@ namespace SillySCP
                 yield break;
             var random = new Random();
             var replacementPlayer = volunteer.Players[random.Next(volunteer.Players.Count)];
-            replacementPlayer.SetRole(volunteer.Replacement);
+            replacementPlayer.Role.Set(volunteer.Replacement);
             yield return 0;
         }
     }

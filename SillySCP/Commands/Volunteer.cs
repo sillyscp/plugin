@@ -1,10 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CommandSystem;
-using Exiled.API.Features;
 using PlayerRoles;
-using RemoteAdmin;
-using Player = PluginAPI.Core.Player;
+using Player = Exiled.API.Features.Player;
 
 namespace SillySCP.Commands
 {
@@ -23,13 +22,11 @@ namespace SillySCP.Commands
             out string response
         )
         {
-            if (!(sender is PlayerCommandSender playerSender))
+            if (!Player.TryGet(sender, out Player player))
             {
                 response = "Only players can use this command!";
                 return false;
             }
-
-            var player = Player.GetPlayers().Find((p) => p.PlayerId == playerSender.PlayerId);
 
             if (player == null)
             {
@@ -43,9 +40,11 @@ namespace SillySCP.Commands
                 return false;
             }
 
-            if (!Enum.TryParse($"Scp{arguments.First()}", out RoleTypeId role))
+            RoleTypeId role;
+
+            if (!Enum.TryParse("Scp" + arguments.At(0), true, out role) && !Enum.TryParse(arguments.At(0), true, out role))
             {
-                response = "Invalid role!";
+                response = "Error parsing the RoleTypeId.";
                 return false;
             }
 
@@ -56,6 +55,11 @@ namespace SillySCP.Commands
                 response = "Invalid role!";
                 return false;
             }
+
+            if (volunteer.Players == null)
+            {
+                volunteer.Players = new List<Player>();
+            }
             
             if (volunteer.Players.Contains(player))
             {
@@ -65,7 +69,7 @@ namespace SillySCP.Commands
             
             volunteer.Players.Add(player);
             
-            player.SendBroadcast("You have volunteered to become SCP-" + arguments.First() + "!", 5, Broadcast.BroadcastFlags.Normal, true);
+            player.Broadcast(5, "You have volunteered to become SCP-" + arguments.First() + "!", Broadcast.BroadcastFlags.Normal, true);
             
             response = "Done!";
             return true;
