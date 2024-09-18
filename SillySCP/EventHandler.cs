@@ -82,31 +82,7 @@ namespace SillySCP
                     Players = new List<Exiled.API.Features.Player>()
                 };
                 Plugin.Instance.Volunteers.Add(volunteer);
-                string scpNumber;
-                switch (ev.Player.Role)
-                {
-                    case RoleTypeId.Scp049:
-                        scpNumber = "049";
-                        break;
-                    case RoleTypeId.Scp079:
-                        scpNumber = "079";
-                        break;
-                    case RoleTypeId.Scp096:
-                        scpNumber = "096";
-                        break;
-                    case RoleTypeId.Scp106:
-                        scpNumber = "106";
-                        break;
-                    case RoleTypeId.Scp173:
-                        scpNumber = "173";
-                        break;
-                    case RoleTypeId.Scp939:
-                        scpNumber = "939";
-                        break;
-                    default:
-                        scpNumber = "unknown";
-                        break;
-                }
+                string scpNumber = Plugin.Instance.GetSCPNumber(ev.Player.Role);
                 Map.Broadcast(10, $"SCP-{scpNumber} has left the game\nPlease run .volunteer {scpNumber} to volunteer to be the SCP");
                 Timing.RunCoroutine(Plugin.Instance.ChooseVolunteers(volunteer));
             }

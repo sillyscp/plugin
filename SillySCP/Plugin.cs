@@ -17,7 +17,7 @@ namespace SillySCP
     {
         public static Plugin Instance;
         public List<PlayerStat> PlayerStats;
-        private EventHandler Handler;
+        private EventHandler _handler;
         public static DiscordSocketClient Client;
         public bool RoundStarted { get; set; }
         public PluginAPI.Core.Player Scp106;
@@ -28,8 +28,8 @@ namespace SillySCP
         {
             RoundStarted = false;
             Instance = this;
-            Handler = new EventHandler();
-            EventManager.RegisterEvents(this, Handler);
+            _handler = new EventHandler();
+            EventManager.RegisterEvents(this, _handler);
             Exiled.Events.Handlers.Player.Left += OnPlayerLeave;
             Exiled.Events.Handlers.Server.WaitingForPlayers += OnWaitingForPlayers;
             Task.Run(StartClient);
@@ -39,16 +39,17 @@ namespace SillySCP
         public override void OnDisabled()
         {
             RoundStarted = false;
-            EventManager.UnregisterEvents(this, Handler);
+            EventManager.UnregisterEvents(this, _handler);
             Exiled.Events.Handlers.Player.Left -= OnPlayerLeave;
             Exiled.Events.Handlers.Server.WaitingForPlayers -= OnWaitingForPlayers;
-            Handler = null;
+            _handler = null;
             Task.Run(StopClient);
             base.OnDisabled();
         }
 
         private void OnWaitingForPlayers()
         {
+            Scp106 = null;
             RoundStarted = false;
             SetStatus();
         }
@@ -124,6 +125,8 @@ namespace SillySCP
             SetStatus();
         }
 
+        private bool _messageCooldown;
+
         private void SetMessage(SocketTextChannel channel, ulong messageId, Embed embed)
         {
             var message = channel.GetMessageAsync(messageId).Result;
@@ -138,12 +141,23 @@ namespace SillySCP
                         msg.Content = "";
                     }
                 );
+                _messageCooldown = false;
             }
             catch
             {
-                // ignored
+                if(!_messageCooldown)
+                {
+                    _messageCooldown = true;
+                    Timing.CallDelayed(10, () =>
+                    {
+                        if (!_messageCooldown) return;
+                        SetMessage(channel, messageId, embed);
+                    });
+                }
             }
         }
+        
+        private bool _statusCooldown;
 
         private void SetCustomStatus()
         {
@@ -153,10 +167,19 @@ namespace SillySCP
             try
             {
                 Client.SetCustomStatusAsync(status);
+                _statusCooldown = false;
             }
             catch
             {
-                // ignored
+                if (!_statusCooldown)
+                {
+                    _statusCooldown = true;
+                    Timing.CallDelayed(10, () =>
+                    {
+                        if (!_statusCooldown) return;
+                        SetCustomStatus();
+                    });
+                }
             }
         }
 
@@ -179,6 +202,8 @@ namespace SillySCP
         
         public PlayerStat FindPlayerStat(PluginAPI.Core.Player player)
         {
+            if(PlayerStats == null)
+                PlayerStats = new List<PlayerStat>();
             return PlayerStats.Find((p) => p.Player == player);
         }
 
@@ -204,8 +229,8 @@ namespace SillySCP
                 var respawnTeam = Respawn.NextKnownTeam;
                 var teamText = respawnTeam != SpawnableTeamType.None ? "<color=" + (respawnTeam == SpawnableTeamType.ChaosInsurgency ? "green>Chaos Insurgency" : "blue>Nine-Tailed Fox") + "</color>" : null;
                 var timeUntilWave = Respawn.TimeUntilSpawnWave;
-                timeUntilWave = teamText != null ? timeUntilWave : timeUntilWave.Add(TimeSpan.FromSeconds(Respawn.NtfTickets >= Respawn.ChaosTickets ? 17 : 12));
-                var currentTime = $"{timeUntilWave.Minutes:D1}M {timeUntilWave.Seconds:D2}S";
+                timeUntilWave = teamText != null ? timeUntilWave : timeUntilWave.Add(TimeSpan.FromSeconds(Respawn.NtfTickets >= Respawn.ChaosTickets ? 17 : 13));
+                var currentTime = $"{timeUntilWave.Minutes:D1}<size=22>M</size> {timeUntilWave.Seconds:D2}<size=22>S</size>";
                 var playerStat = FindPlayerStat(player);
                 var spectatingPlayerStat = playerStat != null && playerStat.Spectating != null ? FindPlayerStat(playerStat?.Spectating) : null;
                 var spectatingKills =
@@ -232,6 +257,27 @@ namespace SillySCP
             ReadyVolunteers = false;
         }
 
+        public string GetSCPNumber(RoleTypeId id)
+        {
+            switch (id)
+            {
+                case RoleTypeId.Scp049:
+                    return "049";
+                case RoleTypeId.Scp079:
+                    return "079";
+                case RoleTypeId.Scp096:
+                    return "096";
+                case RoleTypeId.Scp106:
+                    return "106";
+                case RoleTypeId.Scp173:
+                    return "173";
+                case RoleTypeId.Scp939:
+                    return "939";
+                default:
+                    return null;
+            }
+        }
+
         public IEnumerator<float> ChooseVolunteers(Volunteers volunteer)
         {
             yield return Timing.WaitForSeconds(15);
@@ -241,6 +287,8 @@ namespace SillySCP
             var random = new Random();
             var replacementPlayer = volunteer.Players[random.Next(volunteer.Players.Count)];
             replacementPlayer.Role.Set(volunteer.Replacement);
+            Map.Broadcast(10, "SCP-" + GetSCPNumber(volunteer.Replacement) + " has been replaced!",
+                Broadcast.BroadcastFlags.Normal, true);
             yield return 0;
         }
     }
