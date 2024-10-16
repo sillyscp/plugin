@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Exiled.Events.EventArgs.Player;
 
 namespace SillySCP
@@ -18,7 +19,7 @@ namespace SillySCP
                 return;
             var volunteeredScp = Plugin.Instance.Volunteers.FirstOrDefault((v) => v.Players.Contains(ev.Player));
             if (volunteeredScp != null) volunteeredScp.Players.Remove(ev.Player);
-            Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1296011257006002207).SendMessageAsync($"Player {ev.Player.Nickname} has left the server");
+            if(!String.IsNullOrEmpty(ev.Player.Nickname)) Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync($"Player {ev.Player.Nickname} has left the server");
         }
 
         public void OnPlayerDamageWindow(DamagingWindowEventArgs ev)
@@ -51,7 +52,7 @@ namespace SillySCP
 
         public void OnPlayerJoin(JoinedEventArgs ev)
         {
-            Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1296011257006002207).SendMessageAsync($"Player {ev.Player.Nickname} has joined the server");
+            if (!String.IsNullOrEmpty(ev.Player.Nickname)) Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync($"Player {ev.Player.Nickname} has joined the server");
         }
     }
 }
