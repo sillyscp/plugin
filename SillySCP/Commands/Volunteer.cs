@@ -33,6 +33,12 @@ namespace SillySCP.Commands
                 response = "Only players can use this command!";
                 return false;
             }
+
+            if (player.IsScp)
+            {
+                response = "You are already an SCP! If they get replaced, you can swap with the person if they wish!";
+                return false;
+            }
             
             if(arguments.Count != 1)
             {

@@ -48,7 +48,7 @@ namespace SillySCP.Commands
                 return true;
             }
 
-            response = "You have " + playerStat.Kills + " kills!";
+            response = "You have " + (playerStat.Kills ?? 0) + " player kills and " + (playerStat.ScpKills ?? 0) + " SCP kills!";
             return true;
         }
     }
