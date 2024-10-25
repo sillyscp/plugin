@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Exiled.API.Enums;
 using Exiled.API.Features;
@@ -11,6 +12,7 @@ using PluginAPI.Events;
 using Respawning;
 using UnityEngine;
 using Player = PluginAPI.Core.Player;
+using Round = PluginAPI.Core.Round;
 
 namespace SillySCP
 {
@@ -34,7 +36,6 @@ namespace SillySCP
             Plugin.Instance.PlayerStats = new List<PlayerStat>();
             Plugin.Instance.Volunteers = new List<Volunteers>();
             Timing.RunCoroutine(Plugin.Instance.DisableVolunteers());
-            Plugin.Instance.RoundStarted = true;
             Plugin.Instance.SetStatus();
             var eventRound = Plugin.Instance.RoundEvents.EventRound();
             if (eventRound)
@@ -47,6 +48,14 @@ namespace SillySCP
             {
                 Plugin.Instance.ChosenEvent = null;
             }
+
+            var message = "Round has started with the following people:\n```";
+            foreach (var player in Player.GetPlayers())
+            {
+                message += $"{player.Nickname}\n";
+            }
+            message = message.Trim() + "```";
+            Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync(message);
         }
 
         [PluginEvent(ServerEventType.RoundEnd)]
@@ -76,17 +85,21 @@ namespace SillySCP
         public void OnRestart()
         {
             Server.FriendlyFire = false;
-            Plugin.Instance.RoundStarted = false;
             Plugin.Instance.SetStatus();
         }
-
-        [PluginEvent(ServerEventType.PlayerJoined)]
-        public void OnPlayerJoined(Player player)
+        
+        [PluginEvent]
+        public void OnPlayerJoined(PlayerJoinedEvent ev)
         {
-            Plugin.Instance.SetStatus();
-            if (Plugin.Instance.RoundStarted && player.Role == RoleTypeId.Spectator)
+            if (!Round.IsRoundEnded && Round.IsRoundStarted && ev.Player.Role == RoleTypeId.Spectator)
             {
-                Timing.RunCoroutine(Plugin.Instance.RespawnTimer(player));
+                Timing.RunCoroutine(Plugin.Instance.RespawnTimer(ev.Player));
+            }
+            if(!String.IsNullOrEmpty(ev.Player.Nickname) && !Round.IsRoundEnded && Round.IsRoundStarted)
+            {
+                Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002)
+                    .SendMessageAsync($"Player `{ev.Player.Nickname}` has joined the server");
+                Plugin.Instance.SetStatus();
             }
         }
 
@@ -127,8 +140,7 @@ namespace SillySCP
         {
             var playerStats = Plugin.Instance.FindPlayerStat(player);
             if(playerStats != null) playerStats.Spectating = null;
-            Plugin.Instance.RoundStarted = Server.PlayerCount > 0;
-            Plugin.Instance.SetStatus();
+            if(!Round.IsRoundEnded && Round.IsRoundStarted) Plugin.Instance.SetStatus();
         }
 
         [PluginEvent(ServerEventType.PlayerChangeSpectator)]

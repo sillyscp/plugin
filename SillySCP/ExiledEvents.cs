@@ -1,6 +1,11 @@
 ﻿using System;
 using System.Linq;
+using Exiled.API.Enums;
+using Exiled.API.Features;
 using Exiled.Events.EventArgs.Player;
+using Exiled.Events.EventArgs.Server;
+using PlayerRoles;
+using Round = PluginAPI.Core.Round;
 
 namespace SillySCP
 {
@@ -9,7 +14,6 @@ namespace SillySCP
         public void OnWaitingForPlayers()
         {
             Plugin.Instance.Scp106 = null;
-            Plugin.Instance.RoundStarted = false;
             Plugin.Instance.SetStatus();
         }
 
@@ -19,7 +23,11 @@ namespace SillySCP
                 return;
             var volunteeredScp = Plugin.Instance.Volunteers.FirstOrDefault((v) => v.Players.Contains(ev.Player));
             if (volunteeredScp != null) volunteeredScp.Players.Remove(ev.Player);
-            if(!String.IsNullOrEmpty(ev.Player.Nickname)) Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync($"Player {ev.Player.Nickname} has left the server");
+            if(!String.IsNullOrEmpty(ev.Player.Nickname) && !Round.IsRoundEnded && Round.IsRoundStarted) Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync($"Player `{ev.Player.Nickname}` has left the server");
+            if (!Player.List.Any() && Round.IsRoundStarted)
+            {
+                Round.Restart();
+            }
         }
 
         public void OnPlayerDamageWindow(DamagingWindowEventArgs ev)
@@ -39,20 +47,30 @@ namespace SillySCP
             }
         }
 
-        public void OnPlayerDeath(DiedEventArgs ev)
+        public void OnPlayerDying(DyingEventArgs ev)
         {
             var text = "";
-            if(ev.Attacker != null)
+            if(ev.Attacker != null && ev.Player != ev.Attacker)
             {
-                text += $"Player {ev.Player.Nickname} has been killed by {ev.Attacker.Nickname}";
+                var cuffed = false;
+                if(ev.Player.Role == RoleTypeId.ClassD || ev.Player.Role == RoleTypeId.Scientist || ev.Player.Role == RoleTypeId.FacilityGuard)
+                {
+                    cuffed = ev.Player.IsCuffed;
+                }
+                text += $"Player `{ev.Player.Nickname}` (`{ev.Player.Role.Name}`){(cuffed ? " **(was cuffed)**" : "")} has been killed by `{ev.Attacker.Nickname}` as `{ev.Attacker.Role.Name}`";
+                Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1296011257006002207).SendMessageAsync(text);
             }
-
-            Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1296011257006002207).SendMessageAsync(text);
         }
 
-        public void OnPlayerJoin(JoinedEventArgs ev)
+        public void OnRoundEnded(RoundEndedEventArgs _)
         {
-            if (!String.IsNullOrEmpty(ev.Player.Nickname)) Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync($"Player {ev.Player.Nickname} has joined the server");
+            var discMessage = "Round has ended with the following people:\n```";
+            foreach (var player in Player.List)
+            {
+                discMessage += $"{player.Nickname}\n";
+            }
+            discMessage = discMessage.Trim() + "```";
+            Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync(discMessage);
         }
     }
 }

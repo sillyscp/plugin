@@ -7,8 +7,14 @@ using Discord.WebSocket;
 using Exiled.API.Features;
 using MEC;
 using PlayerRoles;
+using PluginAPI.Core;
 using PluginAPI.Events;
 using Respawning;
+using Map = Exiled.API.Features.Map;
+using Player = Exiled.API.Features.Player;
+using Respawn = Exiled.API.Features.Respawn;
+using Round = PluginAPI.Core.Round;
+using Server = Exiled.API.Features.Server;
 
 namespace SillySCP
 {
@@ -20,15 +26,14 @@ namespace SillySCP
         private ExiledEvents _exiledEvents;
         public RoundEvents RoundEvents;
         public static DiscordSocketClient Client;
-        public bool RoundStarted { get; set; }
         public PluginAPI.Core.Player Scp106;
         public List<Volunteers> Volunteers;
         public bool ReadyVolunteers;
         public string ChosenEvent;
+        private SocketTextChannel _channel;
 
         public override void OnEnabled()
         {
-            RoundStarted = false;
             Instance = this;
             _handler = new EventHandler();
             _exiledEvents = new ExiledEvents();
@@ -37,25 +42,24 @@ namespace SillySCP
             Exiled.Events.Handlers.Player.Left += _exiledEvents.OnPlayerLeave;
             Exiled.Events.Handlers.Server.WaitingForPlayers += _exiledEvents.OnWaitingForPlayers;
             Exiled.Events.Handlers.Server.RestartingRound += _exiledEvents.OnWaitingForPlayers;
+            Exiled.Events.Handlers.Server.RoundEnded += _exiledEvents.OnRoundEnded;
             Exiled.Events.Handlers.Player.PlayerDamageWindow += _exiledEvents.OnPlayerDamageWindow;
             Exiled.Events.Handlers.Player.Spawned += _exiledEvents.OnSpawned;
-            Exiled.Events.Handlers.Player.Died += _exiledEvents.OnPlayerDeath;
-            Exiled.Events.Handlers.Player.Joined += _exiledEvents.OnPlayerJoin;
+            Exiled.Events.Handlers.Player.Dying += _exiledEvents.OnPlayerDying;
             Task.Run(StartClient);
             base.OnEnabled();
         }
 
         public override void OnDisabled()
         {
-            RoundStarted = false;
             EventManager.UnregisterEvents(this, _handler);
             Exiled.Events.Handlers.Player.Left -= _exiledEvents.OnPlayerLeave;
             Exiled.Events.Handlers.Server.WaitingForPlayers -= _exiledEvents.OnWaitingForPlayers;
             Exiled.Events.Handlers.Server.RestartingRound -= _exiledEvents.OnWaitingForPlayers;
+            Exiled.Events.Handlers.Server.RoundEnded -= _exiledEvents.OnRoundEnded;
             Exiled.Events.Handlers.Player.PlayerDamageWindow -= _exiledEvents.OnPlayerDamageWindow;
             Exiled.Events.Handlers.Player.Spawned -= _exiledEvents.OnSpawned;
-            Exiled.Events.Handlers.Player.Died -= _exiledEvents.OnPlayerDeath;
-            Exiled.Events.Handlers.Player.Joined -= _exiledEvents.OnPlayerJoin;
+            Exiled.Events.Handlers.Player.Dying -= _exiledEvents.OnPlayerDying;
             _handler = null;
             _exiledEvents = null;
             RoundEvents = null;
@@ -88,23 +92,22 @@ namespace SillySCP
             await Client.StopAsync();
             await Client.LogoutAsync();
         }
-
+        
         public void SetStatus()
         {
-            var textChannel = GetChannel(1279544677334253610);
             var playerList = Player.List;
             var players = string.Join("\n", playerList.Select(player => "- " + player.Nickname));
             var embedBuilder = new EmbedBuilder()
                 .WithTitle("Silly SCP Member List")
                 .WithColor(Color.Blue)
                 .WithDescription(
-                    RoundStarted
+                    !Round.IsRoundEnded && Round.IsRoundStarted
                         ? players == ""
                             ? "No players online"
                             : players
                         : "Waiting for players."
                 );
-            SetMessage(textChannel, 1280910252325339311, embedBuilder.Build());
+            SetMessage(_channel, 1280910252325339311, embedBuilder.Build());
             SetCustomStatus();
         }
 
@@ -119,6 +122,7 @@ namespace SillySCP
 
         private async Task Ready()
         {
+            _channel = GetChannel(1279544677334253610);
             SetStatus();
         }
 
@@ -159,7 +163,7 @@ namespace SillySCP
 
         private void SetCustomStatus()
         {
-            var status = RoundStarted
+            var status = !Round.IsRoundEnded && Round.IsRoundStarted
                 ? $"{Server.PlayerCount}/{Server.MaxPlayerCount} players"
                 : "Waiting for players.";
             try
@@ -237,9 +241,10 @@ namespace SillySCP
                 var currentTime = $"{timeUntilWave.Minutes:D1}<size=22>M</size> {timeUntilWave.Seconds:D2}<size=22>S</size>";
                 var playerStat = FindPlayerStat(player);
                 var spectatingPlayerStat = playerStat != null && playerStat.Spectating != null ? FindPlayerStat(playerStat?.Spectating) : null;
+                var kills = ((spectatingPlayerStat != null ? spectatingPlayerStat.Player.IsSCP ? spectatingPlayerStat.ScpKills : spectatingPlayerStat.Kills : 0) ?? 0).ToString();
                 var spectatingKills =
                     spectatingPlayerStat != null
-                        ? spectatingPlayerStat.Player.DoNotTrack == false ? spectatingPlayerStat.Kills.ToString() : "Unknown"
+                        ? spectatingPlayerStat.Player.DoNotTrack == false ? string.IsNullOrEmpty(kills) ? "Unknown" : kills : "Unknown"
                         : "0";
                 var text =
                     "<voffset=-4em><size=26>Respawning "
