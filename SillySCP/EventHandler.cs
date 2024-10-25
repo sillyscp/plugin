@@ -36,7 +36,7 @@ namespace SillySCP
             Plugin.Instance.PlayerStats = new List<PlayerStat>();
             Plugin.Instance.Volunteers = new List<Volunteers>();
             Timing.RunCoroutine(Plugin.Instance.DisableVolunteers());
-            Plugin.Instance.SetStatus();
+            Plugin.Instance.SetStatus(true);
             var eventRound = Plugin.Instance.RoundEvents.EventRound();
             if (eventRound)
             {
@@ -50,11 +50,8 @@ namespace SillySCP
             }
 
             var message = "Round has started with the following people:\n```";
-            foreach (var player in Player.GetPlayers())
-            {
-                message += $"{player.Nickname}\n";
-            }
-            message = message.Trim() + "```";
+            message += string.Join("\n", Player.GetPlayers().Select(player => player.Nickname));
+            message += "```";
             Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync(message);
         }
 
@@ -106,18 +103,6 @@ namespace SillySCP
         [PluginEvent]
         public void OnChangeRole(PlayerChangeRoleEvent ev)
         {
-            // Log.Info(ev.NewRole);
-            // Log.Info(Plugin.Instance.ChosenEvent == "Lights Out");
-            // Log.Info(!ev.NewRole.ToString().ToLower().StartsWith("scp"));
-            // Log.Info(ev.NewRole != RoleTypeId.Filmmaker);
-            // Log.Info(ev.NewRole != RoleTypeId.Overwatch);
-            // Log.Info(ev.NewRole != RoleTypeId.Spectator);
-            // if (Plugin.Instance.ChosenEvent == "Lights Out" && !ev.NewRole.ToString().ToLower().StartsWith("scp") &&
-            //     ev.NewRole != RoleTypeId.Filmmaker && ev.NewRole != RoleTypeId.Overwatch &&
-            //     ev.NewRole != RoleTypeId.Spectator)
-            // {
-            //     ev.Player.AddItem(ItemType.Flashlight);
-            // }
             if (ev.NewRole == RoleTypeId.Spectator) Timing.RunCoroutine(Plugin.Instance.RespawnTimer(ev.Player));
             if (ev.OldRole.Team == Team.SCPs && (ev.NewRole == RoleTypeId.Spectator || ev.NewRole == RoleTypeId.None) && Plugin.Instance.ReadyVolunteers)
             {
@@ -135,10 +120,10 @@ namespace SillySCP
             }
         }
 
-        [PluginEvent(ServerEventType.PlayerLeft)]
-        public void OnPlayerLeft(Player player)
+        [PluginEvent]
+        public void OnPlayerLeft(PlayerLeftEvent ev)
         {
-            var playerStats = Plugin.Instance.FindPlayerStat(player);
+            var playerStats = Plugin.Instance.FindPlayerStat(ev.Player);
             if(playerStats != null) playerStats.Spectating = null;
             if(!Round.IsRoundEnded && Round.IsRoundStarted) Plugin.Instance.SetStatus();
         }

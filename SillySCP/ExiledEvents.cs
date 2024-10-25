@@ -65,11 +65,8 @@ namespace SillySCP
         public void OnRoundEnded(RoundEndedEventArgs _)
         {
             var discMessage = "Round has ended with the following people:\n```";
-            foreach (var player in Player.List)
-            {
-                discMessage += $"{player.Nickname}\n";
-            }
-            discMessage = discMessage.Trim() + "```";
+            discMessage += string.Join("\n", Player.List.Select(player => player.Nickname));
+            discMessage += "```";
             Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync(discMessage);
         }
     }

@@ -93,22 +93,19 @@ namespace SillySCP
             await Client.LogoutAsync();
         }
         
-        public void SetStatus()
+        public void SetStatus(bool force = false)
         {
             var playerList = Player.List;
             var players = string.Join("\n", playerList.Select(player => "- " + player.Nickname));
+            var description = force ? players : !Round.IsRoundEnded && Round.IsRoundStarted ? players == "" ? "Waiting for players." : players : "Waiting for players.";
             var embedBuilder = new EmbedBuilder()
                 .WithTitle("Silly SCP Member List")
                 .WithColor(Color.Blue)
                 .WithDescription(
-                    !Round.IsRoundEnded && Round.IsRoundStarted
-                        ? players == ""
-                            ? "No players online"
-                            : players
-                        : "Waiting for players."
+                    description
                 );
             SetMessage(_channel, 1280910252325339311, embedBuilder.Build());
-            SetCustomStatus();
+            SetCustomStatus(force);
         }
 
         private static SocketTextChannel GetChannel(ulong id)
@@ -161,9 +158,9 @@ namespace SillySCP
         
         private bool _statusCooldown;
 
-        private void SetCustomStatus()
+        private void SetCustomStatus(bool force = false)
         {
-            var status = !Round.IsRoundEnded && Round.IsRoundStarted
+            var status = (!Round.IsRoundEnded && Round.IsRoundStarted) || force
                 ? $"{Server.PlayerCount}/{Server.MaxPlayerCount} players"
                 : "Waiting for players.";
             try
