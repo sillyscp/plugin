@@ -37,17 +37,17 @@ namespace SillySCP
             Plugin.Instance.Volunteers = new List<Volunteers>();
             Timing.RunCoroutine(Plugin.Instance.DisableVolunteers());
             Plugin.Instance.SetStatus(true);
-            var eventRound = Plugin.Instance.RoundEvents.EventRound();
-            if (eventRound)
-            {
-                var eventChosen = Plugin.Instance.RoundEvents.PlayRandomEvent();
-                Plugin.Instance.ChosenEvent = eventChosen.Item1;
-                Map.Broadcast(10, eventChosen.Item2);
-            }
-            else
-            {
-                Plugin.Instance.ChosenEvent = null;
-            }
+            // var eventRound = Plugin.Instance.RoundEvents.EventRound();
+            // if (eventRound)
+            // {
+            //     var eventChosen = Plugin.Instance.RoundEvents.PlayRandomEvent();
+            //     Plugin.Instance.ChosenEvent = eventChosen.Item1;
+            //     Map.Broadcast(10, eventChosen.Item2);
+            // }
+            // else
+            // {
+            //     Plugin.Instance.ChosenEvent = null;
+            // }
 
             var message = "Round has started with the following people:\n```";
             message += string.Join("\n", Player.GetPlayers().Select(player => player.Nickname));
