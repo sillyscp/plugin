@@ -14,7 +14,7 @@ namespace SillySCP
 
         public (string, string) PlayRandomEvent()
         {
-            (string, string)[] events = { LightsOut() };
+            (string, string)[] events = { };
             return events[Random.Range(0, events.Length)];
         }
 
