@@ -286,7 +286,8 @@ namespace SillySCP
                 var chance = Random.Range(1, 1_000_000);
                 if (chance == 1)
                 {
-                    var player = Player.List.GetRandomValue();
+                    var player = Player.List.Where((p) => p.IsAlive).GetRandomValue();
+                    if(player == null) continue;
                     player.EnableEffect(EffectType.CardiacArrest, 1, 3);
                 }
             }
