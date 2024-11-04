@@ -116,6 +116,7 @@ namespace SillySCP
                 };
                 Plugin.Instance.Volunteers.Add(volunteer);
                 if(ev.OldRole.Team != Team.SCPs) return;
+                if (ev.OldRole.RoleTypeId == RoleTypeId.Scp0492) return;
                 Map.Broadcast(10, $"{ev.OldRole.RoleTypeId.GetFullName()} has left the game\nPlease run .volunteer {ev.OldRole.RoleTypeId.GetFullName().Split('-')[1]} to volunteer to be the SCP");
                 Timing.RunCoroutine(Plugin.Instance.ChooseVolunteers(volunteer));
             }
