@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Exiled.API.Enums;
+using Exiled.API.Extensions;
 using Exiled.API.Features;
 using MEC;
 using PlayerRoles;
@@ -53,6 +54,7 @@ namespace SillySCP
             message += string.Join("\n", Player.GetPlayers().Select(player => player.Nickname));
             message += "```";
             Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync(message);
+            Timing.RunCoroutine(Plugin.Instance.HeartAttack());
         }
 
         [PluginEvent(ServerEventType.RoundEnd)]
@@ -113,9 +115,8 @@ namespace SillySCP
                     Players = new List<Exiled.API.Features.Player>()
                 };
                 Plugin.Instance.Volunteers.Add(volunteer);
-                var scpNumber = Plugin.Instance.GetScpNumber(ev.Player.Role);
-                if(scpNumber == null) return;
-                Map.Broadcast(10, $"SCP-{scpNumber} has left the game\nPlease run .volunteer {scpNumber} to volunteer to be the SCP");
+                if(ev.OldRole.Team != Team.SCPs) return;
+                Map.Broadcast(10, $"{ev.OldRole.RoleTypeId.GetFullName()} has left the game\nPlease run .volunteer {ev.OldRole.RoleTypeId.GetFullName().Split('-')[1]} to volunteer to be the SCP");
                 Timing.RunCoroutine(Plugin.Instance.ChooseVolunteers(volunteer));
             }
         }

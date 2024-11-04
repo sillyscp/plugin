@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using Exiled.API.Enums;
+using Exiled.API.Extensions;
 using Exiled.API.Features;
 using MEC;
 using PlayerRoles;
-using PluginAPI.Core;
 using PluginAPI.Events;
 using Respawning;
 using Map = Exiled.API.Features.Map;
@@ -15,6 +15,7 @@ using Player = Exiled.API.Features.Player;
 using Respawn = Exiled.API.Features.Respawn;
 using Round = PluginAPI.Core.Round;
 using Server = Exiled.API.Features.Server;
+using UnityEngine;
 
 namespace SillySCP
 {
@@ -100,7 +101,7 @@ namespace SillySCP
             var description = force ? players : !Round.IsRoundEnded && Round.IsRoundStarted ? players == "" ? "Waiting for players." : players : "Waiting for players.";
             var embedBuilder = new EmbedBuilder()
                 .WithTitle("Silly SCP Member List")
-                .WithColor(Color.Blue)
+                .WithColor(Discord.Color.Blue)
                 .WithDescription(
                     description
                 );
@@ -234,7 +235,7 @@ namespace SillySCP
                 var respawnTeam = Respawn.NextKnownTeam;
                 var teamText = respawnTeam != SpawnableTeamType.None ? "<color=" + (respawnTeam == SpawnableTeamType.ChaosInsurgency ? "green>Chaos Insurgency" : "blue>Nine-Tailed Fox") + "</color>" : null;
                 var timeUntilWave = Respawn.TimeUntilSpawnWave;
-                timeUntilWave = teamText != null ? timeUntilWave : timeUntilWave.Add(TimeSpan.FromSeconds(Respawn.NtfTickets >= Respawn.ChaosTickets ? 17 : 13));
+                timeUntilWave = teamText != null ? timeUntilWave : timeUntilWave.Add(System.TimeSpan.FromSeconds(Respawn.NtfTickets >= Respawn.ChaosTickets ? 17 : 13));
                 var currentTime = $"{timeUntilWave.Minutes:D1}<size=22>M</size> {timeUntilWave.Seconds:D2}<size=22>S</size>";
                 var playerStat = FindPlayerStat(player);
                 var spectatingPlayerStat = playerStat != null && playerStat.Spectating != null ? FindPlayerStat(playerStat?.Spectating) : null;
@@ -263,39 +264,33 @@ namespace SillySCP
             ReadyVolunteers = false;
         }
 
-        public string GetScpNumber(RoleTypeId id)
-        {
-            switch (id)
-            {
-                case RoleTypeId.Scp049:
-                    return "049";
-                case RoleTypeId.Scp079:
-                    return "079";
-                case RoleTypeId.Scp096:
-                    return "096";
-                case RoleTypeId.Scp106:
-                    return "106";
-                case RoleTypeId.Scp173:
-                    return "173";
-                case RoleTypeId.Scp939:
-                    return "939";
-                default:
-                    return null;
-            }
-        }
-
         public IEnumerator<float> ChooseVolunteers(Volunteers volunteer)
         {
             yield return Timing.WaitForSeconds(15);
             volunteer = Volunteers.FirstOrDefault((v) => v.Replacement == volunteer.Replacement);
             if (volunteer == null)
                 yield break;
-            var random = new Random();
             if (volunteer.Players.Count == 0) yield break;
-            var replacementPlayer = volunteer.Players[random.Next(volunteer.Players.Count)];
+            var replacementPlayer = volunteer.Players.GetRandomValue();
             replacementPlayer.Role.Set(volunteer.Replacement);
-            Map.Broadcast(10, "SCP-" + GetScpNumber(volunteer.Replacement) + " has been replaced!",
+            Map.Broadcast(10, volunteer.Replacement.GetFullName() + " has been replaced!",
                 Broadcast.BroadcastFlags.Normal, true);
+            yield return 0;
+        }
+
+        public IEnumerator<float> HeartAttack()
+        {
+            while (!Round.IsRoundEnded && Round.IsRoundStarted)
+            {
+                yield return Timing.WaitForSeconds(5);
+                var chance = Random.Range(1, 1_000_000);
+                if (chance == 1)
+                {
+                    var player = Player.List.GetRandomValue();
+                    player.EnableEffect(EffectType.CardiacArrest, 1, 3);
+                }
+            }
+
             yield return 0;
         }
     }
