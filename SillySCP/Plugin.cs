@@ -23,46 +23,35 @@ namespace SillySCP
     {
         public static Plugin Instance;
         public List<PlayerStat> PlayerStats;
-        private EventHandler _handler;
-        private ExiledEvents _exiledEvents;
         public RoundEvents RoundEvents;
         public static DiscordSocketClient Client;
-        public PluginAPI.Core.Player Scp106;
+        public Player Scp106;
         public List<Volunteers> Volunteers;
         public bool ReadyVolunteers;
         public string ChosenEvent;
         private SocketTextChannel _channel;
 
+        private SillySCP.Handlers.Player _playerHandler;
+        private SillySCP.Handlers.Server _serverHandler;
+
         public override void OnEnabled()
         {
             Instance = this;
-            _handler = new EventHandler();
-            _exiledEvents = new ExiledEvents();
             RoundEvents = new RoundEvents();
-            EventManager.RegisterEvents(this, _handler);
-            Exiled.Events.Handlers.Player.Left += _exiledEvents.OnPlayerLeave;
-            Exiled.Events.Handlers.Server.WaitingForPlayers += _exiledEvents.OnWaitingForPlayers;
-            Exiled.Events.Handlers.Server.RestartingRound += _exiledEvents.OnWaitingForPlayers;
-            Exiled.Events.Handlers.Server.RoundEnded += _exiledEvents.OnRoundEnded;
-            Exiled.Events.Handlers.Player.PlayerDamageWindow += _exiledEvents.OnPlayerDamageWindow;
-            Exiled.Events.Handlers.Player.Spawned += _exiledEvents.OnSpawned;
-            Exiled.Events.Handlers.Player.Dying += _exiledEvents.OnPlayerDying;
+            _playerHandler = new SillySCP.Handlers.Player();
+            _playerHandler.Init();
+            _serverHandler = new SillySCP.Handlers.Server();
+            _serverHandler.Init();
             Task.Run(StartClient);
             base.OnEnabled();
         }
 
         public override void OnDisabled()
         {
-            EventManager.UnregisterEvents(this, _handler);
-            Exiled.Events.Handlers.Player.Left -= _exiledEvents.OnPlayerLeave;
-            Exiled.Events.Handlers.Server.WaitingForPlayers -= _exiledEvents.OnWaitingForPlayers;
-            Exiled.Events.Handlers.Server.RestartingRound -= _exiledEvents.OnWaitingForPlayers;
-            Exiled.Events.Handlers.Server.RoundEnded -= _exiledEvents.OnRoundEnded;
-            Exiled.Events.Handlers.Player.PlayerDamageWindow -= _exiledEvents.OnPlayerDamageWindow;
-            Exiled.Events.Handlers.Player.Spawned -= _exiledEvents.OnSpawned;
-            Exiled.Events.Handlers.Player.Dying -= _exiledEvents.OnPlayerDying;
-            _handler = null;
-            _exiledEvents = null;
+            _playerHandler.Unsubscribe();
+            _playerHandler = null;
+            _serverHandler.Unsubscribe();
+            _serverHandler = null;
             RoundEvents = null;
             Task.Run(StopClient);
             base.OnDisabled();
@@ -184,7 +173,7 @@ namespace SillySCP
             }
         }
 
-        public PlayerStat FindOrCreatePlayerStat(PluginAPI.Core.Player player)
+        public PlayerStat FindOrCreatePlayerStat(Player player)
         {
             var playerStat = FindPlayerStat(player);
             if (playerStat == null)
@@ -202,14 +191,14 @@ namespace SillySCP
             return playerStat;
         }
         
-        public PlayerStat FindPlayerStat(PluginAPI.Core.Player player)
+        public PlayerStat FindPlayerStat(Player player)
         {
             if(PlayerStats == null)
                 PlayerStats = new List<PlayerStat>();
             return PlayerStats.Find((p) => p.Player == player);
         }
 
-        public void UpdateKills(PluginAPI.Core.Player player, bool scp, bool positive = true)
+        public void UpdateKills(Player player, bool scp, bool positive = true)
         {
             if (player.DoNotTrack)
                 return;
@@ -224,12 +213,12 @@ namespace SillySCP
                 playerStat.Kills--;
         }
 
-        public IEnumerator<float> RespawnTimer(PluginAPI.Core.Player player)
+        public IEnumerator<float> RespawnTimer(Player player)
         {
             while (true)
             {
                 yield return Timing.WaitForSeconds(1f);
-                player = PluginAPI.Core.Player.GetPlayers().FirstOrDefault((p) => p.UserId == player.UserId);
+                player = Player.List.FirstOrDefault((p) => p.UserId == player.UserId);
                 if (player == null || player.Role != RoleTypeId.Spectator)
                     break;
                 var respawnTeam = Respawn.NextKnownTeam;
@@ -239,7 +228,7 @@ namespace SillySCP
                 var currentTime = $"{timeUntilWave.Minutes:D1}<size=22>M</size> {timeUntilWave.Seconds:D2}<size=22>S</size>";
                 var playerStat = FindPlayerStat(player);
                 var spectatingPlayerStat = playerStat != null && playerStat.Spectating != null ? FindPlayerStat(playerStat?.Spectating) : null;
-                var kills = ((spectatingPlayerStat != null ? spectatingPlayerStat.Player.IsSCP ? spectatingPlayerStat.ScpKills : spectatingPlayerStat.Kills : 0) ?? 0).ToString();
+                var kills = ((spectatingPlayerStat != null ? spectatingPlayerStat.Player.IsScp ? spectatingPlayerStat.ScpKills : spectatingPlayerStat.Kills : 0) ?? 0).ToString();
                 var spectatingKills =
                     spectatingPlayerStat != null
                         ? spectatingPlayerStat.Player.DoNotTrack == false ? string.IsNullOrEmpty(kills) ? "Unknown" : kills : "Unknown"
@@ -251,7 +240,7 @@ namespace SillySCP
                     + currentTime
                     + "</size>"
                     + (playerStat?.Spectating != null ? "\n\nKill count: " + spectatingKills : "");
-                player.ReceiveHint(text, 1.2f);
+                player.ShowHint(text, 1.2f);
             }
 
             yield return 0;

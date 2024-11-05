@@ -22,7 +22,7 @@ namespace SillySCP.Commands
             out string response
         )
         {
-            if (!Player.TryGet(sender, out Player player))
+            if (!Player.TryGet(sender, out var player))
             {
                 response = "Only players can use this command!";
                 return false;

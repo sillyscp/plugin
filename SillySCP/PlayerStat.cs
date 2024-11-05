@@ -1,5 +1,5 @@
-﻿using PlayerRoles;
-using Player = PluginAPI.Core.Player;
+﻿using Exiled.API.Features;
+using PlayerRoles;
 
 namespace SillySCP
 {

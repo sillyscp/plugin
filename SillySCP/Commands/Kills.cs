@@ -1,7 +1,7 @@
 ﻿using System;
 using CommandSystem;
+using Exiled.API.Features;
 using RemoteAdmin;
-using Player = PluginAPI.Core.Player;
 
 namespace SillySCP.Commands
 {
@@ -20,13 +20,7 @@ namespace SillySCP.Commands
             out string response
         )
         {
-            if (!(sender is PlayerCommandSender playerSender))
-            {
-                response = "Only players can use this command!";
-                return false;
-            }
-
-            var player = Player.GetPlayers().Find((p) => p.PlayerId == playerSender.PlayerId);
+            Player.TryGet(sender, out var player);
 
             if (player == null)
             {
