@@ -66,14 +66,14 @@ namespace SillySCP.Handlers
             { 
                 ev.Player.AddItem(ItemType.Flashlight);
             }
-            if (ev.Player.Role == RoleTypeId.Spectator)
+            if (!ev.Player.IsAlive && Round.IsStarted)
             {
                 Timing.RunCoroutine(Plugin.Instance.RespawnTimer(ev.Player));
             }
 
-            if (ev.Player.Role != RoleTypeId.Spectator || ev.Player.Role != RoleTypeId.None)
+            if (ev.Player.IsAlive)
             {
-                if (ev.Player.Role == RoleTypeId.Scp106 && ev.Player.DoNotTrack == false)
+                if (ev.Player.Role == RoleTypeId.Scp106 && !ev.Player.DoNotTrack)
                     Plugin.Instance.Scp106 = ev.Player;
                 ev.Player.ShowHint("", int.MaxValue);
                 var playerStats = Plugin.Instance.FindPlayerStat(ev.Player);
