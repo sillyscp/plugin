@@ -2,10 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using Exiled.API.Features;
+using Exiled.API.Features.Items;
+using Exiled.API.Features.Pickups;
 using Exiled.Events.EventArgs.Player;
+using Exiled.Events.EventArgs.Scp914;
+using JetBrains.Annotations;
 using MEC;
 using PlayerRoles;
+using Scp914;
+using UnityEngine;
 using Features = Exiled.API.Features;
+using Random = UnityEngine.Random;
 
 namespace SillySCP.Handlers
 {
@@ -18,9 +25,11 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.Spawned += OnSpawned;
             Exiled.Events.Handlers.Player.Dying += OnPlayerDying;
             Exiled.Events.Handlers.Player.Died += OnPlayerDead;
-            Exiled.Events.Handlers.Player.Joined += OnPlayerJoin;
+            Exiled.Events.Handlers.Player.Verified += OnPlayerVerified;
             Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
             Exiled.Events.Handlers.Player.ChangingSpectatedPlayer += OnChangingSpectatedPlayer;
+            Exiled.Events.Handlers.Scp914.UpgradingInventoryItem += OnScp914UpgradeInv;
+            Exiled.Events.Handlers.Scp914.UpgradingPickup += OnScp914UpgradePickup;
         }
 
         public void Unsubscribe()
@@ -30,12 +39,28 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.Spawned -= OnSpawned;
             Exiled.Events.Handlers.Player.Dying -= OnPlayerDying;
             Exiled.Events.Handlers.Player.Died -= OnPlayerDead;
-            Exiled.Events.Handlers.Player.Joined -= OnPlayerJoin;
+            Exiled.Events.Handlers.Player.Verified -= OnPlayerVerified;
             Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
             Exiled.Events.Handlers.Player.ChangingSpectatedPlayer -= OnChangingSpectatedPlayer;
+            Exiled.Events.Handlers.Scp914.UpgradingInventoryItem -= OnScp914UpgradeInv;
+            Exiled.Events.Handlers.Scp914.UpgradingPickup -= OnScp914UpgradePickup;
+        }
+
+        private void OnPlayerVerified(VerifiedEventArgs ev)
+        {
+            if (!Round.IsEnded && Round.IsStarted && ev.Player.Role == RoleTypeId.Spectator)
+            {
+                Timing.RunCoroutine(Plugin.Instance.RespawnTimer(ev.Player));
+            }
+            if(!String.IsNullOrEmpty(ev.Player.Nickname) && Round.IsStarted)
+            {
+                Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002)
+                    .SendMessageAsync($"Player `{ev.Player.Nickname}` has joined the server");
+                Plugin.Instance.SetStatus();
+            }
         }
         
-        public void OnPlayerLeave(LeftEventArgs ev)
+        private void OnPlayerLeave(LeftEventArgs ev)
         {
             var playerStats = Plugin.Instance.FindPlayerStat(ev.Player);
             if(playerStats != null) playerStats.Spectating = null;
@@ -51,7 +76,7 @@ namespace SillySCP.Handlers
             }
         }
 
-        public void OnPlayerDamageWindow(DamagingWindowEventArgs ev)
+        private void OnPlayerDamageWindow(DamagingWindowEventArgs ev)
         {
             if (ev.Window.Type.ToString() == "Scp079Trigger" && Plugin.Instance.ChosenEvent == "Lights Out")
             {
@@ -60,7 +85,7 @@ namespace SillySCP.Handlers
             }
         }
 
-        public void OnSpawned(SpawnedEventArgs ev)
+        private void OnSpawned(SpawnedEventArgs ev)
         {
             if(ev.Player.IsHuman && Plugin.Instance.ChosenEvent == "Lights Out")
             { 
@@ -81,7 +106,7 @@ namespace SillySCP.Handlers
             }
         }
 
-        public void OnPlayerDying(DyingEventArgs ev)
+        private void OnPlayerDying(DyingEventArgs ev)
         {
             var text = "";
             if(ev.Attacker != null && ev.Player != ev.Attacker)
@@ -96,7 +121,7 @@ namespace SillySCP.Handlers
             }
         }
 
-        public void OnPlayerDead(DiedEventArgs ev)
+        private void OnPlayerDead(DiedEventArgs ev)
         {
             Timing.RunCoroutine(Plugin.Instance.RespawnTimer(ev.Player));
             if (ev.Attacker == null)
@@ -105,22 +130,8 @@ namespace SillySCP.Handlers
                 return;
             Plugin.Instance.UpdateKills(ev.Attacker, ev.Attacker.IsScp);
         }
-
-        public void OnPlayerJoin(JoinedEventArgs ev)
-        {
-            if (!Round.IsEnded && Round.IsStarted && ev.Player.Role == RoleTypeId.Spectator)
-            {
-                Timing.RunCoroutine(Plugin.Instance.RespawnTimer(ev.Player));
-            }
-            if(!String.IsNullOrEmpty(ev.Player.Nickname) && !Round.IsEnded && Round.IsStarted)
-            {
-                Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002)
-                    .SendMessageAsync($"Player `{ev.Player.Nickname}` has joined the server");
-                Plugin.Instance.SetStatus();
-            }
-        }
-
-        public void OnChangingRole(ChangingRoleEventArgs ev)
+        
+        private void OnChangingRole(ChangingRoleEventArgs ev)
         {
             if (ev.NewRole == RoleTypeId.Spectator) Timing.RunCoroutine(Plugin.Instance.RespawnTimer(ev.Player));
             if (ev.Player.IsScp && (ev.NewRole == RoleTypeId.Spectator || ev.NewRole == RoleTypeId.None) && Plugin.Instance.ReadyVolunteers)
@@ -139,12 +150,70 @@ namespace SillySCP.Handlers
             }
         }
         
-        public void OnChangingSpectatedPlayer(ChangingSpectatedPlayerEventArgs ev)
+        private void OnChangingSpectatedPlayer(ChangingSpectatedPlayerEventArgs ev)
         {
             if (ev.NewTarget == null)
                 return;
             var playerStats = Plugin.Instance.FindOrCreatePlayerStat(ev.Player);
             playerStats.Spectating = ev.NewTarget;
+        }
+        
+        private void OnScp914UpgradeInv(UpgradingInventoryItemEventArgs ev)
+        {
+            if (ev.KnobSetting == Scp914KnobSetting.Fine && ev.Item.Type == ItemType.Coin)
+            {
+                var randomNum = Random.Range(1, 3);
+                switch (randomNum)
+                {
+                    case 1:
+                    {
+                        ev.Item.Destroy();
+                        ev.Player.AddItem(ItemType.Flashlight);
+                        break;
+                    }
+                    case 2:
+                    {
+                        ev.Item.Destroy();
+                        ev.Player.AddItem(ItemType.Radio);
+                    }
+                        break;
+                    case 3:
+                    {
+                        ev.Item.Destroy();
+                        ev.Player.AddItem(ItemType.KeycardJanitor);
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void OnScp914UpgradePickup(UpgradingPickupEventArgs ev)
+        {
+            if (ev.KnobSetting == Scp914KnobSetting.Fine && ev.Pickup.Type == ItemType.Coin)
+            {
+                var randomNum = Random.Range(1, 3);
+                switch (randomNum)
+                {
+                    case 1:
+                    {
+                        ev.Pickup.Destroy();
+                        Pickup.CreateAndSpawn(ItemType.Flashlight, ev.OutputPosition, Quaternion.identity);
+                        break;
+                    }
+                    case 2:
+                    {
+                        ev.Pickup.Destroy();
+                        Pickup.CreateAndSpawn(ItemType.Radio, ev.OutputPosition, Quaternion.identity);
+                        break;
+                    }
+                    case 3:
+                    {
+                        ev.Pickup.Destroy();
+                        Pickup.CreateAndSpawn(ItemType.KeycardJanitor, ev.OutputPosition, Quaternion.identity);
+                        break;
+                    }
+                }
+            }
         }
     }
 }
