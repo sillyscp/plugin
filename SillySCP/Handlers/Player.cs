@@ -136,8 +136,7 @@ namespace SillySCP.Handlers
             Timing.RunCoroutine(Plugin.Instance.RespawnTimer(ev.Player));
             if (ev.DamageHandler.Type == Exiled.API.Enums.DamageType.PocketDimension)
             {
-                var scp106 = Plugin.Instance.Scp106;
-                if(scp106 == null) scp106 = Features.Player.List.FirstOrDefault((p) => p.Role == RoleTypeId.Scp106);
+                var scp106 = Plugin.Instance.Scp106 ?? Features.Player.List.FirstOrDefault((p) => p.Role == RoleTypeId.Scp106);
                 Plugin.Instance.UpdateKills(scp106, true);
             }
             if (ev.Attacker == null)
