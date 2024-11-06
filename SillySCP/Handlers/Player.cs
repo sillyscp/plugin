@@ -9,6 +9,7 @@ using Exiled.Events.EventArgs.Scp914;
 using JetBrains.Annotations;
 using MEC;
 using PlayerRoles;
+using PluginAPI.Enums;
 using Scp914;
 using UnityEngine;
 using Features = Exiled.API.Features;
@@ -104,6 +105,15 @@ namespace SillySCP.Handlers
                 var playerStats = Plugin.Instance.FindPlayerStat(ev.Player);
                 if (playerStats != null) playerStats.Spectating = null;
             }
+
+            if (ev.Player.Role == RoleTypeId.ClassD)
+            {
+                var random = Random.Range(1, 1_000_000);
+                if (random == 1)
+                {
+                    ev.Player.Scale = new Vector3(ev.Player.Scale.x * 2, ev.Player.Scale.y, ev.Player.Scale.z);
+                }
+            }
         }
 
         private void OnPlayerDying(DyingEventArgs ev)
@@ -124,6 +134,12 @@ namespace SillySCP.Handlers
         private void OnPlayerDead(DiedEventArgs ev)
         {
             Timing.RunCoroutine(Plugin.Instance.RespawnTimer(ev.Player));
+            if (ev.DamageHandler.Type == Exiled.API.Enums.DamageType.PocketDimension)
+            {
+                var scp106 = Plugin.Instance.Scp106;
+                if(scp106 == null) scp106 = Features.Player.List.FirstOrDefault((p) => p.Role == RoleTypeId.Scp106);
+                Plugin.Instance.UpdateKills(scp106, true);
+            }
             if (ev.Attacker == null)
                 return;
             if (ev.Player == ev.Attacker)
