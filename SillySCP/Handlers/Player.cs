@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Exiled.API.Features;
-using Exiled.API.Features.Items;
 using Exiled.API.Features.Pickups;
 using Exiled.Events.EventArgs.Player;
 using Exiled.Events.EventArgs.Scp914;
-using JetBrains.Annotations;
 using MEC;
 using PlayerRoles;
-using PluginAPI.Enums;
 using Scp914;
 using UnityEngine;
 using Features = Exiled.API.Features;
@@ -56,7 +53,7 @@ namespace SillySCP.Handlers
             if(!String.IsNullOrEmpty(ev.Player.Nickname) && Round.IsStarted)
             {
                 Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002)
-                    .SendMessageAsync($"Player `{ev.Player.Nickname}` has joined the server");
+                    .SendMessageAsync($"Player `{ev.Player.Nickname}` (`{ev.Player.UserId}`) has joined the server");
                 Plugin.Instance.SetStatus();
             }
         }
@@ -70,7 +67,7 @@ namespace SillySCP.Handlers
                 return;
             var volunteeredScp = Plugin.Instance.Volunteers.FirstOrDefault((v) => v.Players.Contains(ev.Player));
             if (volunteeredScp != null) volunteeredScp.Players.Remove(ev.Player);
-            if(!String.IsNullOrEmpty(ev.Player.Nickname) && !Round.IsEnded && Round.IsStarted) Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync($"Player `{ev.Player.Nickname}` has left the server");
+            if(!String.IsNullOrEmpty(ev.Player.Nickname) && !Round.IsEnded && Round.IsStarted) Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync($"Player `{ev.Player.Nickname}` (`{ev.Player.UserId}`) has left the server");
             if (!Features.Player.List.Any() && Round.IsStarted)
             {
                 Round.Restart();
@@ -155,7 +152,7 @@ namespace SillySCP.Handlers
                 var volunteer = new Volunteers
                 {
                     Replacement = ev.Player.Role,
-                    Players = new List<Exiled.API.Features.Player>()
+                    Players = new List<Features.Player>()
                 };
                 Plugin.Instance.Volunteers.Add(volunteer);
                 if(!ev.Player.IsScp) return;
