@@ -8,7 +8,6 @@ using Exiled.API.Extensions;
 using Exiled.API.Features;
 using MEC;
 using PlayerRoles;
-using PluginAPI.Events;
 using Respawning;
 using Map = Exiled.API.Features.Map;
 using Player = Exiled.API.Features.Player;
@@ -111,6 +110,7 @@ namespace SillySCP
         {
             _channel = GetChannel(1279544677334253610);
             SetStatus();
+            await Task.CompletedTask;
         }
 
         private bool _messageCooldown;
@@ -227,7 +227,7 @@ namespace SillySCP
                 timeUntilWave = teamText != null ? timeUntilWave : timeUntilWave.Add(System.TimeSpan.FromSeconds(Respawn.NtfTickets >= Respawn.ChaosTickets ? 17 : 13));
                 var currentTime = $"{timeUntilWave.Minutes:D1}<size=22>M</size> {timeUntilWave.Seconds:D2}<size=22>S</size>";
                 var playerStat = FindPlayerStat(player);
-                var spectatingPlayerStat = playerStat != null && playerStat.Spectating != null ? FindPlayerStat(playerStat?.Spectating) : null;
+                var spectatingPlayerStat = FindPlayerStat(playerStat?.Spectating);
                 var kills = ((spectatingPlayerStat != null ? spectatingPlayerStat.Player.IsScp ? spectatingPlayerStat.ScpKills : spectatingPlayerStat.Kills : 0) ?? 0).ToString();
                 var spectatingKills =
                     spectatingPlayerStat != null

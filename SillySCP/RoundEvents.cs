@@ -18,19 +18,19 @@ namespace SillySCP
             return events[Random.Range(0, events.Length)];
         }
 
-        private (string, string) LightsOut()
-        {
-            Map.TurnOffAllLights(float.MaxValue, ZoneType.Entrance);
-            Map.TurnOffAllLights(float.MaxValue, ZoneType.HeavyContainment);
-            Map.TurnOffAllLights(float.MaxValue, ZoneType.LightContainment);
-            Map.TurnOffAllLights(float.MaxValue, ZoneType.Surface);
-            Map.TurnOffAllLights(float.MaxValue, ZoneType.Other);
-            foreach (var player in Player.List.Where((p) => !p.IsScp))
-            {
-                player.AddItem(ItemType.Flashlight);
-            }
-            return ("Lights Out", "All lights have been turned off, use your flashlight!");
-        }
+        // private (string, string) LightsOut()
+        // {
+        //     Map.TurnOffAllLights(float.MaxValue, ZoneType.Entrance);
+        //     Map.TurnOffAllLights(float.MaxValue, ZoneType.HeavyContainment);
+        //     Map.TurnOffAllLights(float.MaxValue, ZoneType.LightContainment);
+        //     Map.TurnOffAllLights(float.MaxValue, ZoneType.Surface);
+        //     Map.TurnOffAllLights(float.MaxValue, ZoneType.Other);
+        //     foreach (var player in Player.List.Where((p) => !p.IsScp))
+        //     {
+        //         player.AddItem(ItemType.Flashlight);
+        //     }
+        //     return ("Lights Out", "All lights have been turned off, use your flashlight!");
+        // }
 
         public void ResetLightsOut()
         {
