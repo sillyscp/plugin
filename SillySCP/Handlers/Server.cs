@@ -56,7 +56,7 @@ namespace SillySCP.Handlers
             
             
             var discMessage = "Round has ended with the following people:\n```";
-            discMessage += string.Join("\n", Features.Player.List.Select(player => player.Nickname));
+            discMessage += string.Join("\n", Features.Player.List.Select(player => $"{player.Nickname} ({player.UserId})"));
             discMessage += "```";
             Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync(discMessage);
         }
@@ -81,9 +81,11 @@ namespace SillySCP.Handlers
             // }
 
             var message = "Round has started with the following people:\n```";
-            message += string.Join("\n", Features.Player.List.Select(player => player.Nickname));
+            message += string.Join("\n", Features.Player.List.Select(player => $"{player.Nickname} ({player.UserId})"));
             message += "```";
-            Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync(message);
+            var guild = Plugin.Client.GetGuild(1279504339248877588);
+            guild.GetTextChannel(1294978305253970002).SendMessageAsync(message);
+            guild.GetTextChannel(1296011257006002207).SendMessageAsync("New round");
             Timing.RunCoroutine(Plugin.Instance.HeartAttack());
         }
 
