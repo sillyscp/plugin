@@ -264,6 +264,7 @@ namespace SillySCP
             replacementPlayer.Role.Set(volunteer.Replacement);
             Map.Broadcast(10, volunteer.Replacement.GetFullName() + " has been replaced!",
                 Broadcast.BroadcastFlags.Normal, true);
+            volunteer.Players.Clear();
             yield return 0;
         }
 
