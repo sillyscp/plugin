@@ -42,10 +42,10 @@ namespace SillySCP.Handlers
         private void OnRoundEnded(RoundEndedEventArgs _)
         {
             var highestKills = Plugin
-                .Instance.PlayerStats.Where(p => !p.Player.IsScp && p.Kills > 0).OrderByDescending(p => p.Kills)
+                .Instance.PlayerStats.Where(p => p.Kills > 0).OrderByDescending(p => p.Kills)
                 .ToList();
             var scpHighestKills = Plugin
-                .Instance.PlayerStats.Where(p => p.Player.IsScp && p.ScpKills > 0).OrderByDescending(p => p.ScpKills)
+                .Instance.PlayerStats.Where(p => p.ScpKills > 0).OrderByDescending(p => p.ScpKills)
                 .ToList();
             var highestKiller = highestKills.FirstOrDefault();
             var scpHighestKiller = scpHighestKills.FirstOrDefault();
