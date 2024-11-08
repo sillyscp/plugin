@@ -27,7 +27,6 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
             Exiled.Events.Handlers.Player.ChangingSpectatedPlayer += OnChangingSpectatedPlayer;
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem += OnScp914UpgradeInv;
-            Exiled.Events.Handlers.Scp914.UpgradingPickup += OnScp914UpgradePickup;
         }
 
         public void Unsubscribe()
@@ -41,7 +40,6 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
             Exiled.Events.Handlers.Player.ChangingSpectatedPlayer -= OnChangingSpectatedPlayer;
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem -= OnScp914UpgradeInv;
-            Exiled.Events.Handlers.Scp914.UpgradingPickup -= OnScp914UpgradePickup;
         }
 
         private void OnPlayerVerified(VerifiedEventArgs ev)
@@ -68,10 +66,6 @@ namespace SillySCP.Handlers
             var volunteeredScp = Plugin.Instance.Volunteers.FirstOrDefault((v) => v.Players.Contains(ev.Player));
             if (volunteeredScp != null) volunteeredScp.Players.Remove(ev.Player);
             if(!String.IsNullOrEmpty(ev.Player.Nickname) && !Round.IsEnded && Round.IsStarted) Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync($"Player `{ev.Player.Nickname}` (`{ev.Player.UserId}`) has left the server");
-            if (!Features.Player.List.Any() && Round.IsStarted)
-            {
-                Round.Restart();
-            }
         }
 
         private void OnPlayerDamageWindow(DamagingWindowEventArgs ev)
@@ -193,35 +187,6 @@ namespace SillySCP.Handlers
                     {
                         ev.Item.Destroy();
                         ev.Player.AddItem(ItemType.KeycardJanitor);
-                        break;
-                    }
-                }
-            }
-        }
-
-        private void OnScp914UpgradePickup(UpgradingPickupEventArgs ev)
-        {
-            if (ev.KnobSetting == Scp914KnobSetting.Fine && ev.Pickup.Type == ItemType.Coin)
-            {
-                var randomNum = Random.Range(1, 3);
-                switch (randomNum)
-                {
-                    case 1:
-                    {
-                        ev.Pickup.Destroy();
-                        Pickup.CreateAndSpawn(ItemType.Flashlight, ev.OutputPosition, Quaternion.identity);
-                        break;
-                    }
-                    case 2:
-                    {
-                        ev.Pickup.Destroy();
-                        Pickup.CreateAndSpawn(ItemType.Radio, ev.OutputPosition, Quaternion.identity);
-                        break;
-                    }
-                    case 3:
-                    {
-                        ev.Pickup.Destroy();
-                        Pickup.CreateAndSpawn(ItemType.KeycardJanitor, ev.OutputPosition, Quaternion.identity);
                         break;
                     }
                 }

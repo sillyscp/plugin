@@ -1,8 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Exiled.API.Features.Pickups;
+using Exiled.Events.EventArgs.Scp914;
 using Exiled.Events.EventArgs.Server;
 using MEC;
 using Respawning;
+using Scp914;
+using UnityEngine;
 using Features = Exiled.API.Features;
 
 namespace SillySCP.Handlers
@@ -16,6 +20,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
             Exiled.Events.Handlers.Server.RestartingRound += OnRoundRestart;
             Exiled.Events.Handlers.Server.RespawningTeam += OnRespawn;
+            Exiled.Events.Handlers.Scp914.UpgradingPickup += OnScp914UpgradePickup;
         }
 
         public void Unsubscribe()
@@ -25,6 +30,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
             Exiled.Events.Handlers.Server.RestartingRound -= OnRoundRestart;
             Exiled.Events.Handlers.Server.RespawningTeam -= OnRespawn;
+            Exiled.Events.Handlers.Scp914.UpgradingPickup -= OnScp914UpgradePickup;
         }
         
         public void OnWaitingForPlayers()
@@ -106,6 +112,35 @@ namespace SillySCP.Handlers
                 if (playerStats == null) return;
                 playerStats.Spectating = null;
             });
+        }
+        
+        private void OnScp914UpgradePickup(UpgradingPickupEventArgs ev)
+        {
+            if (ev.KnobSetting == Scp914KnobSetting.Fine && ev.Pickup.Type == ItemType.Coin)
+            {
+                var randomNum = Random.Range(1, 3);
+                switch (randomNum)
+                {
+                    case 1:
+                    {
+                        ev.Pickup.Destroy();
+                        Pickup.CreateAndSpawn(ItemType.Flashlight, ev.OutputPosition, Quaternion.identity);
+                        break;
+                    }
+                    case 2:
+                    {
+                        ev.Pickup.Destroy();
+                        Pickup.CreateAndSpawn(ItemType.Radio, ev.OutputPosition, Quaternion.identity);
+                        break;
+                    }
+                    case 3:
+                    {
+                        ev.Pickup.Destroy();
+                        Pickup.CreateAndSpawn(ItemType.KeycardJanitor, ev.OutputPosition, Quaternion.identity);
+                        break;
+                    }
+                }
+            }
         }
     }
 }
