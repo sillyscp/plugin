@@ -107,7 +107,7 @@ namespace SillySCP.Handlers
             ev.Players.ForEach(p =>
             {
                 p.ShowHint("", int.MaxValue);
-                var playerStats = Plugin.Instance.FindPlayerStat(p);
+                var playerStats = Plugin.Instance.PlayerStatUtils.FindPlayerStat(p);
                 if (playerStats == null) return;
                 playerStats.Spectating = null;
             });

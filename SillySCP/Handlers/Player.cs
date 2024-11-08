@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Exiled.API.Features;
-using Exiled.API.Features.Pickups;
 using Exiled.Events.EventArgs.Player;
 using Exiled.Events.EventArgs.Scp914;
 using MEC;
@@ -58,12 +57,12 @@ namespace SillySCP.Handlers
         
         private void OnPlayerLeave(LeftEventArgs ev)
         {
-            var playerStats = Plugin.Instance.FindPlayerStat(ev.Player);
+            var playerStats = Plugin.Instance.PlayerStatUtils.FindPlayerStat(ev.Player);
             if(playerStats != null) playerStats.Spectating = null;
             if(!Round.IsEnded && Round.IsStarted) Plugin.Instance.Discord.SetStatus();
             if(Plugin.Instance.Volunteers == null)
                 return;
-            var volunteeredScp = Plugin.Instance.Volunteers.FirstOrDefault((v) => v.Players.Contains(ev.Player));
+            var volunteeredScp = Plugin.Instance.Volunteers.FirstOrDefault(v => v.Players.Contains(ev.Player));
             if (volunteeredScp != null) volunteeredScp.Players.Remove(ev.Player);
             if(!String.IsNullOrEmpty(ev.Player.Nickname) && !Round.IsEnded && Round.IsStarted) Plugin.Instance.Discord.ConnectionChannel.SendMessageAsync($"Player `{ev.Player.Nickname}` (`{ev.Player.UserId}`) has left the server");
         }
@@ -93,7 +92,7 @@ namespace SillySCP.Handlers
                 if (ev.Player.Role == RoleTypeId.Scp106 && !ev.Player.DoNotTrack)
                     Plugin.Instance.Scp106 = ev.Player;
                 ev.Player.ShowHint("", int.MaxValue);
-                var playerStats = Plugin.Instance.FindPlayerStat(ev.Player);
+                var playerStats = Plugin.Instance.PlayerStatUtils.FindPlayerStat(ev.Player);
                 if (playerStats != null) playerStats.Spectating = null;
             }
 
@@ -127,14 +126,14 @@ namespace SillySCP.Handlers
             Timing.RunCoroutine(Plugin.Instance.RespawnTimer(ev.Player));
             if (ev.DamageHandler.Type == Exiled.API.Enums.DamageType.PocketDimension)
             {
-                var scp106 = Plugin.Instance.Scp106 ?? Features.Player.List.FirstOrDefault((p) => p.Role == RoleTypeId.Scp106);
-                Plugin.Instance.UpdateKills(scp106, true);
+                var scp106 = Plugin.Instance.Scp106 ?? Features.Player.List.FirstOrDefault(p => p.Role == RoleTypeId.Scp106);
+                Plugin.Instance.PlayerStatUtils.UpdateKills(scp106, true);
             }
             if (ev.Attacker == null)
                 return;
             if (ev.Player == ev.Attacker)
                 return;
-            Plugin.Instance.UpdateKills(ev.Attacker, ev.Attacker.IsScp);
+            Plugin.Instance.PlayerStatUtils.UpdateKills(ev.Attacker, ev.Attacker.IsScp);
         }
         
         private void OnChangingRole(ChangingRoleEventArgs ev)
@@ -160,7 +159,7 @@ namespace SillySCP.Handlers
         {
             if (ev.NewTarget == null)
                 return;
-            var playerStats = Plugin.Instance.FindOrCreatePlayerStat(ev.Player);
+            var playerStats = Plugin.Instance.PlayerStatUtils.FindOrCreatePlayerStat(ev.Player);
             playerStats.Spectating = ev.NewTarget;
         }
         

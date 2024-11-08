@@ -26,6 +26,7 @@ namespace SillySCP
         public bool ReadyVolunteers;
         public string ChosenEvent;
         public DiscordBot Discord { get; private set; }
+        public PlayerStatUtils PlayerStatUtils;
 
         private SillySCP.Handlers.Player _playerHandler;
         private Handlers.Server _serverHandler;
@@ -35,9 +36,10 @@ namespace SillySCP
             Instance = this;
             RoundEvents = new RoundEvents();
             Discord = new DiscordBot();
+            PlayerStatUtils = new PlayerStatUtils();
             _playerHandler = new SillySCP.Handlers.Player();
             _playerHandler.Init();
-            _serverHandler = new SillySCP.Handlers.Server();
+            _serverHandler = new Handlers.Server();
             _serverHandler.Init();
             Task.Run(DiscordBot.StartClient);
             base.OnEnabled();
@@ -51,48 +53,9 @@ namespace SillySCP
             _serverHandler = null;
             RoundEvents = null;
             Discord = null;
+            PlayerStatUtils = null;
             Task.Run(DiscordBot.StopClient);
             base.OnDisabled();
-        }
-
-        public PlayerStat FindOrCreatePlayerStat(Player player)
-        {
-            var playerStat = FindPlayerStat(player);
-            if (playerStat == null)
-            {
-                playerStat = new PlayerStat
-                {
-                    Player = player,
-                    Kills = player.DoNotTrack ? (int?)null : 0,
-                    ScpKills = player.DoNotTrack ? (int?)null : 0,
-                    Spectating = null,
-                };
-                PlayerStats.Add(playerStat);
-            }
-
-            return playerStat;
-        }
-        
-        public PlayerStat FindPlayerStat(Player player)
-        {
-            if(PlayerStats == null)
-                PlayerStats = new List<PlayerStat>();
-            return PlayerStats.Find((p) => p.Player == player);
-        }
-
-        public void UpdateKills(Player player, bool scp, bool positive = true)
-        {
-            if (player.DoNotTrack)
-                return;
-            var playerStat = FindOrCreatePlayerStat(player);
-            if (positive && scp)
-                playerStat.ScpKills++;
-            else if (positive)
-                playerStat.Kills++;
-            else if (scp && playerStat.ScpKills > 0)
-                playerStat.ScpKills--;
-            else if (playerStat.Kills > 0 && !scp)
-                playerStat.Kills--;
         }
 
         public IEnumerator<float> RespawnTimer(Player player)
@@ -100,7 +63,7 @@ namespace SillySCP
             while (true)
             {
                 yield return Timing.WaitForSeconds(1f);
-                player = Player.List.FirstOrDefault((p) => p.UserId == player.UserId);
+                player = Player.List.FirstOrDefault(p => p.UserId == player.UserId);
                 if (player == null || player.Role != RoleTypeId.Spectator)
                     break;
                 var respawnTeam = Respawn.NextKnownTeam;
@@ -108,8 +71,8 @@ namespace SillySCP
                 var timeUntilWave = Respawn.TimeUntilSpawnWave;
                 timeUntilWave = teamText != null ? timeUntilWave : timeUntilWave.Add(System.TimeSpan.FromSeconds(Respawn.NtfTickets >= Respawn.ChaosTickets ? 17 : 13));
                 var currentTime = $"{timeUntilWave.Minutes:D1}<size=22>M</size> {timeUntilWave.Seconds:D2}<size=22>S</size>";
-                var playerStat = FindPlayerStat(player);
-                var spectatingPlayerStat = FindPlayerStat(playerStat?.Spectating);
+                var playerStat = PlayerStatUtils.FindPlayerStat(player);
+                var spectatingPlayerStat = PlayerStatUtils.FindPlayerStat(playerStat?.Spectating);
                 var kills = ((spectatingPlayerStat != null ? spectatingPlayerStat.Player.IsScp ? spectatingPlayerStat.ScpKills : spectatingPlayerStat.Kills : 0) ?? 0).ToString();
                 var spectatingKills =
                     spectatingPlayerStat != null
@@ -138,7 +101,7 @@ namespace SillySCP
         public IEnumerator<float> ChooseVolunteers(Volunteers volunteer)
         {
             yield return Timing.WaitForSeconds(15);
-            volunteer = Volunteers.FirstOrDefault((v) => v.Replacement == volunteer.Replacement);
+            volunteer = Volunteers.FirstOrDefault(v => v.Replacement == volunteer.Replacement);
             if (volunteer == null)
                 yield break;
             if (volunteer.Players.Count == 0) yield break;
@@ -158,7 +121,7 @@ namespace SillySCP
                 var chance = Random.Range(1, 1_000_000);
                 if (chance == 1)
                 {
-                    var player = Player.List.Where((p) => p.IsAlive).GetRandomValue();
+                    var player = Player.List.Where(p => p.IsAlive).GetRandomValue();
                     if(player == null) continue;
                     player.EnableEffect(EffectType.CardiacArrest, 1, 3);
                 }
