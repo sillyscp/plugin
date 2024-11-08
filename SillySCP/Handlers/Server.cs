@@ -33,19 +33,19 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Scp914.UpgradingPickup -= OnScp914UpgradePickup;
         }
         
-        public void OnWaitingForPlayers()
+        private void OnWaitingForPlayers()
         {
             Plugin.Instance.Scp106 = null;
-            Plugin.Instance.SetStatus();
+            Plugin.Instance.Discord.SetStatus();
         }
 
-        public void OnRoundEnded(RoundEndedEventArgs _)
+        private void OnRoundEnded(RoundEndedEventArgs _)
         {
             var highestKills = Plugin
-                .Instance.PlayerStats.Where(p => !p.Player.IsScp && p.Kills > 0).OrderByDescending((p) => p.Kills)
+                .Instance.PlayerStats.Where(p => !p.Player.IsScp && p.Kills > 0).OrderByDescending(p => p.Kills)
                 .ToList();
             var scpHighestKills = Plugin
-                .Instance.PlayerStats.Where(p => p.Player.IsScp && p.ScpKills > 0).OrderByDescending((p) => p.ScpKills)
+                .Instance.PlayerStats.Where(p => p.Player.IsScp && p.ScpKills > 0).OrderByDescending(p => p.ScpKills)
                 .ToList();
             var highestKiller = highestKills.FirstOrDefault();
             var scpHighestKiller = scpHighestKills.FirstOrDefault();
@@ -64,16 +64,16 @@ namespace SillySCP.Handlers
             var discMessage = "Round has ended with the following people:\n```";
             discMessage += string.Join("\n", Features.Player.List.Select(player => $"{player.Nickname} ({player.UserId})"));
             discMessage += "```";
-            Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync(discMessage);
+            Plugin.Instance.Discord.ConnectionChannel.SendMessageAsync(discMessage);
         }
         
-        public void OnRoundStarted()
+        private void OnRoundStarted()
         {
             Features.Server.FriendlyFire = false;
             Plugin.Instance.PlayerStats = new List<PlayerStat>();
             Plugin.Instance.Volunteers = new List<Volunteers>();
             Timing.RunCoroutine(Plugin.Instance.DisableVolunteers());
-            Plugin.Instance.SetStatus(true);
+            Plugin.Instance.Discord.SetStatus(true);
             // var eventRound = Plugin.Instance.RoundEvents.EventRound();
             // if (eventRound)
             // {
@@ -89,23 +89,22 @@ namespace SillySCP.Handlers
             var message = "Round has started with the following people:\n```";
             message += string.Join("\n", Features.Player.List.Select(player => $"{player.Nickname} ({player.UserId})"));
             message += "```";
-            var guild = Plugin.Client.GetGuild(1279504339248877588);
-            guild.GetTextChannel(1294978305253970002).SendMessageAsync(message);
-            guild.GetTextChannel(1296011257006002207).SendMessageAsync("New round");
+            Plugin.Instance.Discord.ConnectionChannel.SendMessageAsync(message);
+            Plugin.Instance.Discord.DeathChannel.SendMessageAsync("New round");
             Timing.RunCoroutine(Plugin.Instance.HeartAttack());
         }
 
-        public void OnRoundRestart()
+        private void OnRoundRestart()
         {
             Features.Server.FriendlyFire = false;
-            Plugin.Instance.SetStatus();
+            Plugin.Instance.Discord.SetStatus();
         }
 
-        public void OnRespawn(RespawningTeamEventArgs ev)
+        private void OnRespawn(RespawningTeamEventArgs ev)
         {
             if (ev.NextKnownTeam == SpawnableTeamType.None)
                 return;
-            ev.Players.ForEach((p) =>
+            ev.Players.ForEach(p =>
             {
                 p.ShowHint("", int.MaxValue);
                 var playerStats = Plugin.Instance.FindPlayerStat(p);

@@ -232,6 +232,7 @@
         <Compile Include="Commands\Kills.cs" />
         <Compile Include="Commands\Volunteer.cs" />
         <Compile Include="Config.cs" />
+        <Compile Include="Handlers\DiscordBot.cs" />
         <Compile Include="Handlers\Player.cs" />
         <Compile Include="Handlers\Server.cs" />
         <Compile Include="PlayerStat.cs" />

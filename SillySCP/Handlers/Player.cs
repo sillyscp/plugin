@@ -50,9 +50,9 @@ namespace SillySCP.Handlers
             }
             if(!String.IsNullOrEmpty(ev.Player.Nickname) && Round.IsStarted)
             {
-                Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002)
+                Plugin.Instance.Discord.ConnectionChannel
                     .SendMessageAsync($"Player `{ev.Player.Nickname}` (`{ev.Player.UserId}`) has joined the server");
-                Plugin.Instance.SetStatus();
+                Plugin.Instance.Discord.SetStatus();
             }
         }
         
@@ -60,12 +60,12 @@ namespace SillySCP.Handlers
         {
             var playerStats = Plugin.Instance.FindPlayerStat(ev.Player);
             if(playerStats != null) playerStats.Spectating = null;
-            if(!Round.IsEnded && Round.IsStarted) Plugin.Instance.SetStatus();
+            if(!Round.IsEnded && Round.IsStarted) Plugin.Instance.Discord.SetStatus();
             if(Plugin.Instance.Volunteers == null)
                 return;
             var volunteeredScp = Plugin.Instance.Volunteers.FirstOrDefault((v) => v.Players.Contains(ev.Player));
             if (volunteeredScp != null) volunteeredScp.Players.Remove(ev.Player);
-            if(!String.IsNullOrEmpty(ev.Player.Nickname) && !Round.IsEnded && Round.IsStarted) Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1294978305253970002).SendMessageAsync($"Player `{ev.Player.Nickname}` (`{ev.Player.UserId}`) has left the server");
+            if(!String.IsNullOrEmpty(ev.Player.Nickname) && !Round.IsEnded && Round.IsStarted) Plugin.Instance.Discord.ConnectionChannel.SendMessageAsync($"Player `{ev.Player.Nickname}` (`{ev.Player.UserId}`) has left the server");
         }
 
         private void OnPlayerDamageWindow(DamagingWindowEventArgs ev)
@@ -118,7 +118,7 @@ namespace SillySCP.Handlers
                     cuffed = ev.Player.IsCuffed;
                 }
                 text += $"Player `{ev.Player.Nickname}` (`{ev.Player.Role.Name}`){(cuffed ? " **(was cuffed)**" : "")} has been killed by `{ev.Attacker.Nickname}` as `{ev.Attacker.Role.Name}`";
-                Plugin.Client.GetGuild(1279504339248877588).GetTextChannel(1296011257006002207).SendMessageAsync(text);
+                Plugin.Instance.Discord.DeathChannel.SendMessageAsync(text);
             }
         }
 

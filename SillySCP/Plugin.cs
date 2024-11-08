@@ -1,19 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Discord;
-using Discord.WebSocket;
 using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
 using MEC;
 using PlayerRoles;
 using Respawning;
+using SillySCP.Handlers;
 using Map = Exiled.API.Features.Map;
 using Player = Exiled.API.Features.Player;
 using Respawn = Exiled.API.Features.Respawn;
 using Round = PluginAPI.Core.Round;
-using Server = Exiled.API.Features.Server;
 using UnityEngine;
 
 namespace SillySCP
@@ -23,25 +21,25 @@ namespace SillySCP
         public static Plugin Instance;
         public List<PlayerStat> PlayerStats;
         public RoundEvents RoundEvents;
-        public static DiscordSocketClient Client;
         public Player Scp106;
         public List<Volunteers> Volunteers;
         public bool ReadyVolunteers;
         public string ChosenEvent;
-        private SocketTextChannel _channel;
+        public DiscordBot Discord { get; private set; }
 
         private SillySCP.Handlers.Player _playerHandler;
-        private SillySCP.Handlers.Server _serverHandler;
+        private Handlers.Server _serverHandler;
 
         public override void OnEnabled()
         {
             Instance = this;
             RoundEvents = new RoundEvents();
+            Discord = new DiscordBot();
             _playerHandler = new SillySCP.Handlers.Player();
             _playerHandler.Init();
             _serverHandler = new SillySCP.Handlers.Server();
             _serverHandler.Init();
-            Task.Run(StartClient);
+            Task.Run(DiscordBot.StartClient);
             base.OnEnabled();
         }
 
@@ -52,125 +50,9 @@ namespace SillySCP
             _serverHandler.Unsubscribe();
             _serverHandler = null;
             RoundEvents = null;
-            Task.Run(StopClient);
+            Discord = null;
+            Task.Run(DiscordBot.StopClient);
             base.OnDisabled();
-        }
-
-        private static Task DiscLog(LogMessage msg)
-        {
-            PluginAPI.Core.Log.Info(msg.ToString());
-            return Task.CompletedTask;
-        }
-
-        private static async Task StartClient()
-        {
-            var config = new DiscordSocketConfig()
-            {
-                GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMessages,
-                LogLevel = LogSeverity.Error,
-            };
-            Client = new DiscordSocketClient(config);
-            Client.Log += DiscLog;
-            Client.Ready += Instance.Ready;
-            await Client.LoginAsync(TokenType.Bot, Instance.Config.Token);
-            await Client.StartAsync();
-        }
-
-        private static async Task StopClient()
-        {
-            await Client.StopAsync();
-            await Client.LogoutAsync();
-        }
-        
-        public void SetStatus(bool force = false)
-        {
-            var playerList = Player.List;
-            var players = string.Join("\n", playerList.Select(player => "- " + player.Nickname));
-            var description = force ? players : !Round.IsRoundEnded && Round.IsRoundStarted ? players == "" ? "Waiting for players." : players : "Waiting for players.";
-            var embedBuilder = new EmbedBuilder()
-                .WithTitle("Silly SCP Member List")
-                .WithColor(Discord.Color.Blue)
-                .WithDescription(
-                    description
-                );
-            SetMessage(_channel, 1280910252325339311, embedBuilder.Build());
-            SetCustomStatus(force);
-        }
-
-        private static SocketTextChannel GetChannel(ulong id)
-        {
-            var channel = Client.GetChannel(id);
-            if (channel.GetChannelType() != ChannelType.Text)
-                return null;
-            var textChannel = (SocketTextChannel)channel;
-            return textChannel;
-        }
-
-        private async Task Ready()
-        {
-            _channel = GetChannel(1279544677334253610);
-            SetStatus();
-            await Task.CompletedTask;
-        }
-
-        private bool _messageCooldown;
-
-        private void SetMessage(SocketTextChannel channel, ulong messageId, Embed embed)
-        {
-            var message = channel.GetMessageAsync(messageId).Result;
-            
-            try
-            {
-                if (message.Embeds != null && embed.Description == message.Embeds.FirstOrDefault()?.Description) return;
-                channel.ModifyMessageAsync(
-                    message.Id,
-                    msg =>
-                    {
-                        msg.Embed = embed;
-                        msg.Content = "";
-                    }
-                );
-                _messageCooldown = false;
-            }
-            catch
-            {
-                if(!_messageCooldown)
-                {
-                    _messageCooldown = true;
-                    Timing.CallDelayed(10, () =>
-                    {
-                        if (!_messageCooldown) return;
-                        SetMessage(channel, messageId, embed);
-                    });
-                }
-            }
-        }
-        
-        private bool _statusCooldown;
-
-        private void SetCustomStatus(bool force = false)
-        {
-            var status = (!Round.IsRoundEnded && Round.IsRoundStarted) || force
-                ? $"{Server.PlayerCount}/{Server.MaxPlayerCount} players"
-                : "Waiting for players.";
-            try
-            {
-                if (Client.Activity != null && Client.Activity?.ToString().Trim() == status) return;
-                Client.SetCustomStatusAsync(status);
-                _statusCooldown = false;
-            }
-            catch
-            {
-                if (!_statusCooldown)
-                {
-                    _statusCooldown = true;
-                    Timing.CallDelayed(10, () =>
-                    {
-                        if (!_statusCooldown) return;
-                        SetCustomStatus();
-                    });
-                }
-            }
         }
 
         public PlayerStat FindOrCreatePlayerStat(Player player)
