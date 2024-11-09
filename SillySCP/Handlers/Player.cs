@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Exiled.API.Enums;
 using Exiled.API.Features;
 using Exiled.Events.EventArgs.Player;
 using Exiled.Events.EventArgs.Scp914;
@@ -190,6 +191,18 @@ namespace SillySCP.Handlers
                     }
                 }
             }
+        }
+
+        public IEnumerator<float> StartNukeDamage(Features.Player player)
+        {
+            yield return Timing.WaitForSeconds(180);
+            while(player.CurrentRoom.Type == RoomType.HczNuke)
+            {
+                player.Hurt(1f);
+                yield return Timing.WaitForSeconds(1);
+            }
+
+            yield return 0;
         }
     }
 }

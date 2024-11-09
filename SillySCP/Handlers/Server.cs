@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Exiled.API.Enums;
 using Exiled.API.Features.Pickups;
 using Exiled.Events.EventArgs.Scp914;
 using Exiled.Events.EventArgs.Server;
@@ -92,6 +93,7 @@ namespace SillySCP.Handlers
             Plugin.Instance.Discord.ConnectionChannel.SendMessageAsync(message);
             Plugin.Instance.Discord.DeathChannel.SendMessageAsync("New round");
             Timing.RunCoroutine(Plugin.Instance.HeartAttack());
+            Timing.RunCoroutine(CheckNukeRoom());
         }
 
         private void OnRoundRestart()
@@ -140,6 +142,26 @@ namespace SillySCP.Handlers
                     }
                 }
             }
+        }
+        
+        private IEnumerator<float> CheckNukeRoom()
+        {
+            while (Features.Round.IsStarted && !Features.Round.IsEnded)
+            {
+                var players = Features.Player.List;
+                foreach (var player in players)
+                {
+                    if (!player.IsAlive) continue;
+                    if (player.CurrentRoom.Type == RoomType.HczNuke)
+                    {
+                        Timing.RunCoroutine(Plugin.Instance.PlayerHandler.StartNukeDamage(player));
+                    }
+                }
+
+                yield return Timing.WaitForSeconds(60);
+            }
+
+            yield return 0;
         }
     }
 }

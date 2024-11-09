@@ -28,8 +28,8 @@ namespace SillySCP
         public DiscordBot Discord { get; private set; }
         public PlayerStatUtils PlayerStatUtils;
 
-        private SillySCP.Handlers.Player _playerHandler;
-        private Handlers.Server _serverHandler;
+        public SillySCP.Handlers.Player PlayerHandler;
+        public Handlers.Server ServerHandler;
 
         public override void OnEnabled()
         {
@@ -38,19 +38,19 @@ namespace SillySCP
             Discord = new DiscordBot();
             Task.Run(Discord.StartClient);
             PlayerStatUtils = new PlayerStatUtils();
-            _playerHandler = new SillySCP.Handlers.Player();
-            _playerHandler.Init();
-            _serverHandler = new Handlers.Server();
-            _serverHandler.Init();
+            PlayerHandler = new SillySCP.Handlers.Player();
+            PlayerHandler.Init();
+            ServerHandler = new Handlers.Server();
+            ServerHandler.Init();
             base.OnEnabled();
         }
 
         public override void OnDisabled()
         {
-            _playerHandler.Unsubscribe();
-            _playerHandler = null;
-            _serverHandler.Unsubscribe();
-            _serverHandler = null;
+            PlayerHandler.Unsubscribe();
+            PlayerHandler = null;
+            ServerHandler.Unsubscribe();
+            ServerHandler = null;
             RoundEvents = null;
             Task.Run(Discord.StopClient);
             Discord = null;
