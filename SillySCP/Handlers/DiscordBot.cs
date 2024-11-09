@@ -10,19 +10,19 @@ namespace SillySCP.Handlers
 {
     public class DiscordBot
     {
-        private static DiscordSocketClient Client { get; set; }
+        private DiscordSocketClient Client { get; set; }
 
         private SocketTextChannel _statusChannel;
         public SocketTextChannel DeathChannel;
         public SocketTextChannel ConnectionChannel;
         
-        private static Task DiscLog(LogMessage msg)
+        private Task DiscLog(LogMessage msg)
         {
             PluginAPI.Core.Log.Info(msg.ToString());
             return Task.CompletedTask;
         }
 
-        public static async Task StartClient()
+        public async Task StartClient()
         {
             var config = new DiscordSocketConfig
             {
@@ -36,7 +36,7 @@ namespace SillySCP.Handlers
             await Client.StartAsync();
         }
 
-        public static async Task StopClient()
+        public async Task StopClient()
         {
             await Client.StopAsync();
             await Client.LogoutAsync();
@@ -51,7 +51,7 @@ namespace SillySCP.Handlers
             await Task.CompletedTask;
         }
         
-        private static SocketTextChannel GetChannel(ulong id)
+        private SocketTextChannel GetChannel(ulong id)
         {
             var channel = Client.GetChannel(id);
             if (channel.GetChannelType() != ChannelType.Text)
