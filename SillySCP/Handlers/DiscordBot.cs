@@ -82,33 +82,37 @@ namespace SillySCP.Handlers
 
         private void SetMessage(SocketTextChannel channel, ulong messageId, Embed embed)
         {
-            var message = channel.GetMessageAsync(messageId).Result;
-            
-            try
+            Task.Run(async () =>
             {
-                if (message.Embeds != null && embed.Description == message.Embeds.FirstOrDefault()?.Description) return;
-                channel.ModifyMessageAsync(
-                    message.Id,
-                    msg =>
-                    {
-                        msg.Embed = embed;
-                        msg.Content = "";
-                    }
-                );
-                _messageCooldown = false;
-            }
-            catch
-            {
-                if(!_messageCooldown)
+                var message = await channel.GetMessageAsync(messageId);
+
+                try
                 {
-                    _messageCooldown = true;
-                    Timing.CallDelayed(10, () =>
-                    {
-                        if (!_messageCooldown) return;
-                        SetMessage(channel, messageId, embed);
-                    });
+                    if (message.Embeds != null &&
+                        embed.Description == message.Embeds.FirstOrDefault()?.Description) return;
+                    channel.ModifyMessageAsync(
+                        message.Id,
+                        msg =>
+                        {
+                            msg.Embed = embed;
+                            msg.Content = "";
+                        }
+                    );
+                    _messageCooldown = false;
                 }
-            }
+                catch
+                {
+                    if (!_messageCooldown)
+                    {
+                        _messageCooldown = true;
+                        Timing.CallDelayed(10, () =>
+                        {
+                            if (!_messageCooldown) return;
+                            SetMessage(channel, messageId, embed);
+                        });
+                    }
+                }
+            });
         }
         
         private bool _statusCooldown;
