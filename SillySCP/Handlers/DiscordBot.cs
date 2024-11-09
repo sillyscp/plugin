@@ -15,6 +15,8 @@ namespace SillySCP.Handlers
         private SocketTextChannel _statusChannel;
         public SocketTextChannel DeathChannel;
         public SocketTextChannel ConnectionChannel;
+
+        public SocketGuild Guild;
         
         private Task DiscLog(LogMessage msg)
         {
@@ -38,8 +40,8 @@ namespace SillySCP.Handlers
 
         public async Task StopClient()
         {
-            await Client.StopAsync();
             await Client.LogoutAsync();
+            await Client.StopAsync();
         }
 
         private async Task Ready()
@@ -47,6 +49,7 @@ namespace SillySCP.Handlers
             _statusChannel = GetChannel(1279544677334253610);
             DeathChannel = GetChannel(1296011257006002207);
             ConnectionChannel = GetChannel(1294978305253970002);
+            Guild = Client.GetGuild(1279504339248877588);
             SetStatus();
             await Task.CompletedTask;
         }
