@@ -36,12 +36,12 @@ namespace SillySCP
             Instance = this;
             RoundEvents = new RoundEvents();
             Discord = new DiscordBot();
+            Task.Run(Discord.StartClient);
             PlayerStatUtils = new PlayerStatUtils();
             _playerHandler = new SillySCP.Handlers.Player();
             _playerHandler.Init();
             _serverHandler = new Handlers.Server();
             _serverHandler.Init();
-            Task.Run(Discord.StartClient);
             base.OnEnabled();
         }
 
@@ -52,9 +52,9 @@ namespace SillySCP
             _serverHandler.Unsubscribe();
             _serverHandler = null;
             RoundEvents = null;
+            Task.Run(Discord.StopClient);
             Discord = null;
             PlayerStatUtils = null;
-            Task.Run(Discord.StopClient);
             base.OnDisabled();
         }
 

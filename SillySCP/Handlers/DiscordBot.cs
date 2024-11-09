@@ -31,7 +31,7 @@ namespace SillySCP.Handlers
             };
             Client = new DiscordSocketClient(config);
             Client.Log += DiscLog;
-            Client.Ready += async () => await new DiscordBot().Ready();
+            Client.Ready += Ready;
             await Client.LoginAsync(TokenType.Bot, Plugin.Instance.Config.Token);
             await Client.StartAsync();
         }
