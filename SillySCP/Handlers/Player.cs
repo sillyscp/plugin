@@ -27,6 +27,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
             Exiled.Events.Handlers.Player.ChangingSpectatedPlayer += OnChangingSpectatedPlayer;
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem += OnScp914UpgradeInv;
+            Exiled.Events.Handlers.Player.Escaping += OnEscaping;
         }
 
         public void Unsubscribe()
@@ -40,6 +41,16 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
             Exiled.Events.Handlers.Player.ChangingSpectatedPlayer -= OnChangingSpectatedPlayer;
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem -= OnScp914UpgradeInv;
+            Exiled.Events.Handlers.Player.Escaping -= OnEscaping;
+        }
+
+        private void OnEscaping(EscapingEventArgs ev)
+        {
+            if (ev.Player.Role.Type == RoleTypeId.FacilityGuard && ev.Player.IsCuffed)
+            {
+                ev.IsAllowed = true;
+                ev.NewRole = RoleTypeId.ChaosConscript;
+            }
         }
 
         private void OnPlayerVerified(VerifiedEventArgs ev)
