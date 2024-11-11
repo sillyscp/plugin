@@ -1,7 +1,7 @@
 ﻿name: "Build project"
 description: "Test if the project builds, if not then fail the build"
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   build:

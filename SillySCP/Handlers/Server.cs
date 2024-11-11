@@ -4,11 +4,15 @@ using Exiled.API.Enums;
 using Exiled.API.Features.Pickups;
 using Exiled.Events.EventArgs.Scp914;
 using Exiled.Events.EventArgs.Server;
+using MapGeneration.Distributors;
 using MEC;
+using PlayerRoles;
+using PlayerRoles.PlayableScps.Scp079;
 using Respawning;
 using Scp914;
 using UnityEngine;
 using Features = Exiled.API.Features;
+using Scp079Role = PlayerRoles.PlayableScps.Scp079.Scp079Role;
 
 namespace SillySCP.Handlers
 {
@@ -22,6 +26,8 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Server.RestartingRound += OnRoundRestart;
             Exiled.Events.Handlers.Server.RespawningTeam += OnRespawn;
             Exiled.Events.Handlers.Scp914.UpgradingPickup += OnScp914UpgradePickup;
+            PlayerRoleManager.OnServerRoleSet -= Features.Recontainer.Base.OnServerRoleChanged;
+            PlayerRoleManager.OnServerRoleSet += OnServerRoleChanged;
         }
 
         public void Unsubscribe()
@@ -32,6 +38,26 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Server.RestartingRound -= OnRoundRestart;
             Exiled.Events.Handlers.Server.RespawningTeam -= OnRespawn;
             Exiled.Events.Handlers.Scp914.UpgradingPickup -= OnScp914UpgradePickup;
+            PlayerRoleManager.OnServerRoleSet -= OnServerRoleChanged;
+            PlayerRoleManager.OnServerRoleSet += Features.Recontainer.Base.OnServerRoleChanged;
+        }
+
+        private void OnServerRoleChanged(ReferenceHub hub, RoleTypeId newRole, RoleChangeReason reason)
+        {
+            var recontainer = Features.Recontainer.Base;
+            if (newRole != RoleTypeId.Spectator ||
+                recontainer.IsScpButNot079(hub.roleManager.CurrentRole)) return;
+            if (Scp079Role.ActiveInstances.Count == 0) return;
+            if (ReferenceHub.AllHubs.Count(x =>
+                    x != hub && recontainer.IsScpButNot079(x.roleManager.CurrentRole)) > 0) return;
+            if (Plugin.Instance.ReadyVolunteers) return;
+            recontainer.SetContainmentDoors(true, true);
+            recontainer._alreadyRecontained = true;
+            recontainer._recontainLater = 3f;
+            foreach (Scp079Generator scp079Generator in Scp079Recontainer.AllGenerators)
+            {
+                scp079Generator.Engaged = true;
+            }
         }
         
         private void OnWaitingForPlayers()

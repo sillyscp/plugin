@@ -90,7 +90,7 @@ namespace SillySCP.Handlers
                 {
                     if (message.Embeds != null &&
                         embed.Description == message.Embeds.FirstOrDefault()?.Description) return;
-                    channel.ModifyMessageAsync(
+                    await channel.ModifyMessageAsync(
                         message.Id,
                         msg =>
                         {

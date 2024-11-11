@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using CustomPlayerEffects;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 using Exiled.Events.EventArgs.Player;
@@ -148,7 +147,7 @@ namespace SillySCP.Handlers
         private void OnPlayerDead(DiedEventArgs ev)
         {
             Timing.RunCoroutine(Plugin.Instance.RespawnTimer(ev.Player));
-            if (ev.DamageHandler.Type == Exiled.API.Enums.DamageType.PocketDimension)
+            if (ev.DamageHandler.Type == DamageType.PocketDimension)
             {
                 var scp106 = Plugin.Instance.Scp106 ?? Features.Player.List.FirstOrDefault(p => p.Role == RoleTypeId.Scp106);
                 Plugin.Instance.PlayerStatUtils.UpdateKills(scp106, true);
