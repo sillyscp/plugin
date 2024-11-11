@@ -1,0 +1,14 @@
+﻿name: "Build project"
+description: "Test if the project builds, if not then fail the build"
+
+on:
+  - push
+
+jobs:
+  runs-on: windows-2019
+  steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '4.8'
+    - run: dotnet build SillySCP/SillySCP.csproj
