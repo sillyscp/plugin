@@ -4,7 +4,7 @@ description: "Test if the project builds, if not then fail the build"
 on: [push]
 
 jobs:
-  runs-on: [windows-2019]
+  runs-on: windows-2019
   steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-dotnet@v4
