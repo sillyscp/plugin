@@ -45,6 +45,8 @@ namespace SillySCP
             PlayerHandler.Init();
             ServerHandler = new Handlers.Server();
             ServerHandler.Init();
+            PlayerRoleManager.OnServerRoleSet -= Recontainer.Base.OnServerRoleChanged;
+            PlayerRoleManager.OnServerRoleSet += OnServerRoleChanged;
             base.OnEnabled();
         }
 
@@ -58,7 +60,27 @@ namespace SillySCP
             Task.Run(Discord.StopClient);
             Discord = null;
             PlayerStatUtils = null;
+            PlayerRoleManager.OnServerRoleSet -= OnServerRoleChanged;
+            PlayerRoleManager.OnServerRoleSet += Recontainer.Base.OnServerRoleChanged;
             base.OnDisabled();
+        }
+        
+        private void OnServerRoleChanged(ReferenceHub hub, RoleTypeId newRole, RoleChangeReason reason)
+        {
+            var recontainer = Recontainer.Base;
+            if (newRole != RoleTypeId.Spectator ||
+                recontainer.IsScpButNot079(hub.roleManager.CurrentRole)) return;
+            if (Scp079Role.ActiveInstances.Count == 0) return;
+            if (ReferenceHub.AllHubs.Count(x =>
+                    x != hub && recontainer.IsScpButNot079(x.roleManager.CurrentRole)) > 0) return;
+            if (Plugin.Instance.ReadyVolunteers) return;
+            recontainer.SetContainmentDoors(true, true);
+            recontainer._alreadyRecontained = true;
+            recontainer._recontainLater = 3f;
+            foreach (Scp079Generator scp079Generator in Scp079Recontainer.AllGenerators)
+            {
+                scp079Generator.Engaged = true;
+            }
         }
 
         public IEnumerator<float> RespawnTimer(Player player)
