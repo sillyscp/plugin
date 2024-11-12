@@ -101,6 +101,12 @@ namespace SillySCP.Handlers
 
         private void OnSpawned(SpawnedEventArgs ev)
         {
+            if (Features.Player.List.Count(p => p.IsScp) == 2 && ev.Player.Role.Type == RoleTypeId.Scp079)
+            {
+                ev.Player.Role.Set(ev.OldRole);
+                ev.Player.Broadcast(new Features.Broadcast("SCP-079 cannot spawn if there is 2 SCPs, it can spawn when above though"));
+            }
+
             if(ev.Player.IsHuman && Plugin.Instance.ChosenEvent == "Lights Out")
             { 
                 ev.Player.AddItem(ItemType.Flashlight);
