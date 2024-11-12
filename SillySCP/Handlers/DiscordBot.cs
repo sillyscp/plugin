@@ -13,6 +13,7 @@ namespace SillySCP.Handlers
         private SocketTextChannel _statusChannel;
         public SocketTextChannel DeathChannel;
         public SocketTextChannel ConnectionChannel;
+        public SocketTextChannel ScpSwapChannel;
 
         public SocketGuild Guild;
         
@@ -47,6 +48,7 @@ namespace SillySCP.Handlers
             _statusChannel = GetChannel(1279544677334253610);
             DeathChannel = GetChannel(1296011257006002207);
             ConnectionChannel = GetChannel(1294978305253970002);
+            ScpSwapChannel = GetChannel(1306013611851907082);
             Guild = Client.GetGuild(1279504339248877588);
             SetStatus();
             await Task.CompletedTask;
