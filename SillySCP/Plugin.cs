@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Discord;
 using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
+using MapGeneration.Distributors;
 using MEC;
 using PlayerRoles;
+using PlayerRoles.PlayableScps.Scp079;
 using Respawning;
 using SillySCP.Handlers;
 using Map = Exiled.API.Features.Map;
@@ -109,7 +112,17 @@ namespace SillySCP
             replacementPlayer.Role.Set(volunteer.Replacement);
             Map.Broadcast(10, volunteer.Replacement.GetFullName() + " has been replaced!",
                 Broadcast.BroadcastFlags.Normal, true);
-            volunteer.Players.Clear();
+            Volunteers.Remove(volunteer);
+            if (!Volunteers.Any() && Scp079Role.ActiveInstances.Count() == 1)
+            {
+                Recontainer.Base.SetContainmentDoors(true, true);
+                Recontainer.Base._alreadyRecontained = true;
+                Recontainer.Base._recontainLater = 3f;
+                foreach (var scp079Generator in Scp079Recontainer.AllGenerators)
+                {
+                    scp079Generator.Engaged = true;
+                }
+            }
             yield return 0;
         }
 
