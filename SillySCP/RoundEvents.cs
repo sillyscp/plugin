@@ -1,6 +1,6 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Features;
-using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace SillySCP
 {

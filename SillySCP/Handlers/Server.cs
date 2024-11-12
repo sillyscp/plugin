@@ -1,18 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Exiled.API.Enums;
+﻿using Exiled.API.Enums;
 using Exiled.API.Features.Pickups;
 using Exiled.Events.EventArgs.Scp914;
 using Exiled.Events.EventArgs.Server;
-using MapGeneration.Distributors;
 using MEC;
-using PlayerRoles;
-using PlayerRoles.PlayableScps.Scp079;
 using Respawning;
 using Scp914;
 using UnityEngine;
 using Features = Exiled.API.Features;
-using Scp079Role = PlayerRoles.PlayableScps.Scp079.Scp079Role;
 
 namespace SillySCP.Handlers
 {
@@ -123,7 +117,7 @@ namespace SillySCP.Handlers
         {
             if (ev.KnobSetting == Scp914KnobSetting.Fine && ev.Pickup.Type == ItemType.Coin)
             {
-                var randomNum = Random.Range(1, 3);
+                var randomNum = UnityEngine.Random.Range(1, 3);
                 switch (randomNum)
                 {
                     case 1:

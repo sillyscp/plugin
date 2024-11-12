@@ -13,9 +13,9 @@ namespace SillySCP
                 playerStat = new PlayerStat
                 {
                     Player = player,
-                    Kills = player.DoNotTrack ? (int?)null : 0,
-                    ScpKills = player.DoNotTrack ? (int?)null : 0,
-                    Spectating = null,
+                    Kills = player.DoNotTrack ? null : 0,
+                    ScpKills = player.DoNotTrack ? null : 0,
+                    Spectating = null
                 };
                 Plugin.Instance.PlayerStats.Add(playerStat);
             }
@@ -25,8 +25,7 @@ namespace SillySCP
         
         public PlayerStat FindPlayerStat(Player player)
         {
-            if(Plugin.Instance.PlayerStats == null)
-                Plugin.Instance.PlayerStats = new List<PlayerStat>();
+            Plugin.Instance.PlayerStats ??= new List<PlayerStat>();
             return Plugin.Instance.PlayerStats.Find((p) => p.Player == player);
         }
 
