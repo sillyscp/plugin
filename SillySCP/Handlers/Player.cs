@@ -100,6 +100,12 @@ namespace SillySCP.Handlers
 
         private void OnSpawned(SpawnedEventArgs ev)
         {
+            if (Features.Player.List.Count(p => p.IsScp) == 1 && ev.Player.Role.Type == RoleTypeId.Scp079 &&
+                ev.OldRole.Team == Team.SCPs)
+            {
+                ev.Player.Role.Set(ev.OldRole);
+                ev.Player.Broadcast(new Features.Broadcast("SCP-079 cannot spawn if there is 1 SCP"));
+            }
             if (Features.Player.List.Count(p => p.IsScp) == 2 && ev.Player.Role.Type == RoleTypeId.Scp079 && ev.OldRole != RoleTypeId.Spectator)
             {
                 ev.Player.Role.Set(ev.OldRole);
@@ -169,7 +175,7 @@ namespace SillySCP.Handlers
         
         private void OnChangingRole(ChangingRoleEventArgs ev)
         {
-            if (ev.Player.IsScp && !ev.NewRole.IsHuman() && ev.NewRole.IsAlive()) Plugin.Instance.Discord.ScpSwapChannel.SendMessageAsync($"Player `{ev.Player.Nickname}` has swapped from `{ev.Player.Role.Name}` to `{ev.NewRole.GetFullName()}`");
+            if (ev.Player.IsScp && RoleExtensions.GetTeam(ev.NewRole) == Team.SCPs) Plugin.Instance.Discord.ScpSwapChannel.SendMessageAsync($"Player `{ev.Player.Nickname}` has swapped from `{ev.Player.Role.Name}` to `{ev.NewRole.GetFullName()}`");
             if (ev.NewRole == RoleTypeId.Spectator) Timing.RunCoroutine(Plugin.Instance.RespawnTimer(ev.Player));
             if (ev.Player.IsScp && (ev.NewRole == RoleTypeId.Spectator || ev.NewRole == RoleTypeId.None) && Plugin.Instance.ReadyVolunteers)
             {
