@@ -1,6 +1,7 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
+using HarmonyLib;
 using MapGeneration.Distributors;
 using MEC;
 using PlayerRoles;
@@ -25,12 +26,14 @@ namespace SillySCP
         public string ChosenEvent;
         public DiscordBot Discord { get; private set; }
         public PlayerStatUtils PlayerStatUtils;
+        public Harmony Harmony { get; } = new("SillySCP-Plugin");
 
         public SillySCP.Handlers.Player PlayerHandler;
         public Handlers.Server ServerHandler;
 
         public override void OnEnabled()
         {
+            Harmony.PatchAll();
             Instance = this;
             RoundEvents = new RoundEvents();
             Discord = new DiscordBot();
@@ -47,6 +50,7 @@ namespace SillySCP
 
         public override void OnDisabled()
         {
+            Harmony.UnpatchAll();
             PlayerHandler.Unsubscribe();
             PlayerHandler = null;
             ServerHandler.Unsubscribe();
