@@ -70,12 +70,12 @@ public class RoleChangedPatch
             
             inventory.UserInventory.Items.Clear();
 
-            foreach (var item in items)
+            foreach (var item in oldItems)
             {
                 inventory.UserInventory.Items.Add(item.Key, item.Value);
             }
 
-            foreach (var item in oldItems)
+            foreach (var item in items)
             {
                 inventory.UserInventory.Items.Add(item.Key, item.Value);
             }
