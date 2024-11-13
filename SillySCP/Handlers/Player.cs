@@ -1,6 +1,7 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
+using Exiled.API.Features.Items;
 using Exiled.API.Features.Pickups;
 using Exiled.Events.EventArgs.Player;
 using Exiled.Events.EventArgs.Scp106;
@@ -12,6 +13,7 @@ using InventorySystem.Items.Armor;
 using InventorySystem.Items.Pickups;
 using MEC;
 using Mirror;
+using Mono.Collections.Generic;
 using PlayerRoles;
 using PlayerRoles.RoleAssign;
 using Scp914;
@@ -184,34 +186,20 @@ namespace SillySCP.Handlers
         {
             var inventoryToSpawn = new List<ItemType>();
             var inventoryToDrop = new List<ItemType>();
-            var oldItems = new Dictionary<ushort, ItemBase>(ev.Player.Inventory.UserInventory.Items);
+            var oldItems = ev.Player.Items.Select(i => i.Type).ToList();
             ev.Player.ClearInventory();
-            foreach (var item in oldItems)
-            {
-                void AddItem()
-                {
-                    if(inventoryToSpawn.Count >= 8) inventoryToDrop.Add(item.Value.ItemTypeId);
-                    else inventoryToSpawn.Add(item.Value.ItemTypeId);
-                }
-                var id = item.Value.ItemTypeId;
-                if(id.IsScp()) AddItem();
-                if(id == ItemType.KeycardO5) AddItem();
-                if(id == ItemType.MicroHID) AddItem();
-                if(id == ItemType.GunE11SR) AddItem();
-                oldItems.Remove(item.Key);
-            }
 
-            while (inventoryToSpawn.Count < 8 && oldItems.Count > 0)
-            {
-                inventoryToSpawn.Add(oldItems.ElementAt(0).Value.ItemTypeId);
-                oldItems.Remove(oldItems.ElementAt(0).Key);
-            }
-                
-            while(oldItems.Count > 0)
-            {
-                inventoryToDrop.Add(oldItems.ElementAt(0).Value.ItemTypeId);
-                oldItems.Remove(oldItems.ElementAt(0).Key);
-            }
+            oldItems
+                .Where(item => item.IsScp() || item == ItemType.KeycardO5 || item == ItemType.MicroHID || item == ItemType.GunE11SR)
+                .ToList()
+                .ForEach(AddItem);
+            
+            ev.Items.ForEach(AddItem);
+            
+            oldItems
+                .Where(item => !inventoryToSpawn.Contains(item) && !inventoryToDrop.Contains(item))
+                .ToList()
+                .ForEach(AddItem);
 
             ev.Items.Clear();
             ev.Items.AddRange(inventoryToSpawn);
@@ -223,6 +211,18 @@ namespace SillySCP.Handlers
                     Pickup.CreateAndSpawn(item, ev.Player.Position, Quaternion.identity);
                 }
             });
+
+            void AddItem(ItemType item)
+            {
+                if (inventoryToSpawn.Count >= 8)
+                {
+                    inventoryToDrop.Add(item);
+                }
+                else
+                {
+                    inventoryToSpawn.Add(item);
+                }
+            }
         }
         
         private void OnChangingRole(ChangingRoleEventArgs ev)
