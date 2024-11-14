@@ -21,6 +21,7 @@ namespace SillySCP.Handlers
 
         public void Init()
         {
+            Instance = this;
             Task.Run(StartClient);
         }
 
