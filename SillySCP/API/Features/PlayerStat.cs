@@ -1,6 +1,6 @@
 ﻿using Exiled.API.Features;
 
-namespace SillySCP.API
+namespace SillySCP.API.Features
 {
     public class PlayerStat
     {

@@ -2,11 +2,11 @@
 using Discord.WebSocket;
 using Exiled.API.Features;
 using MEC;
-using SillySCP.API;
+using SillySCP.API.Interfaces;
 
 namespace SillySCP.Handlers
 {
-    public class DiscordBot : IInittable
+    public class DiscordBot : IRegisterable
     {
         public static DiscordBot Instance { get; private set; }
         
@@ -36,7 +36,7 @@ namespace SillySCP.Handlers
             return Task.CompletedTask;
         }
 
-        public async Task StartClient()
+        private async Task StartClient()
         {
             DiscordSocketConfig config = new()
             {
@@ -50,7 +50,7 @@ namespace SillySCP.Handlers
             await Client.StartAsync();
         }
 
-        public async Task StopClient()
+        private async Task StopClient()
         {
             await Client.LogoutAsync();
             await Client.StopAsync();

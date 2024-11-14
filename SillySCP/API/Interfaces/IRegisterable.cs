@@ -1,6 +1,6 @@
-﻿namespace SillySCP.API
+﻿namespace SillySCP.API.Interfaces
 {
-    public interface IInittable
+    public interface IRegisterable
     {
         public void Init();
         public void Unregister();

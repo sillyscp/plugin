@@ -1,7 +1,7 @@
 ﻿using Exiled.API.Features;
 using PlayerRoles;
 
-namespace SillySCP
+namespace SillySCP.API.Features
 {
     public class Volunteers
     {
