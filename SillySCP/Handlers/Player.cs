@@ -190,7 +190,7 @@ namespace SillySCP.Handlers
             ev.Player.ClearInventory();
 
             oldItems
-                .Where(item => item.IsScp() || item == ItemType.KeycardO5 || item == ItemType.MicroHID || item == ItemType.GunE11SR)
+                .Where(item => item.IsScp() || item == ItemType.KeycardO5 || item == ItemType.MicroHID || item == ItemType.GunFRMG0)
                 .ToList()
                 .ForEach(AddItem);
             
