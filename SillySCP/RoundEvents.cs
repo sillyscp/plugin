@@ -33,10 +33,7 @@ namespace SillySCP
 
         public void ResetLightsOut()
         {
-            Map.TurnOffAllLights(0, ZoneType.Entrance);
-            Map.TurnOffAllLights(0, ZoneType.LightContainment);
-            Map.TurnOffAllLights(0, ZoneType.Surface);
-            Map.TurnOffAllLights(0, ZoneType.Other);
+            Map.TurnOnAllLights(new[] { ZoneType.Entrance, ZoneType.LightContainment, ZoneType.Surface, ZoneType.Other });
         }
     }
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using CommandSystem;
+﻿using CommandSystem;
 using PlayerRoles;
 using Player = Exiled.API.Features.Player;
 
@@ -54,7 +51,7 @@ namespace SillySCP.Commands
                 return false;
             }
 
-            var volunteer = Plugin.Instance.Volunteers.FirstOrDefault((v) => v.Replacement == role);
+            Volunteers volunteer = Plugin.Instance.Volunteers.FirstOrDefault((v) => v.Replacement == role);
             
             if (volunteer == null)
             {
@@ -64,7 +61,7 @@ namespace SillySCP.Commands
 
             if (volunteer.Players == null)
             {
-                volunteer.Players = new List<Player>();
+                volunteer.Players = new();
             }
             
             if (volunteer.Players.Contains(player))

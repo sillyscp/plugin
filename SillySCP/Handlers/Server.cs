@@ -5,12 +5,13 @@ using Exiled.Events.EventArgs.Server;
 using MEC;
 using Respawning;
 using Scp914;
+using SillySCP.API;
 using UnityEngine;
 using Features = Exiled.API.Features;
 
 namespace SillySCP.Handlers
 {
-    public class Server
+    public class Server : IInittable
     {
         public void Init()
         {
@@ -22,7 +23,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Scp914.UpgradingPickup += OnScp914UpgradePickup;
         }
 
-        public void Unsubscribe()
+        public void Unregister()
         {
             Exiled.Events.Handlers.Server.WaitingForPlayers -= OnWaitingForPlayers;
             Exiled.Events.Handlers.Server.RoundEnded -= OnRoundEnded;
@@ -35,7 +36,7 @@ namespace SillySCP.Handlers
         private void OnWaitingForPlayers()
         {
             Plugin.Instance.Scp106 = null;
-            Plugin.Instance.Discord.SetStatus();
+            DiscordBot.Instance.SetStatus();
         }
 
         private void OnRoundEnded(RoundEndedEventArgs _)
@@ -58,12 +59,11 @@ namespace SillySCP.Handlers
                 10,
                 message
             );
-            
-            
+
             var discMessage = "Round has ended with the following people:\n```";
             discMessage += string.Join("\n", Features.Player.List.Select(player => $"{player.Nickname} ({player.UserId})"));
             discMessage += "```";
-            Plugin.Instance.Discord.ConnectionChannel.SendMessageAsync(discMessage);
+            DiscordBot.Instance.ConnectionChannel.SendMessageAsync(discMessage);
         }
         
         private void OnRoundStarted()
@@ -72,7 +72,7 @@ namespace SillySCP.Handlers
             Plugin.Instance.PlayerStats = new List<PlayerStat>();
             Plugin.Instance.Volunteers = new List<Volunteers>();
             Timing.RunCoroutine(Plugin.Instance.DisableVolunteers());
-            Plugin.Instance.Discord.SetStatus(true);
+            DiscordBot.Instance.SetStatus(true);
             // var eventRound = Plugin.Instance.RoundEvents.EventRound();
             // if (eventRound)
             // {
@@ -88,8 +88,8 @@ namespace SillySCP.Handlers
             var message = "Round has started with the following people:\n```";
             message += string.Join("\n", Features.Player.List.Select(player => $"{player.Nickname} ({player.UserId})"));
             message += "```";
-            Plugin.Instance.Discord.ConnectionChannel.SendMessageAsync(message);
-            Plugin.Instance.Discord.DeathChannel.SendMessageAsync("New round");
+            DiscordBot.Instance.ConnectionChannel.SendMessageAsync(message);
+            DiscordBot.Instance.DeathChannel.SendMessageAsync("New round");
             Timing.RunCoroutine(Plugin.Instance.HeartAttack());
             Timing.RunCoroutine(CheckNukeRoom());
         }
@@ -97,17 +97,18 @@ namespace SillySCP.Handlers
         private void OnRoundRestart()
         {
             Features.Server.FriendlyFire = false;
-            Plugin.Instance.Discord.SetStatus();
+            DiscordBot.Instance.SetStatus();
         }
 
         private void OnRespawn(RespawningTeamEventArgs ev)
         {
             if (ev.NextKnownTeam == SpawnableTeamType.None)
                 return;
+
             ev.Players.ForEach(p =>
             {
                 p.ShowHint("", int.MaxValue);
-                var playerStats = Plugin.Instance.PlayerStatUtils.FindPlayerStat(p);
+                PlayerStat playerStats = PlayerStatUtils.FindPlayerStat(p);
                 if (playerStats == null) return;
                 playerStats.Spectating = null;
             });

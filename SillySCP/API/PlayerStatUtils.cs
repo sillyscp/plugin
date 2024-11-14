@@ -1,16 +1,15 @@
-﻿using System.Collections.Generic;
-using Exiled.API.Features;
+﻿using Exiled.API.Features;
 
-namespace SillySCP
+namespace SillySCP.API
 {
-    public class PlayerStatUtils
+    public static class PlayerStatUtils
     {
-        public PlayerStat FindOrCreatePlayerStat(Player player)
+        public static PlayerStat FindOrCreatePlayerStat(Player player)
         {
             var playerStat = FindPlayerStat(player);
             if (playerStat == null)
             {
-                playerStat = new PlayerStat
+                playerStat = new()
                 {
                     Player = player,
                     Kills = player.DoNotTrack ? null : 0,
@@ -23,17 +22,18 @@ namespace SillySCP
             return playerStat;
         }
         
-        public PlayerStat FindPlayerStat(Player player)
+        public static PlayerStat FindPlayerStat(Player player)
         {
-            Plugin.Instance.PlayerStats ??= new List<PlayerStat>();
+            Plugin.Instance.PlayerStats ??= new();
             return Plugin.Instance.PlayerStats.Find((p) => p.Player == player);
         }
 
-        public void UpdateKills(Player player, bool scp, bool positive = true)
+        public static void UpdateKills(Player player, bool scp, bool positive = true)
         {
             if (player.DoNotTrack)
                 return;
-            var playerStat = FindOrCreatePlayerStat(player);
+
+            PlayerStat playerStat = FindOrCreatePlayerStat(player);
             if (positive && scp)
                 playerStat.ScpKills++;
             else if (positive)

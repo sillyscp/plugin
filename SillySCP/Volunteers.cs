@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Exiled.API.Features;
+﻿using Exiled.API.Features;
 using PlayerRoles;
 
 namespace SillySCP

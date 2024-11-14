@@ -7,7 +7,7 @@ using MEC;
 using PlayerRoles;
 using PlayerRoles.PlayableScps.Scp079;
 using Respawning;
-using SillySCP.Handlers;
+using SillySCP.API;
 using Map = Exiled.API.Features.Map;
 using Player = Exiled.API.Features.Player;
 using Respawn = Exiled.API.Features.Respawn;
@@ -24,25 +24,37 @@ namespace SillySCP
         public List<Volunteers> Volunteers;
         public bool ReadyVolunteers;
         public string ChosenEvent;
-        public DiscordBot Discord { get; private set; }
-        public PlayerStatUtils PlayerStatUtils;
         public Harmony Harmony { get; } = new("SillySCP-Plugin");
 
         public SillySCP.Handlers.Player PlayerHandler;
         public Handlers.Server ServerHandler;
 
+        public List<IInittable> inits = new();
+
         public override void OnEnabled()
         {
             Harmony.PatchAll();
             Instance = this;
-            RoundEvents = new RoundEvents();
-            Discord = new DiscordBot();
-            Task.Run(Discord.StartClient);
-            PlayerStatUtils = new PlayerStatUtils();
-            PlayerHandler = new SillySCP.Handlers.Player();
-            PlayerHandler.Init();
-            ServerHandler = new Handlers.Server();
-            ServerHandler.Init();
+            // RoundEvents = new RoundEvents();
+            // Discord = new DiscordBot();
+            // Task.Run(Discord.StartClient);
+
+            Type registerType = typeof(IInittable);
+            foreach (Type type in Assembly.GetTypes())
+            {
+                if (type.IsAbstract || !registerType.IsAssignableFrom(type))
+                    continue;
+
+                IInittable init = Activator.CreateInstance(type) as IInittable;
+                inits.Add(init);
+                init!.Init();
+            }
+            
+            // PlayerHandler = new SillySCP.Handlers.Player();
+            // PlayerHandler.Init();
+            // ServerHandler = new Handlers.Server();
+            // ServerHandler.Init();
+
             // PlayerRoleManager.OnServerRoleSet -= Recontainer.Base.OnServerRoleChanged;
             // PlayerRoleManager.OnServerRoleSet += OnServerRoleChanged;
             base.OnEnabled();
@@ -51,14 +63,17 @@ namespace SillySCP
         public override void OnDisabled()
         {
             Harmony.UnpatchAll();
-            PlayerHandler.Unsubscribe();
-            PlayerHandler = null;
-            ServerHandler.Unsubscribe();
-            ServerHandler = null;
-            RoundEvents = null;
-            Task.Run(Discord.StopClient);
-            Discord = null;
-            PlayerStatUtils = null;
+            
+            foreach (IInittable init in inits)
+                init.Unregister();
+
+            // PlayerHandler.Unsubscribe();
+            // PlayerHandler = null;
+            // ServerHandler.Unregister();
+            // ServerHandler = null;
+            // RoundEvents = null;
+            // Task.Run(Discord.StopClient);
+            // Discord = null;
             // PlayerRoleManager.OnServerRoleSet -= OnServerRoleChanged;
             // PlayerRoleManager.OnServerRoleSet += Recontainer.Base.OnServerRoleChanged;
             base.OnDisabled();
