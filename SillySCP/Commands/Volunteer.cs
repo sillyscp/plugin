@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using CommandSystem;
+﻿using CommandSystem;
 using PlayerRoles;
+using SillySCP.API.Features;
 using Player = Exiled.API.Features.Player;
 
 namespace SillySCP.Commands
@@ -12,7 +10,7 @@ namespace SillySCP.Commands
     {
         public string Command { get; } = "volunteer";
 
-        public string[] Aliases { get; } = new string[] { "vol" };
+        public string[] Aliases { get; } = new [] { "vol" };
 
         public string Description { get; } = "Volunteer to become an SCP.";
 
@@ -22,7 +20,7 @@ namespace SillySCP.Commands
             out string response
         )
         {
-            if (!Player.TryGet(sender, out var player))
+            if (!Player.TryGet(sender, out Player player))
             {
                 response = "Only players can use this command!";
                 return false;
@@ -54,7 +52,7 @@ namespace SillySCP.Commands
                 return false;
             }
 
-            var volunteer = Plugin.Instance.Volunteers.FirstOrDefault((v) => v.Replacement == role);
+            Volunteers volunteer = VolunteerSystem.Volunteers.FirstOrDefault(v => v.Replacement == role);
             
             if (volunteer == null)
             {
@@ -62,10 +60,7 @@ namespace SillySCP.Commands
                 return false;
             }
 
-            if (volunteer.Players == null)
-            {
-                volunteer.Players = new List<Player>();
-            }
+            volunteer.Players ??= new ();
             
             if (volunteer.Players.Contains(player))
             {

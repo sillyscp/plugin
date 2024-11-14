@@ -2,12 +2,14 @@
 using Discord.WebSocket;
 using Exiled.API.Features;
 using MEC;
-using API = Exiled.API;
+using SillySCP.API.Interfaces;
 
 namespace SillySCP.Handlers
 {
-    public class DiscordBot
+    public class DiscordBot : IRegisterable
     {
+        public static DiscordBot Instance { get; private set; }
+        
         private DiscordSocketClient Client { get; set; }
 
         private SocketTextChannel _statusChannel;
@@ -16,28 +18,39 @@ namespace SillySCP.Handlers
         public SocketTextChannel ScpSwapChannel;
 
         public SocketGuild Guild;
-        
+
+        public void Init()
+        {
+            Instance = this;
+            Task.Run(StartClient);
+        }
+
+        public void Unregister()
+        {
+            Task.Run(StopClient);
+        }
+
         private Task DiscLog(LogMessage msg)
         {
             PluginAPI.Core.Log.Info(msg.ToString());
             return Task.CompletedTask;
         }
 
-        public async Task StartClient()
+        private async Task StartClient()
         {
-            var config = new DiscordSocketConfig
+            DiscordSocketConfig config = new()
             {
                 GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMessages,
                 LogLevel = LogSeverity.Error
             };
-            Client = new DiscordSocketClient(config);
+            Client = new(config);
             Client.Log += DiscLog;
             Client.Ready += Ready;
             await Client.LoginAsync(TokenType.Bot, Plugin.Instance.Config.Token);
             await Client.StartAsync();
         }
 
-        public async Task StopClient()
+        private async Task StopClient()
         {
             await Client.LogoutAsync();
             await Client.StopAsync();
@@ -65,7 +78,7 @@ namespace SillySCP.Handlers
         
         public void SetStatus(bool force = false)
         {
-            var playerList = API.Features.Player.List;
+            var playerList = Exiled.API.Features.Player.List;
             var players = string.Join("\n", playerList.Select(player => "- " + player.Nickname));
             var description = force ? players : !Round.IsEnded && Round.IsStarted ? players == "" ? "Waiting for players." : players : "Waiting for players.";
             var embedBuilder = new EmbedBuilder()
@@ -120,7 +133,7 @@ namespace SillySCP.Handlers
         private void SetCustomStatus(bool force = false)
         {
             var status = (!Round.IsEnded && Round.IsStarted) || force
-                ? $"{API.Features.Server.PlayerCount}/{API.Features.Server.MaxPlayerCount} players"
+                ? $"{Exiled.API.Features.Server.PlayerCount}/{Exiled.API.Features.Server.MaxPlayerCount} players"
                 : "Waiting for players.";
             try
             {

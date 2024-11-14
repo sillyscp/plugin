@@ -1,5 +1,4 @@
-﻿using System;
-using CommandSystem;
+﻿using CommandSystem;
 using Exiled.API.Features;
 
 namespace SillySCP.Commands
@@ -9,7 +8,7 @@ namespace SillySCP.Commands
     {
         public string Command { get; } = "kills";
 
-        public string[] Aliases { get; } = new string[] { "k" };
+        public string[] Aliases { get; } = new [] { "k" };
 
         public string Description { get; } = "Get the amount of kills you have.";
 
@@ -19,7 +18,7 @@ namespace SillySCP.Commands
             out string response
         )
         {
-            Player.TryGet(sender, out var player);
+            Player.TryGet(sender, out Player player);
 
             if (player == null)
             {
