@@ -18,7 +18,7 @@ namespace SillySCP.Commands
             out string response
         )
         {
-            Player.TryGet(sender, out var player);
+            Player.TryGet(sender, out Player player);
 
             if (player == null)
             {
