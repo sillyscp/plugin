@@ -109,7 +109,7 @@ namespace SillySCP.Handlers
                         {
                             msg.Embed = embed;
                             msg.Content = "";
-                        }
+                        } 
                     );
                     _messageCooldown = false;
                 }

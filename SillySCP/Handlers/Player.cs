@@ -27,7 +27,6 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem += OnScp914UpgradeInv;
             Exiled.Events.Handlers.Player.Escaping += OnEscaping;
-            Exiled.Events.Handlers.Scp106.Attacking += OnScp106Attacking;
         }
 
         public void Unregister()
@@ -38,15 +37,6 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem -= OnScp914UpgradeInv;
             Exiled.Events.Handlers.Player.Escaping -= OnEscaping;
-            Exiled.Events.Handlers.Scp106.Attacking -= OnScp106Attacking;
-        }
-
-        private void OnScp106Attacking(AttackingEventArgs ev)
-        {
-            if (!ev.Target.GetEffect(EffectType.Traumatized).IsEnabled)
-            {
-                ev.Target.EnableEffect(EffectType.PocketCorroding);
-            }
         }
 
         private void OnEscaping(EscapingEventArgs ev)
