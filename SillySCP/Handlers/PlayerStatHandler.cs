@@ -53,13 +53,13 @@ public class PlayerStatHandler : IRegisterable
         if (ev.DamageHandler.Type == DamageType.PocketDimension)
         {
             var scp106 = Plugin.Instance.Scp106 ?? Exiled.API.Features.Player.List.FirstOrDefault(p => p.Role == RoleTypeId.Scp106);
-            scp106.UpdateKills(true);
+            scp106.UpdateKills();
         }
         if (ev.Attacker == null)
             return;
         if (ev.Player == ev.Attacker)
             return;
-        ev.Attacker.UpdateKills(ev.Player.IsScp);
+        ev.Attacker.UpdateKills();
     }
 
     private void OnSpawned(SpawnedEventArgs ev)

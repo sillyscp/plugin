@@ -26,20 +26,16 @@ namespace SillySCP.API.Extensions
             return Plugin.Instance.PlayerStats.Find(p => p.Player == player);
         }
 
-        public static void UpdateKills(this Player player, bool scp, bool positive = true)
+        public static void UpdateKills(this Player player)
         {
             if (player.DoNotTrack)
                 return;
 
             PlayerStat playerStat = player.FindOrCreatePlayerStat();
-            if (positive && scp)
+            if (player.IsScp)
                 playerStat.ScpKills++;
-            else if (positive)
+            else
                 playerStat.Kills++;
-            else if (scp && playerStat.ScpKills > 0)
-                playerStat.ScpKills--;
-            else if (playerStat.Kills > 0 && !scp)
-                playerStat.Kills--;
         }
     }
 }
