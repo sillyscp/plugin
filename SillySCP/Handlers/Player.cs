@@ -1,7 +1,7 @@
-﻿using Exiled.API.Enums;
+﻿using CustomPlayerEffects;
+using Exiled.API.Enums;
 using Exiled.API.Features;
 using Exiled.Events.EventArgs.Player;
-using Exiled.Events.EventArgs.Scp106;
 using Exiled.Events.EventArgs.Scp914;
 using MEC;
 using PlayerRoles;
@@ -9,6 +9,7 @@ using Scp914;
 using SillySCP.API.Features;
 using SillySCP.API.Interfaces;
 using SillySCP.API.Modules;
+using UnityEngine;
 using Features = Exiled.API.Features;
 using Random = UnityEngine.Random;
 
@@ -27,6 +28,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem += OnScp914UpgradeInv;
             Exiled.Events.Handlers.Player.Escaping += OnEscaping;
+            Exiled.Events.Handlers.Player.UsingItemCompleted += OnUsingItemCompleted;
         }
 
         public void Unregister()
@@ -37,6 +39,27 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem -= OnScp914UpgradeInv;
             Exiled.Events.Handlers.Player.Escaping -= OnEscaping;
+            Exiled.Events.Handlers.Player.UsingItemCompleted -= OnUsingItemCompleted;
+        }
+        
+        private void OnUsingItemCompleted(UsingItemCompletedEventArgs ev)
+        {
+            Vector3 pos = ev.Player.Position;
+            StatusEffectBase effectNormal = ev.Player.GetEffect(EffectType.Scp207);
+            StatusEffectBase effectAnti = ev.Player.GetEffect(EffectType.AntiScp207);
+            byte intensity;
+            if(effectNormal.IsEnabled) intensity = effectNormal.Intensity;
+            else if (effectAnti.IsEnabled) intensity = effectAnti.Intensity;
+            else return;
+            if (ev.Item.Type is ItemType.SCP207 or ItemType.AntiSCP207 && intensity > 1)
+            {
+                if(intensity == 2) Map.Explode(pos, ProjectileType.FragGrenade);
+                else
+                {
+                    Map.Explode(pos, ProjectileType.FragGrenade);
+                    Map.Explode(pos, ProjectileType.FragGrenade);
+                }
+            }
         }
 
         private void OnEscaping(EscapingEventArgs ev)
