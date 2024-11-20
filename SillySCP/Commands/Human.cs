@@ -8,7 +8,7 @@ using SillySCP.API.Features;
 namespace SillySCP.Commands;
 
 [CommandHandler(typeof(ClientCommandHandler))]
-public class Human
+public class Human : ICommand
 {
     public string Command { get; } = "human";
 
