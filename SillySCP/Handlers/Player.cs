@@ -98,6 +98,13 @@ namespace SillySCP.Handlers
 
         private void OnSpawned(SpawnedEventArgs ev)
         {
+            if (ev.Player.Role == RoleTypeId.Tutorial && ev.Player.RemoteAdminAccess)
+            {
+                ev.Player.IsGodModeEnabled = true;
+            } else if (ev.Player.Role != RoleTypeId.Tutorial && ev.Player.RemoteAdminAccess && ev.Player.IsGodModeEnabled)
+            {
+                ev.Player.IsGodModeEnabled = false;
+            }
             if (!ev.Player.IsAlive && Round.IsStarted)
             {
                 Timing.RunCoroutine(RespawnSystem.RespawnTimer(ev.Player));
