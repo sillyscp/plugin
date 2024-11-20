@@ -47,17 +47,34 @@ namespace SillySCP.Handlers
             Vector3 pos = ev.Player.Position;
             StatusEffectBase effectNormal = ev.Player.GetEffect(EffectType.Scp207);
             StatusEffectBase effectAnti = ev.Player.GetEffect(EffectType.AntiScp207);
-            byte intensity;
-            if(effectNormal.IsEnabled) intensity = effectNormal.Intensity;
-            else if (effectAnti.IsEnabled) intensity = effectAnti.Intensity;
-            else return;
-            if (ev.Item.Type is ItemType.SCP207 or ItemType.AntiSCP207 && intensity > 1)
+            if (!effectNormal.IsEnabled || effectAnti.IsEnabled) return;
+            if (ev.Item.Type == ItemType.SCP207 && effectAnti.Intensity > 1)
             {
-                if(intensity == 2) Map.Explode(pos, ProjectileType.FragGrenade);
-                else
+                byte intensity = effectAnti.Intensity;
+                Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
+                if (intensity == 2)
                 {
-                    Map.Explode(pos, ProjectileType.FragGrenade);
-                    Map.Explode(pos, ProjectileType.FragGrenade);
+                    Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
+                }
+                else if (intensity == 3)
+                {
+                    Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
+                    Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
+                }
+            }
+
+            if (ev.Item.Type == ItemType.AntiSCP207 && effectNormal.Intensity > 1)
+            {
+                byte intensity = effectNormal.Intensity;
+                Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
+                if (intensity == 2)
+                {
+                    Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
+                }
+                else if (intensity == 3)
+                {
+                    Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
+                    Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
                 }
             }
         }
