@@ -10,7 +10,7 @@ namespace SillySCP.Commands
     {
         public string Command { get; } = "volunteer";
 
-        public string[] Aliases { get; } = new [] { "vol" };
+        public string[] Aliases { get; } = new [] { "vol", "v" };
 
         public string Description { get; } = "Volunteer to become an SCP.";
 
