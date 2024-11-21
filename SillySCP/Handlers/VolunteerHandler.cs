@@ -25,7 +25,7 @@ public class VolunteerHandler : IRegisterable
     
     private void OnChangingRole(ChangingRoleEventArgs ev)
     {
-        if (ev.Player.IsScp && (ev.NewRole == RoleTypeId.Spectator || ev.NewRole == RoleTypeId.None) && VolunteerSystem.ReadyVolunteers)
+        if (ev.Player.IsScp && (ev.NewRole.IsHuman() || !ev.NewRole.IsAlive()) && VolunteerSystem.ReadyVolunteers)
         {
             Cassie.Clear();
             var volunteer = new Volunteers

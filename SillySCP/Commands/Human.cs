@@ -4,6 +4,7 @@ using Exiled.API.Features;
 using PlayerRoles;
 using PlayerRoles.RoleAssign;
 using SillySCP.API.Features;
+using DamageType = Exiled.API.Enums.DamageType;
 
 namespace SillySCP.Commands;
 
