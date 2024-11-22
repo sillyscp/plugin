@@ -1,5 +1,6 @@
 ﻿using CommandSystem;
 using Exiled.API.Features;
+using SillySCP.API.Features;
 
 namespace SillySCP.Commands
 {
@@ -33,7 +34,7 @@ namespace SillySCP.Commands
                 return false;
             }
 
-            var playerStat = Plugin.Instance.PlayerStats.Find((p) => p.Player == player);
+            PlayerStat playerStat = Plugin.Instance.PlayerStats.Find((p) => p.Player == player);
             if (playerStat == null)
             {
                 response = "You have 0 kills!";
