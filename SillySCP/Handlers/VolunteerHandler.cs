@@ -28,7 +28,6 @@ namespace SillySCP.Handlers
 
         private void Volunteer(Exiled.API.Features.Player player)
         {
-            Cassie.Clear();
             Volunteers volunteer = new ()
             {
                 Replacement = player.Role,

@@ -1,8 +1,10 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Features.Pickups;
+using Exiled.Events.EventArgs.Map;
 using Exiled.Events.EventArgs.Scp914;
 using MEC;
 using Scp914;
+using SillySCP.API.Features;
 using SillySCP.API.Interfaces;
 using UnityEngine;
 using Features = Exiled.API.Features;
@@ -20,6 +22,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
             Exiled.Events.Handlers.Server.RestartingRound += OnRoundRestart;
             Exiled.Events.Handlers.Scp914.UpgradingPickup += OnScp914UpgradePickup;
+            Exiled.Events.Handlers.Map.AnnouncingScpTermination += OnAnnouncingScpTermination;
         }
 
         public void Unregister()
@@ -28,6 +31,15 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
             Exiled.Events.Handlers.Server.RestartingRound -= OnRoundRestart;
             Exiled.Events.Handlers.Scp914.UpgradingPickup -= OnScp914UpgradePickup;
+            Exiled.Events.Handlers.Map.AnnouncingScpTermination -= OnAnnouncingScpTermination;
+        }
+
+        private void OnAnnouncingScpTermination(AnnouncingScpTerminationEventArgs ev)
+        {
+            if (VolunteerSystem.Volunteers.Any(v => v.Replacement == ev.Player.Role.Type) && VolunteerSystem.ReadyVolunteers)
+            {
+                ev.IsAllowed = false;
+            }
         }
         
         private void OnWaitingForPlayers()
