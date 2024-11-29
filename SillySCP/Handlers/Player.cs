@@ -1,6 +1,8 @@
 ﻿using CustomPlayerEffects;
 using Exiled.API.Enums;
+using Exiled.API.Extensions;
 using Exiled.API.Features;
+using Exiled.API.Features.Roles;
 using Exiled.Events.EventArgs.Player;
 using Exiled.Events.EventArgs.Scp914;
 using MEC;
@@ -12,6 +14,7 @@ using SillySCP.API.Modules;
 using UnityEngine;
 using Features = Exiled.API.Features;
 using Random = UnityEngine.Random;
+using Scp079Role = PlayerRoles.PlayableScps.Scp079.Scp079Role;
 
 namespace SillySCP.Handlers
 {
@@ -24,6 +27,7 @@ namespace SillySCP.Handlers
             Instance = this;
             Exiled.Events.Handlers.Player.Spawned += OnSpawned;
             Exiled.Events.Handlers.Player.Died += OnPlayerDead;
+            Exiled.Events.Handlers.Player.Died += ScpDeathHandler;
             Exiled.Events.Handlers.Player.Verified += OnPlayerVerified;
             Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem += OnScp914UpgradeInv;
@@ -35,11 +39,23 @@ namespace SillySCP.Handlers
         {
             Exiled.Events.Handlers.Player.Spawned -= OnSpawned;
             Exiled.Events.Handlers.Player.Died -= OnPlayerDead;
+            Exiled.Events.Handlers.Player.Died -= ScpDeathHandler;
             Exiled.Events.Handlers.Player.Verified -= OnPlayerVerified;
             Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem -= OnScp914UpgradeInv;
             Exiled.Events.Handlers.Player.Escaping -= OnEscaping;
             Exiled.Events.Handlers.Player.UsingItemCompleted -= OnUsingItemCompleted;
+        }
+
+        private void ScpDeathHandler(DiedEventArgs ev)
+        {
+            if (!ev.TargetOldRole.IsScp()) return;
+            List<Features.Player> scps = Features.Player.List.Where(p => p.IsScp).ToList();
+            if (scps.Count == 1 && scps.First().Role.Type == RoleTypeId.Scp079 &&
+                !VolunteerSystem.ReadyVolunteers)
+            {
+                Scp079Recontainment.Recontain();
+            }
         }
         
         private void OnUsingItemCompleted(UsingItemCompletedEventArgs ev)
@@ -129,7 +145,7 @@ namespace SillySCP.Handlers
         {
             if (ev.Reason == SpawnReason.Escaped)
             {
-                PriorityInventoryModule.Main(ev.Player, ev.Items);
+                // PriorityInventoryModule.Main(ev.Player, ev.Items);
             }
         }
         

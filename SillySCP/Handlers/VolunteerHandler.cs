@@ -29,7 +29,7 @@ namespace SillySCP.Handlers
         {
             Volunteers volunteer = new ()
             {
-                Replacement = player.Role,
+                Replacement = oldRole,
                 Players = new()
             };
             VolunteerSystem.Volunteers ??= new();

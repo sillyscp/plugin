@@ -22,14 +22,22 @@ namespace SillySCP.Handlers
 
         private void OnPlayerSpawned(SpawnedEventArgs ev)
         {
-            List<Exiled.API.Features.Player> scps = Exiled.API.Features.Player.List.Where(p => p.IsScp).ToList();
-            if (scps.Count(p => p.IsScp) is 1 or 2 &&
+            List<RoleTypeId> scps = Exiled.API.Features.Player.List.Where(p => p.IsScp).Select(p => p.Role.Type).ToList();
+            if (scps.Count is 1 or 2 &&
                 ev.Player.Role.Type == RoleTypeId.Scp079)
             {
-                scps.Remove(ev.Player);
-                PlayerRoleBase[] spawnableScps = ScpSpawner.SpawnableScps.Where(s => s.RoleTypeId != RoleTypeId.Scp079 && s.RoleTypeId != scps.FirstOrDefault()?.Role.Type).ToArray();
-                ev.Player.Role.Set(ev.OldRole.Team == Team.SCPs ? ev.OldRole.Type : spawnableScps[UnityEngine.Random.Range(0, spawnableScps.Length-1)].RoleTypeId);
+                scps.Remove(RoleTypeId.Scp079);
+                PlayerRoleBase[] spawnableScps = ScpSpawner.SpawnableScps.Where(s => s.RoleTypeId != RoleTypeId.Scp079 && s.RoleTypeId != scps.FirstOrDefault()).ToArray();
+                ev.Player.Role.Set(ev.OldRole.Team == Team.SCPs ? ev.OldRole.Type : spawnableScps.GetRandomValue().RoleTypeId);
                 ev.Player.Broadcast(new("SCP-079 cannot at 1/2 scps."));
+            }
+
+            if (scps.Count is 1 or 2 && scps.Count(s => s == scps.FirstOrDefault()) == 2)
+            {
+                foreach (Exiled.API.Features.Player player in Exiled.API.Features.Player.List.Where(p => p.IsScp))
+                {
+                    player.Role.Set(ScpSpawner.SpawnableScps.Where(s => s.RoleTypeId != RoleTypeId.Scp079 && s.RoleTypeId != scps.FirstOrDefault()).GetRandomValue().RoleTypeId);
+                }
             }
         }
 

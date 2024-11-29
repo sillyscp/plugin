@@ -1,7 +1,9 @@
 ﻿using Exiled.API.Extensions;
 using Exiled.API.Features;
 using MEC;
+using PlayerRoles;
 using PlayerRoles.PlayableScps.Scp079;
+using SillySCP.API.Modules;
 
 namespace SillySCP.API.Features
 {
@@ -15,6 +17,9 @@ namespace SillySCP.API.Features
             ReadyVolunteers = true;
             yield return Timing.WaitForSeconds(180);
             ReadyVolunteers = false;
+            List<Player> scps = Player.List.Where(p => p.IsScp).ToList();
+            if(scps.Count == 1 && scps.First().Role.Type == RoleTypeId.Scp079 && !ReadyVolunteers)
+                Scp079Recontainment.Recontain();
         }
 
         public static IEnumerator<float> ChooseVolunteers(Volunteers volunteer)
@@ -29,16 +34,6 @@ namespace SillySCP.API.Features
             Map.Broadcast(10, volunteer.Replacement.GetFullName() + " has been replaced!",
                 Broadcast.BroadcastFlags.Normal, true);
             Volunteers.Remove(volunteer);
-            if (!Volunteers.Any() && Scp079Role.ActiveInstances.Count() == 1)
-            {
-                Recontainer.Base.SetContainmentDoors(true, true);
-                Recontainer.Base._alreadyRecontained = true;
-                Recontainer.Base._recontainLater = 3f;
-                foreach (var scp079Generator in Scp079Recontainer.AllGenerators)
-                {
-                    scp079Generator.Engaged = true;
-                }
-            }
 
             yield return 0;
         }
