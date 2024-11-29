@@ -1,5 +1,7 @@
 ﻿using Exiled.API.Enums;
+using Exiled.API.Features.Items;
 using Exiled.API.Features.Pickups;
+using Exiled.API.Features.Pickups.Projectiles;
 using Exiled.Events.EventArgs.Map;
 using Exiled.Events.EventArgs.Scp914;
 using MEC;

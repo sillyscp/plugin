@@ -38,6 +38,7 @@ namespace SillySCP.Commands
             
             RoleTypeId role = HumanSpawner.NextHumanRoleToSpawn;
             
+            player.Kill(DamageType.Unknown);
             player.Role.Set(role, SpawnReason.None);
             response = $"You have been changed into {role.GetFullName()}!";
             return true;

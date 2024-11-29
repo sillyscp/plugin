@@ -1,4 +1,5 @@
 ﻿using Exiled.API.Enums;
+using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Exiled.Events.EventArgs.Player;
 using MEC;
@@ -12,7 +13,6 @@ namespace SillySCP.Handlers
     {
         public void Init()
         {
-            Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
             Exiled.Events.Handlers.Player.Left += OnPlayerLeave;
             Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
             Exiled.Events.Handlers.Player.Died += OnDead;
@@ -20,40 +20,32 @@ namespace SillySCP.Handlers
 
         public void Unregister()
         {
-            Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
             Exiled.Events.Handlers.Player.Left -= OnPlayerLeave;
             Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
             Exiled.Events.Handlers.Player.Died -= OnDead;
         }
 
-        private void Volunteer(Exiled.API.Features.Player player)
+        private void Volunteer(Exiled.API.Features.Player player, RoleTypeId oldRole)
         {
             Volunteers volunteer = new ()
             {
                 Replacement = player.Role,
                 Players = new()
             };
+            VolunteerSystem.Volunteers ??= new();
             VolunteerSystem.Volunteers.Add(volunteer);
-            if (!player.IsScp) return;
-            if (player.Role == RoleTypeId.Scp0492) return;
+            if (player.IsScp) return;
             Map.Broadcast(10,
-                $"{player.Role.Name} has left the game\nPlease run .volunteer {player.Role.Name.Split('-')[1]} to volunteer to be the SCP");
+                $"{oldRole.GetFullName()} has left the game\nPlease run .volunteer {oldRole.GetFullName().Split('-')[1]} to volunteer to be the SCP");
             Timing.RunCoroutine(VolunteerSystem.ChooseVolunteers(volunteer));
-        }
-
-        private void OnChangingRole(ChangingRoleEventArgs ev)
-        {
-            if (ev.Player.IsScp && ev.NewRole.IsHuman() && VolunteerSystem.ReadyVolunteers)
-            {
-                Volunteer(ev.Player);
-            }
         }
 
         private void OnDead(DiedEventArgs ev)
         {
-            if (ev.DamageHandler.IsSuicide || ev.DamageHandler.Type == DamageType.Unknown)
+            if (!ev.TargetOldRole.IsScp()) return;
+            if (ev.DamageHandler.IsSuicide || ev.DamageHandler.Type == DamageType.Unknown || ev.DamageHandler.Type == DamageType.Custom)
             {
-                Volunteer(ev.Player);
+                Volunteer(ev.Player, ev.TargetOldRole);
             }
         }
 

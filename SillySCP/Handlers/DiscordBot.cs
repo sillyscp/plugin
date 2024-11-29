@@ -87,7 +87,7 @@ namespace SillySCP.Handlers
                 .WithDescription(
                     description
                 );
-            SetMessage(_statusChannel, 1280910252325339311, embedBuilder.Build());
+            SetMessage(_statusChannel, Plugin.Instance.Config.MessageId, embedBuilder.Build());
             SetCustomStatus(force);
         }
 
