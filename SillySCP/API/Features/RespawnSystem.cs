@@ -27,9 +27,9 @@ namespace SillySCP.API.Features
                         ? spectatingPlayerStat.Player.DoNotTrack == false ? string.IsNullOrEmpty(kills) ? "Unknown" : kills : "Unknown"
                         : "0";
 
-                string timersText = $"<voffset=34em>{RespawnSystemHandler.Instance.NtfRespawnTime.Minutes:D1}<size=22>M</size> {RespawnSystemHandler.Instance.NtfRespawnTime.Seconds:D2}<size=22>S</size><space=16em>{RespawnSystemHandler.Instance.ChaosRespawnTime.Minutes:D1}<size=22>M</size> {RespawnSystemHandler.Instance.ChaosRespawnTime.Seconds:D2}<size=22>S</size></voffset>";
+                string timersText = $"<voffset={(playerStat?.Spectating == null ? 34 : 32).ToString()}em>{RespawnSystemHandler.Instance.NtfRespawnTime.Minutes:D1}<size=22>M</size> {RespawnSystemHandler.Instance.NtfRespawnTime.Seconds:D2}<size=22>S</size><space=16em>{RespawnSystemHandler.Instance.ChaosRespawnTime.Minutes:D1}<size=22>M</size> {RespawnSystemHandler.Instance.ChaosRespawnTime.Seconds:D2}<size=22>S</size></voffset>";
                 
-                string killsText = (playerStat?.Spectating != null ? "\n\nKill count: " + spectatingKills : "");
+                string killsText = playerStat?.Spectating != null ? "\n\nKill count: " + spectatingKills : "";
                 
                 string text = timersText + killsText;
                 text = text.Trim();

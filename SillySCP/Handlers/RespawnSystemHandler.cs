@@ -70,6 +70,9 @@ namespace SillySCP.Handlers
 
                 if (ntfTime == TimeSpan.MaxValue) ntfTime = lowestNtfTime;
                 if (chaosTime == TimeSpan.MaxValue) chaosTime = lowestChaosTime;
+                
+                if(ntfTime < TimeSpan.Zero) ntfTime = TimeSpan.Zero;
+                if(chaosTime < TimeSpan.Zero) chaosTime = TimeSpan.Zero;
 
                 NtfRespawnTime = ntfTime;
                 ChaosRespawnTime = chaosTime;
