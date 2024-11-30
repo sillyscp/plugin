@@ -22,7 +22,7 @@ namespace SillySCP.Handlers
 
         private void OnPlayerSpawned(SpawnedEventArgs ev)
         {
-            List<RoleTypeId> scps = Exiled.API.Features.Player.List.Where(p => p.IsScp).Select(p => p.Role.Type).ToList();
+            List<RoleTypeId> scps = Exiled.API.Features.Player.List.Where(p => p.IsScp && p.Role.Type != RoleTypeId.Scp0492).Select(p => p.Role.Type).ToList();
             if (scps.Count is 1 or 2 &&
                 ev.Player.Role.Type == RoleTypeId.Scp079)
             {
