@@ -2,6 +2,7 @@
 using MEC;
 using PlayerRoles;
 using Respawning;
+using Respawning.Waves;
 using SillySCP.API.Extensions;
 
 namespace SillySCP.API.Features
@@ -10,35 +11,48 @@ namespace SillySCP.API.Features
     {
         public static IEnumerator<float> RespawnTimer(Player player)
         {
-            // if (Server.Version.StartsWith("14")) yield return 0;
-            // while (true)
-            // {
-            //     yield return Timing.WaitForSeconds(1f);
-            //     player = Player.List.FirstOrDefault(p => p.UserId == player.UserId);
-            //     if (player == null || player.Role != RoleTypeId.Spectator)
-            //         break;
-            //     var respawnTeam = Respawn.NextKnownTeam;
-            //     var teamText = respawnTeam != SpawnableTeamType.None ? "<color=" + (respawnTeam == SpawnableTeamType.ChaosInsurgency ? "green>Chaos Insurgency" : "blue>Nine-Tailed Fox") + "</color>" : null;
-            //     var timeUntilWave = Respawn.TimeUntilSpawnWave;
-            //     timeUntilWave = teamText != null ? timeUntilWave : timeUntilWave.Add(TimeSpan.FromSeconds(Respawn.NtfTickets >= Respawn.ChaosTickets ? 17 : 13));
-            //     var currentTime = $"{timeUntilWave.Minutes:D1}<size=22>M</size> {timeUntilWave.Seconds:D2}<size=22>S</size>";
-            //     var playerStat = player.FindPlayerStat();
-            //     var spectatingPlayerStat = playerStat?.Spectating?.FindPlayerStat();
-            //     var kills = ((spectatingPlayerStat != null ? spectatingPlayerStat.Player.IsScp ? spectatingPlayerStat.ScpKills : spectatingPlayerStat.Kills : 0) ?? 0).ToString();
-            //     var spectatingKills =
-            //         spectatingPlayerStat != null
-            //             ? spectatingPlayerStat.Player.DoNotTrack == false ? string.IsNullOrEmpty(kills) ? "Unknown" : kills : "Unknown"
-            //             : "0";
-            //     var text =
-            //         "<voffset=-4em><size=26>Respawning "
-            //         + (teamText != null ? "as " + teamText + " " : "")
-            //         + "in:\n</voffset>"
-            //         + currentTime
-            //         + "</size>"
-            //         + (playerStat?.Spectating != null ? "\n\nKill count: " + spectatingKills : "");
-            //     player.ShowHint(text, 1.2f);
-            // }
-            //
+            while (true)
+            {
+                yield return Timing.WaitForSeconds(1f);
+                player = Player.List.FirstOrDefault(p => p.UserId == player.UserId);
+                if (player == null || player.Role != RoleTypeId.Spectator)
+                    break;
+                
+                
+                PlayerStat playerStat = player.FindPlayerStat();
+                PlayerStat spectatingPlayerStat = playerStat?.Spectating?.FindPlayerStat();
+                string kills = ((spectatingPlayerStat != null ? spectatingPlayerStat.Player.IsScp ? spectatingPlayerStat.ScpKills : spectatingPlayerStat.Kills : 0) ?? 0).ToString();
+                string spectatingKills =
+                    spectatingPlayerStat != null
+                        ? spectatingPlayerStat.Player.DoNotTrack == false ? string.IsNullOrEmpty(kills) ? "Unknown" : kills : "Unknown"
+                        : "0";
+
+                TimeSpan ntfTime = TimeSpan.MaxValue;
+                TimeSpan chaosTime = TimeSpan.MaxValue;
+                
+                foreach (SpawnableWaveBase wave in WaveManager.Waves)
+                {
+                    if (wave is not TimeBasedWave timedWave) continue;
+                    TimeSpan timer = TimeSpan.FromSeconds(timedWave.Timer.TimeLeft);
+                    if (timedWave.TargetFaction == Faction.FoundationStaff && ntfTime > timer && !timedWave.Timer.IsPaused)
+                        ntfTime = timer;
+                    else if (timedWave.TargetFaction == Faction.FoundationEnemy && chaosTime > timer && !timedWave.Timer.IsPaused)
+                        chaosTime = timer;
+                }
+
+                string timersText = "";
+                
+                if(ntfTime != TimeSpan.MaxValue && chaosTime != TimeSpan.MaxValue) 
+                    timersText = $"<voffset=34em>{ntfTime.Minutes:D1}<size=22>M</size> {ntfTime.Seconds:D2}<size=22>S</size><space=16em>{chaosTime.Minutes:D1}<size=22>M</size> {chaosTime.Seconds:D2}<size=22>S</size></voffset>";
+                
+                string killsText = (playerStat?.Spectating != null ? "\n\nKill count: " + spectatingKills : "");
+                
+                string text = timersText + killsText;
+                text = text.Trim();
+                
+                player.ShowHint(text, 2f);
+            }
+            
             yield return 0;
         }
     }
