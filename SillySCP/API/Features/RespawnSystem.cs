@@ -1,9 +1,10 @@
-﻿using Exiled.API.Features;
-using MEC;
+﻿using MEC;
 using PlayerRoles;
 using Respawning;
 using Respawning.Waves;
 using SillySCP.API.Extensions;
+using SillySCP.Handlers;
+using Player = Exiled.API.Features.Player;
 
 namespace SillySCP.API.Features
 {
@@ -18,7 +19,6 @@ namespace SillySCP.API.Features
                 if (player == null || player.Role != RoleTypeId.Spectator)
                     break;
                 
-                
                 PlayerStat playerStat = player.FindPlayerStat();
                 PlayerStat spectatingPlayerStat = playerStat?.Spectating?.FindPlayerStat();
                 string kills = ((spectatingPlayerStat != null ? spectatingPlayerStat.Player.IsScp ? spectatingPlayerStat.ScpKills : spectatingPlayerStat.Kills : 0) ?? 0).ToString();
@@ -27,23 +27,7 @@ namespace SillySCP.API.Features
                         ? spectatingPlayerStat.Player.DoNotTrack == false ? string.IsNullOrEmpty(kills) ? "Unknown" : kills : "Unknown"
                         : "0";
 
-                TimeSpan ntfTime = TimeSpan.MaxValue;
-                TimeSpan chaosTime = TimeSpan.MaxValue;
-                
-                foreach (SpawnableWaveBase wave in WaveManager.Waves)
-                {
-                    if (wave is not TimeBasedWave timedWave) continue;
-                    TimeSpan timer = TimeSpan.FromSeconds(timedWave.Timer.TimeLeft);
-                    if (timedWave.TargetFaction == Faction.FoundationStaff && ntfTime > timer && !timedWave.Timer.IsPaused)
-                        ntfTime = timer;
-                    else if (timedWave.TargetFaction == Faction.FoundationEnemy && chaosTime > timer && !timedWave.Timer.IsPaused)
-                        chaosTime = timer;
-                }
-
-                string timersText = "";
-                
-                if(ntfTime != TimeSpan.MaxValue && chaosTime != TimeSpan.MaxValue) 
-                    timersText = $"<voffset=34em>{ntfTime.Minutes:D1}<size=22>M</size> {ntfTime.Seconds:D2}<size=22>S</size><space=16em>{chaosTime.Minutes:D1}<size=22>M</size> {chaosTime.Seconds:D2}<size=22>S</size></voffset>";
+                string timersText = $"<voffset=34em>{RespawnSystemHandler.Instance.NtfRespawnTime.Minutes:D1}<size=22>M</size> {RespawnSystemHandler.Instance.NtfRespawnTime.Seconds:D2}<size=22>S</size><space=16em>{RespawnSystemHandler.Instance.ChaosRespawnTime.Minutes:D1}<size=22>M</size> {RespawnSystemHandler.Instance.ChaosRespawnTime.Seconds:D2}<size=22>S</size></voffset>";
                 
                 string killsText = (playerStat?.Spectating != null ? "\n\nKill count: " + spectatingKills : "");
                 
