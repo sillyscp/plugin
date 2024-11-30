@@ -11,13 +11,11 @@ namespace SillySCP.Handlers
         public void Init()
         {
             Exiled.Events.Handlers.Player.Spawned += OnPlayerSpawned;
-            Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
         }
 
         public void Unregister()
         {
             Exiled.Events.Handlers.Player.Spawned -= OnPlayerSpawned;
-            Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
         }
 
         private void OnPlayerSpawned(SpawnedEventArgs ev)
@@ -39,13 +37,6 @@ namespace SillySCP.Handlers
                     player.Role.Set(ScpSpawner.SpawnableScps.Where(s => s.RoleTypeId != RoleTypeId.Scp079 && s.RoleTypeId != scps.FirstOrDefault()).GetRandomValue().RoleTypeId);
                 }
             }
-        }
-
-        private void OnChangingRole(ChangingRoleEventArgs ev)
-        {
-            if (ev.Player.IsScp && RoleExtensions.GetTeam(ev.NewRole) == Team.SCPs)
-                DiscordBot.Instance.ScpSwapChannel.SendMessageAsync(
-                    $"Player `{ev.Player.Nickname}` has swapped from `{ev.Player.Role.Name}` to `{ev.NewRole.GetFullName()}`");
         }
     }
 }
