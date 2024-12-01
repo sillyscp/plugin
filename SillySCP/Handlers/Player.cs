@@ -27,9 +27,7 @@ namespace SillySCP.Handlers
         {
             Instance = this;
             Exiled.Events.Handlers.Player.Spawned += OnSpawned;
-            Exiled.Events.Handlers.Player.Died += OnPlayerDead;
             Exiled.Events.Handlers.Player.Died += ScpDeathHandler;
-            Exiled.Events.Handlers.Player.Verified += OnPlayerVerified;
             Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem += OnScp914UpgradeInv;
             Exiled.Events.Handlers.Player.Escaping += OnEscaping;
@@ -39,9 +37,7 @@ namespace SillySCP.Handlers
         public void Unregister()
         {
             Exiled.Events.Handlers.Player.Spawned -= OnSpawned;
-            Exiled.Events.Handlers.Player.Died -= OnPlayerDead;
             Exiled.Events.Handlers.Player.Died -= ScpDeathHandler;
-            Exiled.Events.Handlers.Player.Verified -= OnPlayerVerified;
             Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem -= OnScp914UpgradeInv;
             Exiled.Events.Handlers.Player.Escaping -= OnEscaping;
@@ -105,14 +101,6 @@ namespace SillySCP.Handlers
             }
         }
 
-        private void OnPlayerVerified(VerifiedEventArgs ev)
-        {
-            if (!Round.IsEnded && Round.IsStarted && ev.Player.Role == RoleTypeId.Spectator)
-            {
-                Timing.RunCoroutine(RespawnSystem.RespawnTimer(ev.Player.FindOrCreatePlayerStat()));
-            }
-        }
-
         private void OnSpawned(SpawnedEventArgs ev)
         {
             if (ev.Player.Role == RoleTypeId.Tutorial && ev.Player.RemoteAdminAccess)
@@ -121,10 +109,6 @@ namespace SillySCP.Handlers
             } else if (ev.Player.Role != RoleTypeId.Tutorial && ev.Player.RemoteAdminAccess && ev.Player.IsGodModeEnabled)
             {
                 ev.Player.IsGodModeEnabled = false;
-            }
-            if (!ev.Player.IsAlive && Round.IsStarted)
-            {
-                Timing.RunCoroutine(RespawnSystem.RespawnTimer(ev.Player.FindOrCreatePlayerStat()));
             }
 
             if (ev.Player.Role == RoleTypeId.ClassD)
@@ -135,11 +119,6 @@ namespace SillySCP.Handlers
                     ev.Player.Scale = new(ev.Player.Scale.x * 2, ev.Player.Scale.y, ev.Player.Scale.z);
                 }
             }
-        }
-
-        private void OnPlayerDead(DiedEventArgs ev)
-        {
-            Timing.RunCoroutine(RespawnSystem.RespawnTimer(ev.Player.FindOrCreatePlayerStat()));
         }
         
         private void OnChangingRole(ChangingRoleEventArgs ev)

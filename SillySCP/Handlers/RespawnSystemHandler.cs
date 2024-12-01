@@ -1,9 +1,11 @@
-﻿using Exiled.Events.EventArgs.Server;
+﻿using Exiled.API.Features;
+using Exiled.Events.EventArgs.Server;
 using MEC;
 using PlayerRoles;
-using PluginAPI.Core;
 using Respawning;
 using Respawning.Waves;
+using SillySCP.API.Extensions;
+using SillySCP.API.Features;
 using SillySCP.API.Interfaces;
 
 namespace SillySCP.Handlers
@@ -12,13 +14,30 @@ namespace SillySCP.Handlers
     {
         public static RespawnSystemHandler Instance { get; private set; }
         
-        public TimeSpan NtfRespawnTime { get; private set; }
-        public TimeSpan ChaosRespawnTime { get; private set; }
+        public TimeBasedWave NtfWave1 { get; private set; }
+        public TimeBasedWave NtfWave2 { get; private set; }
         
-        public string SpectatingTimerText => $"<voffset=32em>{NtfRespawnTime.Minutes:D1}<size=22>M</size> {NtfRespawnTime.Seconds:D2}<size=22>S</size><space=16em>{ChaosRespawnTime.Minutes:D1}<size=22>M</size> {ChaosRespawnTime.Seconds:D2}<size=22>S</size></voffset>";
-        public string NormalTimerText => $"<voffset=34em>{NtfRespawnTime.Minutes:D1}<size=22>M</size> {NtfRespawnTime.Seconds:D2}<size=22>S</size><space=16em>{ChaosRespawnTime.Minutes:D1}<size=22>M</size> {ChaosRespawnTime.Seconds:D2}<size=22>S</size></voffset>";
+        public TimeBasedWave ChaosWave1 { get; private set; }
+        public TimeBasedWave ChaosWave2 { get; private set; }
         
-        private CoroutineHandle _timerCoroutine;
+        public string SpectatingTimerText
+        {
+            get
+            {
+                TimeSpan ntfTime = NtfRespawnTime();
+                TimeSpan chaosTime = ChaosRespawnTime();
+                return $"<voffset=32em>{ntfTime.Minutes:D1}<size=22>M</size> {ntfTime.Seconds:D2}<size=22>S</size><space=16em>{chaosTime.Minutes:D1}<size=22>M</size> {chaosTime.Seconds:D2}<size=22>S</size></voffset>";
+            }
+        }
+        public string NormalTimerText
+        {
+            get
+            {
+                TimeSpan ntfTime = NtfRespawnTime();
+                TimeSpan chaosTime = ChaosRespawnTime();
+                return $"<voffset=34em>{ntfTime.Minutes:D1}<size=22>M</size> {ntfTime.Seconds:D2}<size=22>S</size><space=16em>{chaosTime.Minutes:D1}<size=22>M</size> {chaosTime.Seconds:D2}<size=22>S</size></voffset>";
+            }
+        }
 
         public void Init()
         {
@@ -35,53 +54,84 @@ namespace SillySCP.Handlers
         
         private void OnRoundStarted()
         {
-            _timerCoroutine = Timing.RunCoroutine(SetTimers());
+            foreach (SpawnableWaveBase wave in WaveManager.Waves)
+            {
+                if(wave is not TimeBasedWave timedWave) continue;
+                if (timedWave.TargetFaction == Faction.FoundationStaff)
+                {
+                    if(NtfWave1 == null) NtfWave1 = timedWave;
+                    else NtfWave2 = timedWave;
+                }
+                else
+                {
+                    if(ChaosWave1 == null) ChaosWave1 = timedWave;
+                    else ChaosWave2 = timedWave;
+                }
+            }
         }
 
         private void OnRoundEnded(RoundEndedEventArgs ev)
         {
-            Timing.KillCoroutines(_timerCoroutine);
+            NtfWave1 = null;
+            NtfWave2 = null;
+            ChaosWave1 = null;
+            ChaosWave2 = null;
         }
 
-        private IEnumerator<float> SetTimers()
+        private IEnumerator<float> RespawnTimer()
         {
-            while (Exiled.API.Features.Round.InProgress)
+            while (Round.InProgress)
             {
-                yield return Timing.WaitForSeconds(1);
-                TimeSpan ntfTime = TimeSpan.MaxValue;
-                TimeSpan chaosTime = TimeSpan.MaxValue;
-
-                TimeSpan lowestNtfTime = TimeSpan.MaxValue;
-                TimeSpan lowestChaosTime = TimeSpan.MaxValue;
-
-                foreach (SpawnableWaveBase wave in WaveManager.Waves)
+                string timerText = NormalTimerText;
+                string spectatingText = SpectatingTimerText;
+                foreach (Exiled.API.Features.Player player in Exiled.API.Features.Player.List)
                 {
-                    if (wave is not TimeBasedWave timedWave) continue;
-                    TimeSpan timer = TimeSpan.FromSeconds(timedWave.Timer.TimeLeft);
-                    if (timedWave.TargetFaction == Faction.FoundationStaff && ntfTime > timer &&
-                        !timedWave.Timer.IsPaused)
-                        ntfTime = timer;
-                    else if (timedWave.TargetFaction == Faction.FoundationEnemy && chaosTime > timer &&
-                             !timedWave.Timer.IsPaused)
-                        chaosTime = timer;
+                    if (player.Role != RoleTypeId.Spectator) continue;
+                    
+                    PlayerStat playerStat = player.FindPlayerStat();
+                    if (playerStat == null) continue;
+                    PlayerStat spectatingPlayerStat = playerStat.Spectating;
+                    string kills = ((spectatingPlayerStat != null ? spectatingPlayerStat.Player.IsScp ? spectatingPlayerStat.ScpKills : spectatingPlayerStat.Kills : 0) ?? 0).ToString();
+                    string spectatingKills =
+                        spectatingPlayerStat != null
+                            ? spectatingPlayerStat.Player.DoNotTrack == false ? string.IsNullOrEmpty(kills) ? "Unknown" : kills : "Unknown"
+                            : "0";
 
-                    if (timedWave.TargetFaction == Faction.FoundationStaff && lowestNtfTime > timer)
-                        lowestNtfTime = timer;
-                    else if (timedWave.TargetFaction == Faction.FoundationEnemy && lowestChaosTime > timer)
-                        lowestChaosTime = timer;
-                }
-
-                if (ntfTime == TimeSpan.MaxValue) ntfTime = lowestNtfTime;
-                if (chaosTime == TimeSpan.MaxValue) chaosTime = lowestChaosTime;
+                    string timersText = playerStat.Spectating != null
+                        ? spectatingText
+                        : timerText;
+                    
+                    string killsText = playerStat.Spectating != null ? "\n\nKill count: " + spectatingKills : "";
                 
-                if(ntfTime < TimeSpan.Zero) ntfTime = TimeSpan.Zero;
-                if(chaosTime < TimeSpan.Zero) chaosTime = TimeSpan.Zero;
-
-                NtfRespawnTime = ntfTime;
-                ChaosRespawnTime = chaosTime;
+                    string text = timersText + killsText;
+                    text = text.Trim();
+                
+                    player.ShowHint(text, 2f);
+                    yield return Timing.WaitForSeconds(1f);
+                }
             }
 
             yield return 0;
+        }
+
+        public TimeSpan NtfRespawnTime()
+        {
+            if(NtfWave1 != null && !NtfWave1.Timer.IsPaused) 
+                return TimeSpan.FromSeconds(NtfWave1.Timer.TimeLeft);
+            else if (NtfWave2 != null && !NtfWave2.Timer.IsPaused)
+                return TimeSpan.FromSeconds(NtfWave2.Timer.TimeLeft);
+            else 
+                return TimeSpan.Zero;
+        }
+        
+        public TimeSpan ChaosRespawnTime()
+        {
+            if(ChaosWave1 != null && !ChaosWave1.Timer.IsPaused) 
+                return TimeSpan.FromSeconds(ChaosWave1.Timer.TimeLeft);
+            else if (ChaosWave2 != null && !ChaosWave2.Timer.IsPaused)
+                return TimeSpan.FromSeconds(ChaosWave2.Timer.TimeLeft);
+            else 
+                return TimeSpan.Zero;
         }
     }
 }

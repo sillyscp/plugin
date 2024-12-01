@@ -14,7 +14,6 @@ namespace SillySCP.Handlers
         public void Init()
         {
             Exiled.Events.Handlers.Player.ChangingSpectatedPlayer += OnChangingSpectatedPlayer;
-            Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
             Exiled.Events.Handlers.Player.Died += OnPlayerDead;
             Exiled.Events.Handlers.Player.Spawned += OnSpawned;
             Exiled.Events.Handlers.Player.Left += OnPlayerLeave;
@@ -26,7 +25,6 @@ namespace SillySCP.Handlers
         public void Unregister()
         {
             Exiled.Events.Handlers.Player.ChangingSpectatedPlayer -= OnChangingSpectatedPlayer;
-            Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
             Exiled.Events.Handlers.Player.Died -= OnPlayerDead;
             Exiled.Events.Handlers.Player.Spawned -= OnSpawned;
             Exiled.Events.Handlers.Player.Left -= OnPlayerLeave;
@@ -41,11 +39,6 @@ namespace SillySCP.Handlers
                 return;
             PlayerStat playerStats = ev.Player.FindOrCreatePlayerStat();
             playerStats.Spectating = ev.NewTarget.FindOrCreatePlayerStat();
-        }
-
-        private void OnChangingRole(ChangingRoleEventArgs ev)
-        {
-            if (ev.NewRole == RoleTypeId.Spectator) Timing.RunCoroutine(RespawnSystem.RespawnTimer(ev.Player.FindOrCreatePlayerStat()));
         }
 
         private void OnPlayerDead(DiedEventArgs ev)
