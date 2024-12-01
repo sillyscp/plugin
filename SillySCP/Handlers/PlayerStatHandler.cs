@@ -39,13 +39,13 @@ namespace SillySCP.Handlers
         {
             if (ev.NewTarget == null)
                 return;
-            var playerStats = ev.Player.FindOrCreatePlayerStat();
-            playerStats.Spectating = ev.NewTarget;
+            PlayerStat playerStats = ev.Player.FindOrCreatePlayerStat();
+            playerStats.Spectating = ev.NewTarget.FindOrCreatePlayerStat();
         }
 
         private void OnChangingRole(ChangingRoleEventArgs ev)
         {
-            if (ev.NewRole == RoleTypeId.Spectator) Timing.RunCoroutine(RespawnSystem.RespawnTimer(ev.Player));
+            if (ev.NewRole == RoleTypeId.Spectator) Timing.RunCoroutine(RespawnSystem.RespawnTimer(ev.Player.FindOrCreatePlayerStat()));
         }
 
         private void OnPlayerDead(DiedEventArgs ev)

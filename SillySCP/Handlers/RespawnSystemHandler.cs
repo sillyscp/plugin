@@ -14,7 +14,10 @@ namespace SillySCP.Handlers
         
         public TimeSpan NtfRespawnTime { get; private set; }
         public TimeSpan ChaosRespawnTime { get; private set; }
-
+        
+        public string SpectatingTimerText => $"<voffset=32em>{NtfRespawnTime.Minutes:D1}<size=22>M</size> {NtfRespawnTime.Seconds:D2}<size=22>S</size><space=16em>{ChaosRespawnTime.Minutes:D1}<size=22>M</size> {ChaosRespawnTime.Seconds:D2}<size=22>S</size></voffset>";
+        public string NormalTimerText => $"<voffset=34em>{NtfRespawnTime.Minutes:D1}<size=22>M</size> {NtfRespawnTime.Seconds:D2}<size=22>S</size><space=16em>{ChaosRespawnTime.Minutes:D1}<size=22>M</size> {ChaosRespawnTime.Seconds:D2}<size=22>S</size></voffset>";
+        
         private CoroutineHandle _timerCoroutine;
 
         public void Init()

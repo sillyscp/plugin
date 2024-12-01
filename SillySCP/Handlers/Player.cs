@@ -8,6 +8,7 @@ using Exiled.Events.EventArgs.Scp914;
 using MEC;
 using PlayerRoles;
 using Scp914;
+using SillySCP.API.Extensions;
 using SillySCP.API.Features;
 using SillySCP.API.Interfaces;
 using SillySCP.API.Modules;
@@ -108,7 +109,7 @@ namespace SillySCP.Handlers
         {
             if (!Round.IsEnded && Round.IsStarted && ev.Player.Role == RoleTypeId.Spectator)
             {
-                Timing.RunCoroutine(RespawnSystem.RespawnTimer(ev.Player));
+                Timing.RunCoroutine(RespawnSystem.RespawnTimer(ev.Player.FindOrCreatePlayerStat()));
             }
         }
 
@@ -123,7 +124,7 @@ namespace SillySCP.Handlers
             }
             if (!ev.Player.IsAlive && Round.IsStarted)
             {
-                Timing.RunCoroutine(RespawnSystem.RespawnTimer(ev.Player));
+                Timing.RunCoroutine(RespawnSystem.RespawnTimer(ev.Player.FindOrCreatePlayerStat()));
             }
 
             if (ev.Player.Role == RoleTypeId.ClassD)
@@ -138,7 +139,7 @@ namespace SillySCP.Handlers
 
         private void OnPlayerDead(DiedEventArgs ev)
         {
-            Timing.RunCoroutine(RespawnSystem.RespawnTimer(ev.Player));
+            Timing.RunCoroutine(RespawnSystem.RespawnTimer(ev.Player.FindOrCreatePlayerStat()));
         }
         
         private void OnChangingRole(ChangingRoleEventArgs ev)

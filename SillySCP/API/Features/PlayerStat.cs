@@ -6,7 +6,7 @@ namespace SillySCP.API.Features
     {
         public Player Player { get; init; }
         public int? Kills { get; set; }
-        public Player Spectating { get; set; }
+        public PlayerStat Spectating { get; set; }
         public int? ScpKills { get; set; }
     }
 }
