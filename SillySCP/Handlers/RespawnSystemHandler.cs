@@ -1,4 +1,5 @@
 ﻿using Exiled.API.Features;
+using Exiled.Events.EventArgs.Map;
 using Exiled.Events.EventArgs.Server;
 using MEC;
 using PlayerRoles;
@@ -7,6 +8,7 @@ using Respawning.Waves;
 using SillySCP.API.Extensions;
 using SillySCP.API.Features;
 using SillySCP.API.Interfaces;
+using UnityEngine;
 
 namespace SillySCP.Handlers
 {
@@ -44,12 +46,19 @@ namespace SillySCP.Handlers
             Instance = this;
             Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
             Exiled.Events.Handlers.Server.RoundEnded += OnRoundEnded;
+            Exiled.Events.Handlers.Map.SpawningTeamVehicle += OnSpawning;
         }
         
         public void Unregister()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
             Exiled.Events.Handlers.Server.RoundEnded -= OnRoundEnded;
+            Exiled.Events.Handlers.Map.SpawningTeamVehicle -= OnSpawning;
+        }
+
+        private void OnSpawning(SpawningTeamVehicleEventArgs ev)
+        {
+            Log.Info(ev.Team);
         }
         
         private void OnRoundStarted()
@@ -68,6 +77,8 @@ namespace SillySCP.Handlers
                     else ChaosWave2 = timedWave;
                 }
             }
+
+            Timing.RunCoroutine(RespawnTimer());
         }
 
         private void OnRoundEnded(RoundEndedEventArgs ev)
@@ -82,13 +93,14 @@ namespace SillySCP.Handlers
         {
             while (Round.InProgress)
             {
+                yield return Timing.WaitForSeconds(1f);
                 string timerText = NormalTimerText;
                 string spectatingText = SpectatingTimerText;
                 foreach (Exiled.API.Features.Player player in Exiled.API.Features.Player.List)
                 {
                     if (player.Role != RoleTypeId.Spectator) continue;
                     
-                    PlayerStat playerStat = player.FindPlayerStat();
+                    PlayerStat playerStat = player.FindOrCreatePlayerStat();
                     if (playerStat == null) continue;
                     PlayerStat spectatingPlayerStat = playerStat.Spectating;
                     string kills = ((spectatingPlayerStat != null ? spectatingPlayerStat.Player.IsScp ? spectatingPlayerStat.ScpKills : spectatingPlayerStat.Kills : 0) ?? 0).ToString();
@@ -107,7 +119,6 @@ namespace SillySCP.Handlers
                     text = text.Trim();
                 
                     player.ShowHint(text, 2f);
-                    yield return Timing.WaitForSeconds(1f);
                 }
             }
 
@@ -117,19 +128,27 @@ namespace SillySCP.Handlers
         public TimeSpan NtfRespawnTime()
         {
             if(NtfWave1 != null && !NtfWave1.Timer.IsPaused) 
-                return TimeSpan.FromSeconds(NtfWave1.Timer.TimeLeft);
+                return TimeSpan.FromSeconds(NtfWave1.Timer.TimeLeft + 18);
             else if (NtfWave2 != null && !NtfWave2.Timer.IsPaused)
-                return TimeSpan.FromSeconds(NtfWave2.Timer.TimeLeft);
-            else 
+                return TimeSpan.FromSeconds(NtfWave2.Timer.TimeLeft + 18);
+            else if (NtfWave1 != null && NtfWave1.Timer.IsPaused)
+                return TimeSpan.FromSeconds(NtfWave1.Timer.TimeLeft + 18);
+            else if (NtfWave2 != null && NtfWave2.Timer.IsPaused)
+                return TimeSpan.FromSeconds(NtfWave2.Timer.TimeLeft + 18);
+            else
                 return TimeSpan.Zero;
         }
         
         public TimeSpan ChaosRespawnTime()
         {
             if(ChaosWave1 != null && !ChaosWave1.Timer.IsPaused) 
-                return TimeSpan.FromSeconds(ChaosWave1.Timer.TimeLeft);
+                return TimeSpan.FromSeconds(ChaosWave1.Timer.TimeLeft + 13);
             else if (ChaosWave2 != null && !ChaosWave2.Timer.IsPaused)
-                return TimeSpan.FromSeconds(ChaosWave2.Timer.TimeLeft);
+                return TimeSpan.FromSeconds(ChaosWave2.Timer.TimeLeft + 13);
+            else if (ChaosWave1 != null && ChaosWave1.Timer.IsPaused)
+                return TimeSpan.FromSeconds(ChaosWave1.Timer.TimeLeft + 13);
+            else if (ChaosWave2 != null && ChaosWave2.Timer.IsPaused)
+                return TimeSpan.FromSeconds(ChaosWave2.Timer.TimeLeft + 13);
             else 
                 return TimeSpan.Zero;
         }

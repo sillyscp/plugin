@@ -6,10 +6,6 @@ namespace SillySCP.API.Modules
     {
         public static void Recontain()
         {
-            foreach (Generator generator in Generator.List)
-            {
-                generator.IsEngaged = true;
-            }
             Recontainer.BeginOvercharge();
         }
     }

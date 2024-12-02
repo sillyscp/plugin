@@ -26,6 +26,7 @@ namespace SillySCP.Handlers
             {
                 scps.Remove(RoleTypeId.Scp079);
                 PlayerRoleBase[] spawnableScps = ScpSpawner.SpawnableScps.Where(s => s.RoleTypeId != RoleTypeId.Scp079 && s.RoleTypeId != scps.FirstOrDefault()).ToArray();
+                ev.Player.Role.Set(RoleTypeId.Spectator);
                 ev.Player.Role.Set(ev.OldRole.Team == Team.SCPs ? ev.OldRole.Type : spawnableScps.GetRandomValue().RoleTypeId);
                 ev.Player.Broadcast(new("SCP-079 cannot at 1/2 scps."));
             }
@@ -34,6 +35,7 @@ namespace SillySCP.Handlers
             {
                 foreach (Exiled.API.Features.Player player in Exiled.API.Features.Player.List.Where(p => p.IsScp))
                 {
+                    player.Role.Set(RoleTypeId.Spectator);
                     player.Role.Set(ScpSpawner.SpawnableScps.Where(s => s.RoleTypeId != RoleTypeId.Scp079 && s.RoleTypeId != scps.FirstOrDefault()).GetRandomValue().RoleTypeId);
                 }
             }
