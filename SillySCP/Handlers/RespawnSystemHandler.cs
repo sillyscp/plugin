@@ -46,19 +46,12 @@ namespace SillySCP.Handlers
             Instance = this;
             Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
             Exiled.Events.Handlers.Server.RoundEnded += OnRoundEnded;
-            Exiled.Events.Handlers.Map.SpawningTeamVehicle += OnSpawning;
         }
         
         public void Unregister()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
             Exiled.Events.Handlers.Server.RoundEnded -= OnRoundEnded;
-            Exiled.Events.Handlers.Map.SpawningTeamVehicle -= OnSpawning;
-        }
-
-        private void OnSpawning(SpawningTeamVehicleEventArgs ev)
-        {
-            Log.Info(ev.Team);
         }
         
         private void OnRoundStarted()
