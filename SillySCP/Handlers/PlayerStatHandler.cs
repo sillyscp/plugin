@@ -38,7 +38,7 @@ namespace SillySCP.Handlers
             if (ev.NewTarget == null)
                 return;
             PlayerStat playerStats = ev.Player.FindOrCreatePlayerStat();
-            playerStats.Spectating = ev.NewTarget.FindOrCreatePlayerStat();
+            playerStats.Spectating = ev.NewTarget;
         }
 
         private void OnPlayerDead(DiedEventArgs ev)

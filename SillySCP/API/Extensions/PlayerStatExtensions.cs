@@ -23,7 +23,7 @@ namespace SillySCP.API.Extensions
         public static PlayerStat FindPlayerStat(this Player player)
         {
             Plugin.Instance.PlayerStats ??= new();
-            return Plugin.Instance.PlayerStats.Find(p => p.Player == player);
+            return Plugin.Instance.PlayerStats.FirstOrDefault(p => p.Player == player);
         }
 
         public static void UpdateKills(this Player player)

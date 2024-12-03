@@ -95,7 +95,7 @@ namespace SillySCP.Handlers
                     
                     PlayerStat playerStat = player.FindOrCreatePlayerStat();
                     if (playerStat == null) continue;
-                    PlayerStat spectatingPlayerStat = playerStat.Spectating;
+                    PlayerStat spectatingPlayerStat = playerStat.Spectating.FindPlayerStat();
                     string kills = ((spectatingPlayerStat != null ? spectatingPlayerStat.Player.IsScp ? spectatingPlayerStat.ScpKills : spectatingPlayerStat.Kills : 0) ?? 0).ToString();
                     string spectatingKills =
                         spectatingPlayerStat != null
@@ -109,7 +109,6 @@ namespace SillySCP.Handlers
                     string killsText = playerStat.Spectating != null ? "\n\nKill count: " + spectatingKills : "";
                 
                     string text = timersText + killsText;
-                    text = text.Trim();
                 
                     player.ShowHint(text, 2f);
                 }
