@@ -45,7 +45,7 @@ namespace SillySCP.Handlers
         {
             if (ev.DamageHandler.Type == DamageType.PocketDimension)
             {
-                var scp106 = Plugin.Instance.Scp106 ??
+                Exiled.API.Features.Player scp106 = Plugin.Instance.Scp106 ??
                              Exiled.API.Features.Player.List.FirstOrDefault(p => p.Role == RoleTypeId.Scp106);
                 scp106.UpdateKills();
             }
@@ -64,7 +64,7 @@ namespace SillySCP.Handlers
                 if (ev.Player.Role == RoleTypeId.Scp106 && !ev.Player.DoNotTrack)
                     Plugin.Instance.Scp106 = ev.Player;
                 ev.Player.ShowHint("", int.MaxValue);
-                var playerStats = ev.Player.FindPlayerStat();
+                PlayerStat playerStats = ev.Player.FindPlayerStat();
                 if (playerStats != null) playerStats.Spectating = null;
             }
         }

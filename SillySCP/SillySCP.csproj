@@ -25,5 +25,6 @@
     </PackageReference>
     <PackageReference Include="Lib.Harmony" Version="2.2.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="RueI" Version="2.1.0" />
   </ItemGroup>
 </Project>

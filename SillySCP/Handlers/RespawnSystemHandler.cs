@@ -1,14 +1,14 @@
-﻿using Exiled.API.Features;
-using Exiled.Events.EventArgs.Map;
+﻿using System.Drawing;
 using Exiled.Events.EventArgs.Server;
-using MEC;
 using PlayerRoles;
 using Respawning;
 using Respawning.Waves;
-using SillySCP.API.Extensions;
-using SillySCP.API.Features;
+using RueI.Displays;
+using RueI.Elements;
 using SillySCP.API.Interfaces;
-using UnityEngine;
+using StringBuilder = System.Text.StringBuilder;
+using RueI.Extensions.HintBuilding;
+using RueI.Parsing.Enums;
 
 namespace SillySCP.Handlers
 {
@@ -22,36 +22,89 @@ namespace SillySCP.Handlers
         public TimeBasedWave ChaosWave1 { get; private set; }
         public TimeBasedWave ChaosWave2 { get; private set; }
         
-        public string SpectatingTimerText
-        {
-            get
-            {
-                TimeSpan ntfTime = NtfRespawnTime();
-                TimeSpan chaosTime = ChaosRespawnTime();
-                return $"<voffset=32em>{ntfTime.Minutes:D1}<size=22>M</size> {ntfTime.Seconds:D2}<size=22>S</size><space=16em>{chaosTime.Minutes:D1}<size=22>M</size> {chaosTime.Seconds:D2}<size=22>S</size></voffset>";
-            }
-        }
-        public string NormalTimerText
-        {
-            get
-            {
-                TimeSpan ntfTime = NtfRespawnTime();
-                TimeSpan chaosTime = ChaosRespawnTime();
-                return $"<voffset=34em>{ntfTime.Minutes:D1}<size=22>M</size> {ntfTime.Seconds:D2}<size=22>S</size><space=16em>{chaosTime.Minutes:D1}<size=22>M</size> {chaosTime.Seconds:D2}<size=22>S</size></voffset>";
-            }
-        }
+        public AutoElement RespawnTimerDisplay { get; private set; }
+        
+        public SpawnableTeamType NextKnownTeam { get; set; }
 
         public void Init()
         {
             Instance = this;
+            
+            RespawnTimerDisplay = new(Roles.Spectator, new DynamicElement(GetTimers, 910))
+            {
+                UpdateEvery = new (TimeSpan.FromSeconds(1))
+            };
+            
             Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
             Exiled.Events.Handlers.Server.RoundEnded += OnRoundEnded;
+            Exiled.Events.Handlers.Server.RespawningTeam += OnRespawning;
+            Exiled.Events.Handlers.Server.RespawnedTeam += OnRespawned;
         }
         
         public void Unregister()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
             Exiled.Events.Handlers.Server.RoundEnded -= OnRoundEnded;
+            Exiled.Events.Handlers.Server.RespawningTeam -= OnRespawning;
+            Exiled.Events.Handlers.Server.RespawnedTeam -= OnRespawned;
+        }
+
+        private void OnRespawning(RespawningTeamEventArgs ev)
+        {
+            NextKnownTeam = ev.NextKnownTeam;
+        }
+
+        private void OnRespawned(RespawnedTeamEventArgs ev)
+        {
+            NextKnownTeam = SpawnableTeamType.None;
+        }
+
+        private string GetTimers(DisplayCore core)
+        {
+            TimeSpan ntfTime = NtfRespawnTime();
+            TimeSpan chaosTime = ChaosRespawnTime();
+
+            StringBuilder builder = new StringBuilder()
+                .SetAlignment(HintBuilding.AlignStyle.Center);
+                
+            if(NextKnownTeam == SpawnableTeamType.NineTailedFox)
+                builder.SetColor(Color.Blue);
+            
+            builder
+                .Append(ntfTime.Minutes.ToString("D1"))
+                .SetSize(22)
+                .Append("M")
+                .CloseSize()
+                .Append(" ")
+                .Append(ntfTime.Seconds.ToString("D2"))
+                .SetSize(22)
+                .Append("S")
+                .CloseSize();
+            
+            if(NextKnownTeam == SpawnableTeamType.NineTailedFox)
+                builder.CloseColor();
+            
+            builder
+                .AddSpace(16, MeasurementUnit.Ems);
+            
+            if(NextKnownTeam == SpawnableTeamType.ChaosInsurgency)
+                builder = builder.SetColor(Color.Green);
+            
+            builder
+                .Append(chaosTime.Minutes.ToString("D1"))
+                .SetSize(22)
+                .Append("M")
+                .CloseSize()
+                .Append(" ")
+                .Append(chaosTime.Seconds.ToString("D2"))
+                .SetSize(22)
+                .Append("S")
+                .CloseSize();
+            
+            if(NextKnownTeam == SpawnableTeamType.ChaosInsurgency)
+                builder.CloseColor();
+            
+            return builder.ToString();
         }
         
         private void OnRoundStarted()
@@ -70,8 +123,6 @@ namespace SillySCP.Handlers
                     else ChaosWave2 = timedWave;
                 }
             }
-
-            Timing.RunCoroutine(RespawnTimer());
         }
 
         private void OnRoundEnded(RoundEndedEventArgs ev)
@@ -80,41 +131,6 @@ namespace SillySCP.Handlers
             NtfWave2 = null;
             ChaosWave1 = null;
             ChaosWave2 = null;
-        }
-
-        private IEnumerator<float> RespawnTimer()
-        {
-            while (Round.InProgress)
-            {
-                yield return Timing.WaitForSeconds(1f);
-                string timerText = NormalTimerText;
-                string spectatingText = SpectatingTimerText;
-                foreach (Exiled.API.Features.Player player in Exiled.API.Features.Player.List)
-                {
-                    if (player.Role != RoleTypeId.Spectator) continue;
-                    
-                    PlayerStat playerStat = player.FindOrCreatePlayerStat();
-                    if (playerStat == null) continue;
-                    PlayerStat spectatingPlayerStat = playerStat.Spectating.FindPlayerStat();
-                    string kills = ((spectatingPlayerStat != null ? spectatingPlayerStat.Player.IsScp ? spectatingPlayerStat.ScpKills : spectatingPlayerStat.Kills : 0) ?? 0).ToString();
-                    string spectatingKills =
-                        spectatingPlayerStat != null
-                            ? spectatingPlayerStat.Player.DoNotTrack == false ? string.IsNullOrEmpty(kills) ? "Unknown" : kills : "Unknown"
-                            : "0";
-
-                    string timersText = playerStat.Spectating != null
-                        ? spectatingText
-                        : timerText;
-                    
-                    string killsText = playerStat.Spectating != null ? "\n\nKill count: " + spectatingKills : "";
-                
-                    string text = timersText + killsText;
-                
-                    player.ShowHint(text, 2f);
-                }
-            }
-
-            yield return 0;
         }
 
         public TimeSpan NtfRespawnTime()

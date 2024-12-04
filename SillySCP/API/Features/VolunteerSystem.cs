@@ -15,7 +15,7 @@ namespace SillySCP.API.Features
         public static IEnumerator<float> DisableVolunteers()
         {
             ReadyVolunteers = true;
-            yield return Timing.WaitForSeconds(180);
+            yield return Timing.WaitForSeconds(120);
             ReadyVolunteers = false;
             List<Player> scps = Player.List.Where(p => p.IsScp).ToList();
             if(scps.Count == 1 && scps.First().Role.Type == RoleTypeId.Scp079 && !ReadyVolunteers)

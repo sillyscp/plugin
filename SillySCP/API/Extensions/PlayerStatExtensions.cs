@@ -7,11 +7,10 @@ namespace SillySCP.API.Extensions
     {
         public static PlayerStat FindOrCreatePlayerStat(this Player player)
         {
-            var playerStat = player.FindPlayerStat();
+            PlayerStat playerStat = player.FindPlayerStat();
             if (playerStat != null) return playerStat;
-            playerStat = new()
+            playerStat = new(player)
             {
-                Player = player,
                 Kills = player.DoNotTrack ? null : 0,
                 ScpKills = player.DoNotTrack ? null : 0,
                 Spectating = null
@@ -36,6 +35,20 @@ namespace SillySCP.API.Extensions
                 playerStat.ScpKills++;
             else
                 playerStat.Kills++;
+            
+            player.UpdateKillsDisplay();
+        }
+
+        public static void UpdateKillsDisplay(this Player player)
+        {
+            if (player.DoNotTrack) 
+                return;
+
+            foreach (PlayerStat playerStat in Plugin.Instance.PlayerStats)
+            {
+                if(playerStat.Spectating == player)
+                    playerStat.SpectatingKillsDisplay.Update();
+            }
         }
     }
 }

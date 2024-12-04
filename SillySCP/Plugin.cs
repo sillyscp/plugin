@@ -3,6 +3,7 @@ using Exiled.API.Extensions;
 using Exiled.API.Features;
 using HarmonyLib;
 using MEC;
+using RueI;
 using SillySCP.API.Features;
 using SillySCP.API.Interfaces;
 using Player = Exiled.API.Features.Player;
@@ -21,6 +22,7 @@ namespace SillySCP
 
         public override void OnEnabled()
         {
+            RueIMain.EnsureInit();
             Harmony.PatchAll();
             Instance = this;
 
