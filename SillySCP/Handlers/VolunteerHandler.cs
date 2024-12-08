@@ -16,6 +16,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.Left += OnPlayerLeave;
             Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
             Exiled.Events.Handlers.Player.Died += OnDead;
+            Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
         }
 
         public void Unregister()
@@ -23,8 +24,18 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.Left -= OnPlayerLeave;
             Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
             Exiled.Events.Handlers.Player.Died -= OnDead;
+            Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
         }
 
+        private void OnChangingRole(ChangingRoleEventArgs ev)
+        {
+            if (VolunteerSystem.Volunteers.Any(v => v.Replacement == ev.NewRole))
+            {
+                ev.IsAllowed = false;
+                ev.Player.Broadcast(5, "You cannot change to this role as it is in the volunteer phase.");
+            }
+        }
+        
         private void Volunteer(Exiled.API.Features.Player player, RoleTypeId oldRole)
         {
             Volunteers volunteer = new ()
@@ -42,9 +53,11 @@ namespace SillySCP.Handlers
 
         private void OnDead(DiedEventArgs ev)
         {
+            if (!VolunteerSystem.ReadyVolunteers) return;
             if (!ev.TargetOldRole.IsScp()) return;
             if (ev.TargetOldRole == RoleTypeId.Scp0492) return;
-            if (ev.DamageHandler.IsSuicide || ev.DamageHandler.Type == DamageType.Unknown || ev.DamageHandler.Type == DamageType.Custom)
+            Log.Info(ev.DamageHandler.Type);
+            if (ev.DamageHandler.IsSuicide || ev.DamageHandler.Type == DamageType.Unknown || ev.DamageHandler.Type == DamageType.Custom || ev.Attacker == ev.Player)
             {
                 Volunteer(ev.Player, ev.TargetOldRole);
             }

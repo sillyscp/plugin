@@ -35,6 +35,12 @@ namespace SillySCP.Commands
                 response = "Only SCPs can use this command!";
                 return false;
             }
+
+            if (player.Role.Type == RoleTypeId.Scp0492)
+            {
+                response = "You can not change into a human as SCP-049-2!";
+                return false;
+            }
             
             RoleTypeId role = HumanSpawner.NextHumanRoleToSpawn;
             

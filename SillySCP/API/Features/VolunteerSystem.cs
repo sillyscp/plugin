@@ -28,12 +28,17 @@ namespace SillySCP.API.Features
             volunteer = Volunteers.FirstOrDefault(v => v.Replacement == volunteer.Replacement);
             if (volunteer == null)
                 yield break;
-            if (volunteer.Players.Count == 0) yield break;
-            var replacementPlayer = volunteer.Players.GetRandomValue();
-            replacementPlayer.Role.Set(volunteer.Replacement);
-            Map.Broadcast(10, volunteer.Replacement.GetFullName() + " has been replaced!",
-                Broadcast.BroadcastFlags.Normal, true);
+            Volunteers volunteerClone = new ()
+            {
+                Replacement = volunteer.Replacement,
+                Players = volunteer.Players
+            };
             Volunteers.Remove(volunteer);
+            if (volunteerClone.Players.Count == 0) yield break;
+            Player replacementPlayer = volunteerClone.Players.GetRandomValue();
+            replacementPlayer.Role.Set(volunteerClone.Replacement);
+            Map.Broadcast(10, volunteerClone.Replacement.GetFullName() + " has been replaced!",
+                Broadcast.BroadcastFlags.Normal, true);
 
             yield return 0;
         }
