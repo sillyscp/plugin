@@ -99,6 +99,16 @@ namespace SillySCP.Handlers
                 ev.IsAllowed = true;
                 ev.NewRole = RoleTypeId.ChaosConscript;
             }
+            if(ev.Player.IsNTF && ev.Player.IsCuffed)
+            {
+                ev.IsAllowed = true;
+                ev.NewRole = RoleTypeId.ChaosConscript;
+            }
+            if(ev.Player.IsCHI && ev.Player.IsCuffed)
+            {
+                ev.IsAllowed = true;
+                ev.NewRole = RoleTypeId.NtfPrivate;
+            }
         }
 
         private void OnSpawned(SpawnedEventArgs ev)
