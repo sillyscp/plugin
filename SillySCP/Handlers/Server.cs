@@ -1,9 +1,8 @@
 ﻿using Exiled.API.Enums;
-using Exiled.API.Features.Items;
 using Exiled.API.Features.Pickups;
-using Exiled.API.Features.Pickups.Projectiles;
 using Exiled.Events.EventArgs.Map;
 using Exiled.Events.EventArgs.Scp914;
+using MapGeneration.Spawnables;
 using MEC;
 using Scp914;
 using SillySCP.API.Features;
@@ -25,6 +24,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Server.RestartingRound += OnRoundRestart;
             Exiled.Events.Handlers.Scp914.UpgradingPickup += OnScp914UpgradePickup;
             Exiled.Events.Handlers.Map.AnnouncingScpTermination += OnAnnouncingScpTermination;
+            Exiled.Events.Handlers.Map.Generated += OnMapGenerated;
         }
 
         public void Unregister()
@@ -34,6 +34,20 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Server.RestartingRound -= OnRoundRestart;
             Exiled.Events.Handlers.Scp914.UpgradingPickup -= OnScp914UpgradePickup;
             Exiled.Events.Handlers.Map.AnnouncingScpTermination -= OnAnnouncingScpTermination;
+            Exiled.Events.Handlers.Map.Generated -= OnMapGenerated;
+        }
+
+        private void OnMapGenerated()
+        {
+            Features.Room room = Features.Room.Get(RoomType.HczTestRoom);
+
+            AudioLog log = room.GameObject.GetComponentInChildren<AudioLog>();
+
+            Vector3 pos = log.transform.position;
+
+            pos.y += 0.5f;
+
+            Pickup.CreateAndSpawn(ItemType.KeycardScientist, pos, Quaternion.identity);
         }
 
         private void OnAnnouncingScpTermination(AnnouncingScpTerminationEventArgs ev)
