@@ -23,8 +23,6 @@ namespace SillySCP.Handlers
         public TimeBasedWave ChaosWave2 { get; private set; }
         
         public AutoElement RespawnTimerDisplay { get; private set; }
-        
-        public SpawnableTeamType NextKnownTeam { get; set; }
 
         public void Init()
         {
@@ -37,26 +35,12 @@ namespace SillySCP.Handlers
             
             Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
             Exiled.Events.Handlers.Server.RoundEnded += OnRoundEnded;
-            Exiled.Events.Handlers.Server.RespawningTeam += OnRespawning;
-            Exiled.Events.Handlers.Server.RespawnedTeam += OnRespawned;
         }
         
         public void Unregister()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
             Exiled.Events.Handlers.Server.RoundEnded -= OnRoundEnded;
-            Exiled.Events.Handlers.Server.RespawningTeam -= OnRespawning;
-            Exiled.Events.Handlers.Server.RespawnedTeam -= OnRespawned;
-        }
-
-        private void OnRespawning(RespawningTeamEventArgs ev)
-        {
-            NextKnownTeam = ev.NextKnownTeam;
-        }
-
-        private void OnRespawned(RespawnedTeamEventArgs ev)
-        {
-            NextKnownTeam = SpawnableTeamType.None;
         }
 
         private string GetTimers(DisplayCore core)
@@ -66,9 +50,6 @@ namespace SillySCP.Handlers
 
             StringBuilder builder = new StringBuilder()
                 .SetAlignment(HintBuilding.AlignStyle.Center);
-                
-            if(NextKnownTeam == SpawnableTeamType.NineTailedFox)
-                builder.SetColor(Color.Blue);
             
             builder
                 .Append(ntfTime.Minutes.ToString("D1"))
@@ -81,14 +62,8 @@ namespace SillySCP.Handlers
                 .Append("S")
                 .CloseSize();
             
-            if(NextKnownTeam == SpawnableTeamType.NineTailedFox)
-                builder.CloseColor();
-            
             builder
                 .AddSpace(16, MeasurementUnit.Ems);
-            
-            if(NextKnownTeam == SpawnableTeamType.ChaosInsurgency)
-                builder = builder.SetColor(Color.Green);
             
             builder
                 .Append(chaosTime.Minutes.ToString("D1"))
@@ -100,9 +75,6 @@ namespace SillySCP.Handlers
                 .SetSize(22)
                 .Append("S")
                 .CloseSize();
-            
-            if(NextKnownTeam == SpawnableTeamType.ChaosInsurgency)
-                builder.CloseColor();
             
             return builder.ToString();
         }

@@ -4,6 +4,7 @@ using Exiled.Events.EventArgs.Map;
 using Exiled.Events.EventArgs.Scp914;
 using MapGeneration.Spawnables;
 using MEC;
+using Respawning;
 using Scp914;
 using SillySCP.API.Features;
 using SillySCP.API.Interfaces;
