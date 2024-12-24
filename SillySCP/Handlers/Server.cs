@@ -4,7 +4,6 @@ using Exiled.Events.EventArgs.Map;
 using Exiled.Events.EventArgs.Scp914;
 using MapGeneration.Spawnables;
 using MEC;
-using Respawning;
 using Scp914;
 using SillySCP.API.Features;
 using SillySCP.API.Interfaces;
@@ -80,7 +79,7 @@ namespace SillySCP.Handlers
         {
             if (ev.KnobSetting == Scp914KnobSetting.Fine && ev.Pickup.Type == ItemType.Coin)
             {
-                var randomNum = UnityEngine.Random.Range(1, 3);
+                int randomNum = UnityEngine.Random.Range(1, 3);
                 switch (randomNum)
                 {
                     case 1:
