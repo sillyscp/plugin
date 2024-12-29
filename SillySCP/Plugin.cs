@@ -1,11 +1,13 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
+using Exiled.API.Features.Core.UserSettings;
 using HarmonyLib;
 using MEC;
 using RueI;
 using SillySCP.API.Features;
 using SillySCP.API.Interfaces;
+using SillySCP.API.Modules;
 using Player = Exiled.API.Features.Player;
 using Round = PluginAPI.Core.Round;
 
@@ -36,6 +38,9 @@ namespace SillySCP
                 _inits.Add(init);
                 init!.Init();
             }
+
+            SettingBase.Register(SSSSModule.Settings);
+            SettingBase.SendToAll();
             
             base.OnEnabled();
         }
