@@ -2,20 +2,20 @@
 using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
-using Exiled.API.Features.Roles;
+using Exiled.API.Features.Items;
+using Exiled.API.Features.Pickups;
 using Exiled.Events.EventArgs.Player;
 using Exiled.Events.EventArgs.Scp914;
+using InventorySystem;
 using MEC;
 using PlayerRoles;
 using Scp914;
-using SillySCP.API.Extensions;
 using SillySCP.API.Features;
 using SillySCP.API.Interfaces;
 using SillySCP.API.Modules;
 using UnityEngine;
 using Features = Exiled.API.Features;
 using Random = UnityEngine.Random;
-using Scp079Role = PlayerRoles.PlayableScps.Scp079.Scp079Role;
 
 namespace SillySCP.Handlers
 {
@@ -29,6 +29,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.Spawned += OnSpawned;
             Exiled.Events.Handlers.Player.Died += ScpDeathHandler;
             Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
+            Exiled.Events.Handlers.Scp914.UpgradingPlayer += OnUpgradingPlayer;
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem += OnScp914UpgradeInv;
             Exiled.Events.Handlers.Player.Escaping += OnEscaping;
             Exiled.Events.Handlers.Player.UsingItemCompleted += OnUsingItemCompleted;
@@ -39,9 +40,23 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.Spawned -= OnSpawned;
             Exiled.Events.Handlers.Player.Died -= ScpDeathHandler;
             Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
+            Exiled.Events.Handlers.Scp914.UpgradingPlayer -= OnUpgradingPlayer;
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem -= OnScp914UpgradeInv;
             Exiled.Events.Handlers.Player.Escaping -= OnEscaping;
             Exiled.Events.Handlers.Player.UsingItemCompleted -= OnUsingItemCompleted;
+        }
+
+        private void OnUpgradingPlayer(UpgradingPlayerEventArgs ev)
+        {
+            if (ev.KnobSetting == Scp914KnobSetting.Rough && ev.Player.CurrentItem == null)
+            {
+                ev.IsAllowed = false;
+                Room randomRoom = Room.Get(ZoneType.LightContainment)
+                    .Where(r => r.Type is not RoomType.Lcz330 and not RoomType.Lcz914 and not RoomType.LczArmory)
+                    .GetRandomValue();
+                
+                ev.Player.Position = new (randomRoom.Position.x, randomRoom.Position.y + 1, randomRoom.Position.z);
+            }
         }
 
         private void ScpDeathHandler(DiedEventArgs ev)
@@ -119,15 +134,6 @@ namespace SillySCP.Handlers
             } else if (ev.Player.Role != RoleTypeId.Tutorial && ev.Player.RemoteAdminAccess && ev.Player.IsGodModeEnabled)
             {
                 ev.Player.IsGodModeEnabled = false;
-            }
-
-            if (ev.Player.Role == RoleTypeId.ClassD)
-            {
-                int random = Random.Range(1, 1_000_000);
-                if (random == 1)
-                {
-                    ev.Player.Scale = new(ev.Player.Scale.x * 2, ev.Player.Scale.y, ev.Player.Scale.z);
-                }
             }
         }
         
