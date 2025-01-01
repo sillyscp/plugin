@@ -56,6 +56,21 @@ namespace SillySCP.Handlers
                     .GetRandomValue();
                 
                 ev.Player.Position = new (randomRoom.Position.x, randomRoom.Position.y + 1, randomRoom.Position.z);
+                if (ev.Player.IsHuman)
+                {
+                    if (ev.Player.Health <= 25)
+                    {
+                        ev.Player.Kill(DamageType.Scp);
+                        return;
+                    }
+                    ev.Player.EnableEffect(EffectType.Disabled, 1, 10);
+                }
+                else
+                {
+                    ev.Player.EnableEffect(EffectType.Flashed, 1, 10);
+                }
+
+                ev.Player.Health *= 0.75f;
             }
         }
 
