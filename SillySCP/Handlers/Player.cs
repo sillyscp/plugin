@@ -52,7 +52,7 @@ namespace SillySCP.Handlers
             {
                 ev.IsAllowed = false;
                 Room randomRoom = Room.Get(ZoneType.LightContainment)
-                    .Where(r => r.Type is not RoomType.Lcz330 and not RoomType.Lcz914 and not RoomType.LczArmory)
+                    .Where(r => r.Type is not RoomType.Lcz330 and not RoomType.Lcz914 and not RoomType.LczArmory and not RoomType.Lcz173)
                     .GetRandomValue();
                 
                 ev.Player.Position = new (randomRoom.Position.x, randomRoom.Position.y + 1, randomRoom.Position.z);
