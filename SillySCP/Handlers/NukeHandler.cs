@@ -1,13 +1,10 @@
 ﻿using CustomPlayerEffects;
 using Exiled.API.Enums;
+using Exiled.API.Features;
 using Exiled.Events.EventArgs.Map;
 using Exiled.Events.EventArgs.Player;
 using Interactables.Interobjects;
 using MEC;
-using RueI.Displays;
-using RueI.Displays.Scheduling;
-using RueI.Elements;
-using RueI.Extensions;
 using SillySCP.API.Interfaces;
 
 namespace SillySCP.Handlers
@@ -68,7 +65,7 @@ namespace SillySCP.Handlers
 
         private void OnLanding(LandingEventArgs ev)
         {
-            if (ev.Player.Position.y > -1050 && ev.Player.CurrentRoom.Type != RoomType.HczNuke) return;
+            if (ev.Player.Position.y > -1050f || ev.Player.CurrentRoom.Type != RoomType.HczNuke) return;
             if (ev.Player.IsDead) return;
             if(_handles.ContainsKey(ev.Player)) return;
             AddEffect(ev.Player);
