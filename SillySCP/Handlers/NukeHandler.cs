@@ -76,7 +76,9 @@ namespace SillySCP.Handlers
 
         private IEnumerator<float> AntiNuke(Exiled.API.Features.Player player)
         {
-            yield return Timing.WaitForSeconds(60*2);
+            yield return Timing.WaitForSeconds(60*2-10);
+            player.ShowHint("The pain is getting worse...");
+            yield return Timing.WaitForSeconds(10);
             player.EnableEffect(EffectType.Decontaminating, 1, 120);
             player.ShowHint("The pain starts to really hurt...");
         }
