@@ -105,10 +105,22 @@ namespace SillySCP.Handlers
         private IEnumerator<float> AntiNuke(Exiled.API.Features.Player player)
         {
             yield return Timing.WaitForSeconds(60*3-10);
+
             player.ShowHint("The pain is getting worse...");
             yield return Timing.WaitForSeconds(10);
-            player.EnableEffect(EffectType.Decontaminating, 1, 120);
-            player.ShowHint("The pain starts to really hurt...");
+
+            if (player.CurrentRoom.Type == RoomType.HczNuke && player.Position.y < -1050)
+                // I think its extreemly important to keep a final check.
+                // if all else fails you wont lose a game to zero fault of your own.
+            {
+                player.EnableEffect(EffectType.Decontaminating, 1, 120);
+                player.ShowHint("The pain starts to really hurt...");
+
+            }
+            else
+            {
+                _handles.Remove(player);
+            }
         }
     }
 }
