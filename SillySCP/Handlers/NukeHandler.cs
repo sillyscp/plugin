@@ -99,6 +99,16 @@ namespace SillySCP.Handlers
             if (Warhead.IsInProgress) return;
             if (ev.Player.IsDead) return;
             if(_handles.ContainsKey(ev.Player)) return;
+            
+            if(ev.Player.CurrentRoom.Type == RoomType.HczNuke 
+               && ev.Player.Position.y > -1050f
+               && _handles.TryGetValue(ev.Player, out CoroutineHandle handle))
+            {
+                Timing.KillCoroutines(handle);
+                _handles.Remove(ev.Player);
+                ev.Player.ShowHint("You feel better now.");
+            }
+            
             AddEffect(ev.Player);
         }
 
