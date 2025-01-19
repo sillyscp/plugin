@@ -67,7 +67,7 @@ namespace SillySCP.Handlers
         {
             Features.Server.FriendlyFire = false;
             Timing.RunCoroutine(Plugin.Instance.HeartAttack());
-            Timing.RunCoroutine(CheckNukeRoom());
+            // Timing.RunCoroutine(CheckNukeRoom()); //legacy Anti-Nuke
         }
 
         private void OnRoundRestart()
@@ -103,25 +103,25 @@ namespace SillySCP.Handlers
                 }
             }
         }
-        
-        private IEnumerator<float> CheckNukeRoom()
-        {
-            while (Features.Round.IsStarted && !Features.Round.IsEnded)
-            {
-                var players = Features.Player.List;
-                foreach (var player in players)
-                {
-                    if (!player.IsAlive) continue;
-                    if (player.CurrentRoom.Type == RoomType.HczNuke)
-                    {
-                        Timing.RunCoroutine(Player.Instance.StartNukeDamage(player));
-                    }
-                }
-
-                yield return Timing.WaitForSeconds(60);
-            }
-
-            yield return 0;
-        }
+        // Legacy Anti-Nuke
+        // private IEnumerator<float> CheckNukeRoom()
+        // {
+        //     while (Features.Round.IsStarted && !Features.Round.IsEnded)
+        //     {
+        //         var players = Features.Player.List;
+        //         foreach (var player in players)
+        //         {
+        //             if (!player.IsAlive) continue;
+        //             if (player.CurrentRoom.Type == RoomType.HczNuke)
+        //             {
+        //                 Timing.RunCoroutine(Player.Instance.StartNukeDamage(player));
+        //             }
+        //         }
+        //
+        //         yield return Timing.WaitForSeconds(60);
+        //     }
+        //
+        //     yield return 0;
+        // }
     }
 }

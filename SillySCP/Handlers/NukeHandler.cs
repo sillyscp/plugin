@@ -3,6 +3,7 @@ using Exiled.API.Enums;
 using Exiled.API.Features;
 using Exiled.Events.EventArgs.Map;
 using Exiled.Events.EventArgs.Player;
+using Exiled.Events.EventArgs.Scp106;
 using Exiled.Events.EventArgs.Warhead;
 using Interactables.Interobjects;
 using MEC;
@@ -19,6 +20,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.Landing += OnLanding;
             Exiled.Events.Handlers.Warhead.Starting += OnWarheadStarting;
             Exiled.Events.Handlers.Warhead.Stopping += OnWarheadStopping;
+            Exiled.Events.Handlers.Scp106.Teleporting += OnLarryTeleport;
             
             _handles = new();
         }
@@ -29,7 +31,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.Landing -= OnLanding;
             Exiled.Events.Handlers.Warhead.Starting -= OnWarheadStarting;
             Exiled.Events.Handlers.Warhead.Stopping -= OnWarheadStopping;
-            
+            Exiled.Events.Handlers.Scp106.Teleporting -= OnLarryTeleport;
             foreach (CoroutineHandle handle in _handles.Values)
             {
                 Timing.KillCoroutines(handle);
@@ -94,13 +96,38 @@ namespace SillySCP.Handlers
             _handles.Add(player, Timing.RunCoroutine(AntiNuke(player)));
         }
 
+        private void OnLarryTeleport(TeleportingEventArgs ev)
+        {
+            if (ev.Position.y > -1050f && _handles.TryGetValue(ev.Player, out CoroutineHandle handle))
+            {
+                Timing.KillCoroutines(handle);
+                _handles.Remove(ev.Player);
+                ev.Player.ShowHint("You feel better now."); // starting to think we should make a Function for Remove AntiNuke....
+            }
+        }
         private void OnLanding(LandingEventArgs ev)
         {
-            if (ev.Player.Position.y > -1050f || ev.Player.CurrentRoom.Type != RoomType.HczNuke) return;
             if (Warhead.IsInProgress) return;
             if (ev.Player.IsDead) return;
+            if(ev.Player.CurrentRoom.Type == RoomType.HczNuke 
+               && ev.Player.Position.y > -1050f
+               && _handles.TryGetValue(ev.Player, out CoroutineHandle handle))
+            {
+                Log.Info("Conditions Met");
+                Timing.KillCoroutines(handle);
+                _handles.Remove(ev.Player);
+                if (ev.Player.IsEffectActive<Decontaminating>())
+                {
+                    ev.Player.DisableEffect(EffectType.Decontaminating);
+                }
+                ev.Player.ShowHint("You feel better now.");
+                return;
+            }
+            
             if(_handles.ContainsKey(ev.Player)) return;
-            AddEffect(ev.Player);
+            if (ev.Player.Position.y < -1050f && ev.Player.CurrentRoom.Type == RoomType.HczNuke)
+                AddEffect(ev.Player);
+
         }
 
         private IEnumerator<float> AntiNuke(Exiled.API.Features.Player player)
