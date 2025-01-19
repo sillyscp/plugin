@@ -9,6 +9,7 @@ using Interactables.Interobjects;
 using MEC;
 using PlayerRoles;
 using SillySCP.API.Interfaces;
+using UnityEngine;
 
 namespace SillySCP.Handlers
 {
@@ -60,7 +61,7 @@ namespace SillySCP.Handlers
             {
                 if(player.Position.y > -1050f) continue;
                 if(_handles.ContainsKey(player)) continue;
-                AddEffect(player);
+                TryAddEffect(player);
             }
         }
 
@@ -85,48 +86,48 @@ namespace SillySCP.Handlers
                 else
                 {
                     if(_handles.ContainsKey(player)) continue;
-                    AddEffect(player);
+                    TryAddEffect(player);
                 }
             }
         }
 
-        private void AddEffect(Exiled.API.Features.Player player)
+        private void TryAddEffect(Exiled.API.Features.Player player)
         {
+            if (player.CurrentRoom.Type != RoomType.HczNuke) return;
+            if (player.Position.y > -1050f) return;
             player.ShowHint("You feel a sharp pain...");
             _handles.Add(player, Timing.RunCoroutine(AntiNuke(player)));
         }
 
+        private void TryRemoveEffect(Exiled.API.Features.Player player, bool hint = true, Vector3? position = null)
+        {
+            if ((position?.y ?? player.Position.y) < -1050f && player.CurrentRoom.Type == RoomType.HczNuke) return;
+            if (!_handles.TryGetValue(player, out CoroutineHandle value)) return;
+            Timing.KillCoroutines(value);
+            _handles.Remove(player);
+            if (player.IsEffectActive<Decontaminating>())
+            {
+                player.DisableEffect(EffectType.Decontaminating);
+            }
+            if(hint) player.ShowHint("You feel better now.");
+        }
+
         private void OnLarryTeleport(TeleportingEventArgs ev)
         {
-            if (ev.Position.y > -1050f && _handles.TryGetValue(ev.Player, out CoroutineHandle handle))
-            {
-                Timing.KillCoroutines(handle);
-                _handles.Remove(ev.Player);
-                ev.Player.ShowHint("You feel better now."); // starting to think we should make a Function for Remove AntiNuke....
-            }
+            TryRemoveEffect(ev.Player, position:ev.Position);
         }
         private void OnLanding(LandingEventArgs ev)
         {
             if (Warhead.IsInProgress) return;
             if (ev.Player.IsDead) return;
-            if(ev.Player.CurrentRoom.Type == RoomType.HczNuke 
-               && ev.Player.Position.y > -1050f
-               && _handles.TryGetValue(ev.Player, out CoroutineHandle handle))
+            if(_handles.ContainsKey(ev.Player))
             {
-                Timing.KillCoroutines(handle);
-                _handles.Remove(ev.Player);
-                if (ev.Player.IsEffectActive<Decontaminating>())
-                {
-                    ev.Player.DisableEffect(EffectType.Decontaminating);
-                }
-                ev.Player.ShowHint("You feel better now.");
-                return;
+                TryRemoveEffect(ev.Player);
             }
-            
-            if(_handles.ContainsKey(ev.Player)) return;
-            if (ev.Player.Position.y < -1050f && ev.Player.CurrentRoom.Type == RoomType.HczNuke)
-                AddEffect(ev.Player);
-
+            else
+            {
+                TryAddEffect(ev.Player);
+            }
         }
 
         private IEnumerator<float> AntiNuke(Exiled.API.Features.Player player)
@@ -146,7 +147,7 @@ namespace SillySCP.Handlers
             }
             else
             {
-                _handles.Remove(player);
+                TryRemoveEffect(player);
             }
         }
     }
