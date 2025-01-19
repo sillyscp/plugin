@@ -95,13 +95,8 @@ namespace SillySCP.Handlers
 
         private void OnLanding(LandingEventArgs ev)
         {
-            Log.Info("OnLanding");
             if (Warhead.IsInProgress) return;
             if (ev.Player.IsDead) return;
-           
-            Log.Info(_handles.TryGetValue(ev.Player, out CoroutineHandle _handle));
-            Log.Info(ev.Player.Position);
-            Log.Info(ev.Player.CurrentRoom.Type);
             if(ev.Player.CurrentRoom.Type == RoomType.HczNuke 
                && ev.Player.Position.y > -1050f
                && _handles.TryGetValue(ev.Player, out CoroutineHandle handle))
