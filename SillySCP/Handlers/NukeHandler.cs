@@ -106,11 +106,27 @@ namespace SillySCP.Handlers
         }
         private void OnLanding(LandingEventArgs ev)
         {
-            if (ev.Player.Position.y > -1050f || ev.Player.CurrentRoom.Type != RoomType.HczNuke) return;
             if (Warhead.IsInProgress) return;
             if (ev.Player.IsDead) return;
+            if(ev.Player.CurrentRoom.Type == RoomType.HczNuke 
+               && ev.Player.Position.y > -1050f
+               && _handles.TryGetValue(ev.Player, out CoroutineHandle handle))
+            {
+                Log.Info("Conditions Met");
+                Timing.KillCoroutines(handle);
+                _handles.Remove(ev.Player);
+                if (ev.Player.IsEffectActive<Decontaminating>())
+                {
+                    ev.Player.DisableEffect(EffectType.Decontaminating);
+                }
+                ev.Player.ShowHint("You feel better now.");
+                return;
+            }
+            
             if(_handles.ContainsKey(ev.Player)) return;
-            AddEffect(ev.Player);
+            if (ev.Player.Position.y < -1050f && ev.Player.CurrentRoom.Type == RoomType.HczNuke)
+                AddEffect(ev.Player);
+
         }
 
         private IEnumerator<float> AntiNuke(Exiled.API.Features.Player player)
