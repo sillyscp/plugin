@@ -112,7 +112,6 @@ namespace SillySCP.Handlers
                && ev.Player.Position.y > -1050f
                && _handles.TryGetValue(ev.Player, out CoroutineHandle handle))
             {
-                Log.Info("Conditions Met");
                 Timing.KillCoroutines(handle);
                 _handles.Remove(ev.Player);
                 if (ev.Player.IsEffectActive<Decontaminating>())
