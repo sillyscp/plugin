@@ -22,6 +22,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Warhead.Starting += OnWarheadStarting;
             Exiled.Events.Handlers.Warhead.Stopping += OnWarheadStopping;
             Exiled.Events.Handlers.Scp106.Teleporting += OnLarryTeleport;
+            Exiled.Events.Handlers.Map.AnnouncingScpTermination += OnAnnouncingScpTermination;
             
             _handles = new();
         }
@@ -33,6 +34,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Warhead.Starting -= OnWarheadStarting;
             Exiled.Events.Handlers.Warhead.Stopping -= OnWarheadStopping;
             Exiled.Events.Handlers.Scp106.Teleporting -= OnLarryTeleport;
+            Exiled.Events.Handlers.Map.AnnouncingScpTermination -= OnAnnouncingScpTermination;
             foreach (CoroutineHandle handle in _handles.Values)
             {
                 Timing.KillCoroutines(handle);
@@ -42,6 +44,15 @@ namespace SillySCP.Handlers
         
         private Dictionary<Exiled.API.Features.Player, CoroutineHandle> _handles;
 
+        private void OnAnnouncingScpTermination(AnnouncingScpTerminationEventArgs ev)
+        {
+            if (_handles.ContainsKey(ev.Player) && ev.TerminationCause == "LOST IN DECONTAMINATION SEQUENCE")
+            {
+                ev.IsAllowed = false;
+                // yes i know its not pretty but this is the fastest way i could figure out, anything else uses LINQ which i hear is incredibly slow
+                Cassie.MessageTranslated($"SCP {ev.Player.Role.Name.Substring(4).Insert(1," ").Insert(3," ")} lost in Alpha Warhead Decontamination Sequence.",$"{ev.Player.Role.Name} lost in Alpha Warhead Decontamination Sequence.");
+            }
+        }
         private void OnWarheadStarting(StartingEventArgs ev)
         {
             foreach (KeyValuePair<Exiled.API.Features.Player,CoroutineHandle> keyValuePair in _handles)
