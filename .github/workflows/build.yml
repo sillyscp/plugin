@@ -1,11 +1,11 @@
-﻿name: "Build project"
+name: "Build project"
 description: "Test if the project builds, if not then fail the build"
 
-on: [pull_request]
+on: [pull_request, workflow_dispatch] 
 
 jobs:
   build:
-    runs-on: windows-2019
+    runs-on: windows-2025
     steps:
       - uses: actions/checkout@v4
       - name: Setup NuGet
@@ -14,5 +14,16 @@ jobs:
         uses: microsoft/setup-msbuild@v1.1
       - name: Restore Packages
         run: nuget restore SillySCP.sln
+      - name: Make EXILED_REFERENCES Directory
+        run: mkdir EXILED_REFERENCES
+      - name: Set Environment Variable
+        run: echo "EXILED_REFERENCES=${{ github.workspace }}\\EXILED_REFERENCES" >> $Env:GITHUB_ENV
+        shell: pwsh
+      - name: Download References
+        run: curl -O https://exmod-team.github.io/SL-References/Dev.zip
+        shell: pwsh
+      - name: Extract References
+        run: Expand-Archive -Path Dev.zip -DestinationPath $Env:EXILED_REFERENCES
+        shell: pwsh
       - name: Build solution
         run: msbuild SillySCP.sln -t:rebuild -property:Configuration=Debug
