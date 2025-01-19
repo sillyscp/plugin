@@ -6,6 +6,7 @@ using Exiled.Events.EventArgs.Player;
 using Exiled.Events.EventArgs.Warhead;
 using Interactables.Interobjects;
 using MEC;
+using PlayerRoles;
 using SillySCP.API.Interfaces;
 
 namespace SillySCP.Handlers
@@ -104,14 +105,14 @@ namespace SillySCP.Handlers
 
         private IEnumerator<float> AntiNuke(Exiled.API.Features.Player player)
         {
+            if (player.Role.Type == RoleTypeId.Scp079)
+                yield break;
             yield return Timing.WaitForSeconds(60*3-10);
 
             player.ShowHint("The pain is getting worse...");
             yield return Timing.WaitForSeconds(10);
 
             if (player.CurrentRoom.Type == RoomType.HczNuke && player.Position.y < -1050)
-                // I think its extreemly important to keep a final check.
-                // if all else fails you wont lose a game to zero fault of your own.
             {
                 player.EnableEffect(EffectType.Decontaminating, 1, 120);
                 player.ShowHint("The pain starts to really hurt...");
