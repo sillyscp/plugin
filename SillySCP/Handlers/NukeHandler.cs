@@ -50,7 +50,7 @@ namespace SillySCP.Handlers
             {
                 ev.IsAllowed = false;
                 // yes i know its not pretty but this is the fastest way i could figure out, anything else uses LINQ which i hear is incredibly slow
-                Cassie.MessageTranslated($"SCP {ev.Player.Role.Name.Substring(4).Insert(1," ").Insert(3," ")} lost in Alpha Warhead Decontamination Sequence.",$"{ev.Player.Role.Name} lost in Alpha Warhead Decontamination Sequence.");
+                Cassie.MessageTranslated($"SCP {ev.Player.Role.Name.Substring(4).Insert(1," ").Insert(3," ")} lost in Alpha Warhead Decontamination.",$"{ev.Player.Role.Name} lost in Alpha Warhead Decontamination.");
             }
         }
         private void OnWarheadStarting(StartingEventArgs ev)
