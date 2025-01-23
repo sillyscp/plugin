@@ -1,5 +1,8 @@
-﻿using Exiled.API.Extensions;
+﻿using Exiled.API.Enums;
+using Exiled.API.Extensions;
+using Exiled.API.Features;
 using Exiled.Events.EventArgs.Player;
+using Exiled.Events.EventArgs.Server;
 using PlayerRoles;
 using PlayerRoles.RoleAssign;
 using SillySCP.API.Interfaces;
@@ -20,25 +23,19 @@ namespace SillySCP.Handlers
 
         private void OnPlayerSpawned(SpawnedEventArgs ev)
         {
-            List<RoleTypeId> scps = Exiled.API.Features.Player.List.Where(p => p.IsScp && p.Role.Type != RoleTypeId.Scp0492).Select(p => p.Role.Type).ToList();
-            if (scps.Count is 1 or 2 &&
-                ev.Player.Role.Type == RoleTypeId.Scp079)
-            {
-                scps.Remove(RoleTypeId.Scp079);
-                PlayerRoleBase[] spawnableScps = ScpSpawner.SpawnableScps.Where(s => s.RoleTypeId != RoleTypeId.Scp079 && s.RoleTypeId != scps.FirstOrDefault()).ToArray();
-                ev.Player.Role.Set(RoleTypeId.Spectator);
-                ev.Player.Role.Set(ev.OldRole.Team == Team.SCPs ? ev.OldRole.Type : spawnableScps.GetRandomValue().RoleTypeId);
-                ev.Player.Broadcast(new("SCP-079 cannot at 1/2 scps."));
-            }
+            if (ev.Reason == SpawnReason.ForceClass || ev.Player.Role.Type != RoleTypeId.Scp079 || ScpSpawner.EnqueuedScps.Count != 0) 
+                return;
 
-            if (scps.Count is 1 or 2 && scps.Count(s => s == scps.FirstOrDefault()) == 2)
-            {
-                foreach (Exiled.API.Features.Player player in Exiled.API.Features.Player.List.Where(p => p.IsScp))
-                {
-                    player.Role.Set(RoleTypeId.Spectator);
-                    player.Role.Set(ScpSpawner.SpawnableScps.Where(s => s.RoleTypeId != RoleTypeId.Scp079 && s.RoleTypeId != scps.FirstOrDefault()).GetRandomValue().RoleTypeId);
-                }
-            }
+            List<Exiled.API.Features.Player> scps = Exiled.API.Features.Player.List.Where(p => p.IsScp).ToList();
+            if (scps.Count > 2) 
+                return;
+
+            List<RoleTypeId> spawnableScps = ScpSpawner.SpawnableScps
+                .Where(r => r.RoleTypeId != RoleTypeId.Scp079 && !scps.Any(p => p.Role.Type == r.RoleTypeId))
+                .Select(r => r.RoleTypeId)
+                .ToList();
+
+            ev.Player.Role.Set(spawnableScps.GetRandomValue());
         }
     }
 }
