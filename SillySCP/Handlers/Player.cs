@@ -143,6 +143,8 @@ namespace SillySCP.Handlers
 
         private void OnSpawned(SpawnedEventArgs ev)
         {
+            if (ev.Player.Role.Type == RoleTypeId.ClassD && ev.SpawnFlags.HasFlag(RoleSpawnFlags.AssignInventory))
+                ev.Player.AddItem(ItemType.Coin);
             if (ev.Player.Role == RoleTypeId.Tutorial && ev.Player.RemoteAdminAccess)
             {
                 ev.Player.IsGodModeEnabled = true;
