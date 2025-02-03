@@ -9,14 +9,12 @@ namespace SillySCP.API.Features
 {
     public static class VolunteerSystem
     {
-        public static bool ReadyVolunteers;
+        public static bool ReadyVolunteers => Round.ElapsedTime.TotalSeconds < Plugin.Instance.Config.VolunteerTime;
         public static List<Volunteers> Volunteers = new();
 
         public static IEnumerator<float> DisableVolunteers()
         {
-            ReadyVolunteers = true;
             yield return Timing.WaitForSeconds(120);
-            ReadyVolunteers = false;
             List<Player> scps = Player.List.Where(p => p.IsScp).ToList();
             if(scps.Count == 1 && scps.First().Role.Type == RoleTypeId.Scp079 && !ReadyVolunteers)
                 Scp079Recontainment.Recontain();
