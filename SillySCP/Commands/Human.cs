@@ -26,6 +26,7 @@ namespace SillySCP.Commands
             if (!VolunteerSystem.ReadyVolunteers)
             {
                 response = "You can not change into a human after the volunteer period is over!";
+                return false;
             }
             
             Player.TryGet(sender, out Player player);
