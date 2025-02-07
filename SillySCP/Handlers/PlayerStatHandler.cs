@@ -1,7 +1,7 @@
 ﻿using Exiled.API.Enums;
+using Exiled.API.Features;
 using Exiled.Events.EventArgs.Player;
 using Exiled.Events.EventArgs.Server;
-using MEC;
 using PlayerRoles;
 using SillySCP.API.Extensions;
 using SillySCP.API.Features;
@@ -37,8 +37,10 @@ namespace SillySCP.Handlers
 
         private void OnHurt(HurtEventArgs ev)
         {
+            if (ev.Attacker == null) return;
             if (ev.Attacker.IsScp) return;
             PlayerStat playerStat = ev.Attacker.FindOrCreatePlayerStat();
+            if(playerStat.Damage == null) playerStat.Damage = 0;
             playerStat.Damage += ev.Amount;
         }
 
@@ -108,13 +110,13 @@ namespace SillySCP.Handlers
             Exiled.API.Features.Server.FriendlyFire = true;
 
             string normalMvpMessage = highestKiller != null
-                ? $"Highest kills as a Human was {highestKiller.Player.Nickname} with {highestKiller.Kills} doing {highestKiller.Damage}"
+                ? $"Highest kills as a human was {highestKiller.Player.Nickname} with {highestKiller.Kills}"
                 : null;
             string scpMvpMessage = scpHighestKiller != null
                 ? $"Highest kills as an SCP was {scpHighestKiller.Player.Nickname} with {scpHighestKiller.ScpKills}"
                 : null;
             string damageMvpMessage = highestDamage != null
-                ? $"Highest damage was {highestDamage.Player.Nickname} with {highestDamage.Damage} ({highestDamage.Kills} kills)"
+                ? $"Highest damage was {highestDamage.Player.Nickname} with {Convert.ToInt32(highestDamage.Damage)}"
                 : null;
             
             string message = "";
