@@ -20,6 +20,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Server.RespawningTeam += OnRespawn;
             Exiled.Events.Handlers.Server.RoundEnded += OnRoundEnded;
             Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
+            Exiled.Events.Handlers.Player.Hurt += OnHurt;
         }
 
         public void Unregister()
@@ -31,6 +32,14 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Server.RespawningTeam -= OnRespawn;
             Exiled.Events.Handlers.Server.RoundEnded -= OnRoundEnded;
             Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
+            Exiled.Events.Handlers.Player.Hurt -= OnHurt;
+        }
+
+        private void OnHurt(HurtEventArgs ev)
+        {
+            if (ev.Attacker.IsScp) return;
+            PlayerStat playerStat = ev.Attacker.FindOrCreatePlayerStat();
+            playerStat.Damage += ev.Amount;
         }
 
         private void OnChangingSpectatedPlayer(ChangingSpectatedPlayerEventArgs ev)
@@ -88,23 +97,33 @@ namespace SillySCP.Handlers
 
         private void OnRoundEnded(RoundEndedEventArgs _)
         {
-            var highestKills = Plugin
+            PlayerStat highestKiller = Plugin
                 .Instance.PlayerStats.Where(p => p.Kills > 0).OrderByDescending(p => p.Kills)
-                .ToList();
-            var scpHighestKills = Plugin
+                .FirstOrDefault();
+            PlayerStat scpHighestKiller = Plugin
                 .Instance.PlayerStats.Where(p => p.ScpKills > 0).OrderByDescending(p => p.ScpKills)
-                .ToList();
-            var highestKiller = highestKills.FirstOrDefault();
-            var scpHighestKiller = scpHighestKills.FirstOrDefault();
+                .FirstOrDefault();
+            PlayerStat highestDamage = Plugin.Instance.PlayerStats.OrderByDescending(p => p.Damage).FirstOrDefault();
+            
             Exiled.API.Features.Server.FriendlyFire = true;
 
-            var normalMvpMessage = highestKiller != null
-                ? $"Highest kills from a human for this round is {highestKiller.Player.Nickname} with {highestKiller.Kills}"
+            string normalMvpMessage = highestKiller != null
+                ? $"Highest kills as a Human was {highestKiller.Player.Nickname} with {highestKiller.Kills} doing {highestKiller.Damage}"
                 : null;
-            var scpMvpMessage = scpHighestKiller != null
-                ? $"Highest kills from an SCP for this round is {scpHighestKiller.Player.Nickname} with {scpHighestKiller.ScpKills}"
+            string scpMvpMessage = scpHighestKiller != null
+                ? $"Highest kills as an SCP was {scpHighestKiller.Player.Nickname} with {scpHighestKiller.ScpKills}"
                 : null;
-            var message = $"{normalMvpMessage}\n{scpMvpMessage}".Trim();
+            string damageMvpMessage = highestDamage != null
+                ? $"Highest damage was {highestDamage.Player.Nickname} with {highestDamage.Damage} ({highestDamage.Kills} kills)"
+                : null;
+            
+            string message = "";
+            
+            if(normalMvpMessage != null) message += normalMvpMessage + "\n";
+            if(scpMvpMessage != null) message += scpMvpMessage + "\n";
+            if(damageMvpMessage != null) message += damageMvpMessage;
+
+            message = message.Trim();
 
             Exiled.API.Features.Map.Broadcast(
                 10,
