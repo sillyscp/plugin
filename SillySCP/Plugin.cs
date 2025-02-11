@@ -9,7 +9,6 @@ using SillySCP.API.Features;
 using SillySCP.API.Interfaces;
 using SillySCP.API.Modules;
 using Player = Exiled.API.Features.Player;
-using Round = PluginAPI.Core.Round;
 
 namespace SillySCP
 {
@@ -57,7 +56,7 @@ namespace SillySCP
 
         public IEnumerator<float> HeartAttack()
         {
-            while (!Round.IsRoundEnded && Round.IsRoundStarted)
+            while (Round.InProgress)
             {
                 yield return Timing.WaitForSeconds(5);
                 var chance = UnityEngine.Random.Range(1, 1_000_000);

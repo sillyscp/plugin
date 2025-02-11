@@ -1,6 +1,4 @@
-﻿using Exiled.API.Extensions;
-using Exiled.API.Features.Core.UserSettings;
-using Exiled.Events.EventArgs.Player;
+﻿using Exiled.Events.EventArgs.Player;
 using SillySCP.API.Interfaces;
 using SillySCP.API.Modules;
 using UserSettings.ServerSpecific;

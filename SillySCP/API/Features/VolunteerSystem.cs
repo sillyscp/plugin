@@ -2,7 +2,6 @@
 using Exiled.API.Features;
 using MEC;
 using PlayerRoles;
-using PlayerRoles.PlayableScps.Scp079;
 using SillySCP.API.Modules;
 
 namespace SillySCP.API.Features
