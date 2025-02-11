@@ -4,6 +4,7 @@ using Exiled.API.Enums;
 using Exiled.API.Features;
 using Exiled.API.Features.Doors;
 using Exiled.Events.EventArgs.Map;
+using Exiled.Events.EventArgs.Player;
 using Exiled.Events.EventArgs.Server;
 using Interactables.Interobjects;
 using MEC;
@@ -19,12 +20,20 @@ public class AntiSurface : IRegisterable
     {
         Exiled.Events.Handlers.Map.ElevatorSequencesUpdated += OnElevatorSequencesUpdated;
         Exiled.Events.Handlers.Server.RespawnedTeam += OnRespawned;
+        Exiled.Events.Handlers.Player.Died += OnPlayerDied;
     }
 
     public void Unregister()
     {
         Exiled.Events.Handlers.Map.ElevatorSequencesUpdated -= OnElevatorSequencesUpdated;
         Exiled.Events.Handlers.Server.RespawnedTeam -= OnRespawned;
+        Exiled.Events.Handlers.Player.Died -= OnPlayerDied;
+    }
+
+    private void OnPlayerDied(DiedEventArgs ev)
+    {
+        if (Exiled.API.Features.Player.List.Count(p => p.IsAlive && !p.IsScp) > 3) return;
+        TryStartCoroutine();
     }
 
     private void OnElevatorSequencesUpdated(ElevatorSequencesUpdatedEventArgs ev)
