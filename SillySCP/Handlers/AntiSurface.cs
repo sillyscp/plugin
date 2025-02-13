@@ -66,7 +66,7 @@ public class AntiSurface : IRegisterable
 
     private IEnumerator<float> SurfaceChecker()
     {
-        yield return Timing.WaitForSeconds(120);
+        yield return Timing.WaitForSeconds(new int[] { 120, 150, 180, 210, 240, 270, 300 }[UnityEngine.Random.Range(0, 7)]);
         
         if (Exiled.API.Features.Player.List.Count(player => player.IsAlive && !player.IsScp) > 3) 
             yield break;
