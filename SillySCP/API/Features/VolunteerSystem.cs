@@ -34,6 +34,13 @@ namespace SillySCP.API.Features
             if (volunteerClone.Players.Count == 0) yield break;
             Player replacementPlayer = volunteerClone.Players.GetRandomValue();
             replacementPlayer.Role.Set(volunteerClone.Replacement);
+            if (volunteerClone.Replacement == RoleTypeId.Scp0492)
+            {
+                foreach (var player in Player.List)
+                {
+                    if (player.Role == RoleTypeId.Scp049) replacementPlayer.Teleport(player.Transform.position); // kinda bad but for now, but its fail state will not teleport them
+                }
+            }
             Map.Broadcast(10, volunteerClone.Replacement.GetFullName() + " has been replaced!",
                 Broadcast.BroadcastFlags.Normal, true);
 
