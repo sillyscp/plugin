@@ -38,17 +38,28 @@ namespace SillySCP.Commands
                 return false;
             }
             
+            
             if(arguments.Count != 1)
             {
                 response = "Usage: .volunteer <role>";
                 return false;
             }
 
-            RoleTypeId role;
+            RoleTypeId role = RoleTypeId.None;
 
-            if (!Enum.TryParse("Scp" + arguments.At(0), true, out role) && !Enum.TryParse(arguments.At(0), true, out role))
+            if (arguments.At(0) == "zombie")
+            {
+                role = RoleTypeId.Scp0492;
+            }
+            
+            if (role == RoleTypeId.None && !Enum.TryParse("Scp" + arguments.At(0), true, out role) && !Enum.TryParse(arguments.At(0), true, out role))
             {
                 response = "Error parsing the RoleTypeId.";
+                return false;
+            }
+            if (player.IsAlive && role == RoleTypeId.Scp0492)
+            {
+                response = "Alive Players cannot volunteer as a zombie";
                 return false;
             }
 
