@@ -26,7 +26,7 @@ namespace SillySCP.Commands
             VolunteerSystem.Volunteers ??= new();
             VolunteerSystem.Volunteers.Add(volunteer);
             Map.Broadcast(10,
-                $"{oldRole.GetFullName()} has left the game\nPlease run .volunteer {(oldRole == RoleTypeId.Scp0492 ? "0492" : oldRole.GetFullName().Split('-')[1])} to volunteer to be the SCP");
+                $"{oldRole.GetFullName()} has left the game\nPlease run .volunteer {(oldRole == RoleTypeId.Scp0492 ? "zombie" : oldRole.GetFullName().Split('-')[1])} to volunteer to be the SCP");
             Timing.RunCoroutine(VolunteerSystem.ChooseVolunteers(volunteer));
         }
         private Dictionary<string, RoleTypeId> VaildScps { get; set; } = new Dictionary<string, RoleTypeId>
