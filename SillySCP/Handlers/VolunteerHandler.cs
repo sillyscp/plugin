@@ -5,6 +5,7 @@ using MEC;
 using PlayerRoles;
 using SillySCP.API.Features;
 using SillySCP.API.Interfaces;
+using SillySCP.API.Modules;
 
 namespace SillySCP.Handlers
 {
@@ -75,10 +76,10 @@ namespace SillySCP.Handlers
                 if (scpNames.Count == 1)
                 {
                     if(Exiled.API.Features.Server.PlayerCount >= 8)
-                        player.ShowHint("You are the only SCP on your team");
+                        player.ShowString("<size=10em>You are the only SCP on your team</size>", 5);
                     return;
                 }
-                player.ShowHint($"You currently have {string.Join(", ", scpNamesCopy)} and {scpNames.Last()} as your team mates", 10);   
+                player.ShowString($"<size=10em>You currently have {string.Join(", ", scpNamesCopy)} and {scpNames.Last()} as your team mates</size>", 15);   
             }
         }
     }

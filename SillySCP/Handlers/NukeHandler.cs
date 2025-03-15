@@ -9,6 +9,7 @@ using Interactables.Interobjects;
 using MEC;
 using PlayerRoles;
 using SillySCP.API.Interfaces;
+using SillySCP.API.Modules;
 using UnityEngine;
 
 namespace SillySCP.Handlers
@@ -92,7 +93,7 @@ namespace SillySCP.Handlers
                     {
                         player.DisableEffect(EffectType.Decontaminating);
                     }
-                    player.ShowHint("You feel better now.");
+                    player.ShowString("You feel better now.");
                 }
                 else
                 {
@@ -106,7 +107,7 @@ namespace SillySCP.Handlers
         {
             if (player.CurrentRoom.Type != RoomType.HczNuke) return;
             if (player.Position.y > -1050f) return;
-            player.ShowHint("You feel a sharp pain...");
+            player.ShowString("You feel a sharp pain...");
             _handles.Add(player, Timing.RunCoroutine(AntiNuke(player)));
         }
 
@@ -120,7 +121,7 @@ namespace SillySCP.Handlers
             {
                 player.DisableEffect(EffectType.Decontaminating);
             }
-            if(hint) player.ShowHint("You feel better now.");
+            if(hint) player.ShowString("You feel better now.");
         }
 
         private void OnLarryTeleport(TeleportingEventArgs ev)
@@ -147,13 +148,13 @@ namespace SillySCP.Handlers
                 yield break;
             yield return Timing.WaitForSeconds(60*3-10);
 
-            player.ShowHint("The pain is getting worse...");
+            player.ShowString("The pain is getting worse...");
             yield return Timing.WaitForSeconds(10);
 
             if (player.CurrentRoom.Type == RoomType.HczNuke && player.Position.y < -1050)
             {
                 player.EnableEffect(EffectType.Decontaminating, 1, 120);
-                player.ShowHint("The pain starts to really hurt...");
+                player.ShowString("The pain starts to really hurt...");
 
             }
             else
