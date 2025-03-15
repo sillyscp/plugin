@@ -11,6 +11,51 @@ namespace SillySCP.API.Features
         public static bool ReadyVolunteers => Round.ElapsedTime.TotalSeconds < Plugin.Instance.Config.VolunteerTime;
         public static List<Volunteers> Volunteers = new();
 
+        public static Dictionary<string, RoleTypeId> VaildScps { get; set; } = new Dictionary<string, RoleTypeId>
+        {
+            { "173", RoleTypeId.Scp173 },
+            { "peanut", RoleTypeId.Scp173 },
+            { "939", RoleTypeId.Scp939 },
+            { "079", RoleTypeId.Scp079 },
+            { "79", RoleTypeId.Scp079 },
+            { "computer", RoleTypeId.Scp079 },
+            { "106", RoleTypeId.Scp106 },
+            { "larry", RoleTypeId.Scp106 },
+            { "096", RoleTypeId.Scp096 },
+            { "96", RoleTypeId.Scp096 },
+            { "shyguy", RoleTypeId.Scp096 },
+            { "049", RoleTypeId.Scp049 },
+            { "49", RoleTypeId.Scp049 },
+            { "doctor", RoleTypeId.Scp049 },
+            { "0492", RoleTypeId.Scp0492 },
+            { "049-2", RoleTypeId.Scp0492 },
+            { "492", RoleTypeId.Scp0492 },
+            { "zombie", RoleTypeId.Scp0492 },
+        };
+        
+        public static void NewVolunteer(RoleTypeId role)
+        {
+            Volunteers volunteer = new ()
+            {
+                Replacement = role,
+                Players = new()
+            };
+            Volunteers ??= new();
+            Volunteers.Add(volunteer);
+            Timing.RunCoroutine(ChooseVolunteers(volunteer));
+            if (role == RoleTypeId.Scp0492)
+            {
+                foreach (var player in Player.List.Where(player => !player.IsAlive))
+                {
+                    player.Broadcast(10,
+                        $"{role.GetFullName()} has left the game\nPlease run .volunteer {role.GetFullName().Substring(4)} to volunteer to be the SCP");
+                    
+                }
+                return;
+            }
+            Map.Broadcast(10,
+                $"{role.GetFullName()} has left the game\nPlease run .volunteer {role.GetFullName().Substring(4)} to volunteer to be the SCP");
+        }
         public static IEnumerator<float> DisableVolunteers()
         {
             yield return Timing.WaitForSeconds(120);

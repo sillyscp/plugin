@@ -36,20 +36,6 @@ namespace SillySCP.Handlers
             }
         }
         
-        private void Volunteer(Exiled.API.Features.Player player, RoleTypeId oldRole)
-        {
-            Volunteers volunteer = new ()
-            {
-                Replacement = oldRole,
-                Players = new()
-            };
-            VolunteerSystem.Volunteers ??= new();
-            VolunteerSystem.Volunteers.Add(volunteer);
-            if (player.IsScp) return;
-            Map.Broadcast(10,
-                $"{oldRole.GetFullName()} has left the game\nPlease run .volunteer {oldRole.GetFullName().Split('-')[1]} to volunteer to be the SCP");
-            Timing.RunCoroutine(VolunteerSystem.ChooseVolunteers(volunteer));
-        }
 
         private void OnDead(DiedEventArgs ev)
         {
@@ -58,7 +44,7 @@ namespace SillySCP.Handlers
             if (ev.TargetOldRole == RoleTypeId.Scp0492) return;
             if (ev.DamageHandler.IsSuicide || ev.DamageHandler.Type is DamageType.Unknown or DamageType.Custom or DamageType.Tesla or DamageType.Crushed || ev.Attacker == ev.Player)
             {
-                Volunteer(ev.Player, ev.TargetOldRole);
+                VolunteerSystem.NewVolunteer(ev.TargetOldRole);
             }
         }
 

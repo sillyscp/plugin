@@ -1,4 +1,5 @@
 ﻿using CommandSystem;
+using Exiled.API.Extensions;
 using PlayerRoles;
 using SillySCP.API.Features;
 using Player = Exiled.API.Features.Player;
@@ -45,14 +46,9 @@ namespace SillySCP.Commands
                 return false;
             }
 
-            RoleTypeId role = RoleTypeId.None;
-
-            if (arguments.At(0) == "zombie")
-            {
-                role = RoleTypeId.Scp0492;
-            }
+            RoleTypeId role;
             
-            if (role == RoleTypeId.None && !Enum.TryParse("Scp" + arguments.At(0), true, out role) && !Enum.TryParse(arguments.At(0), true, out role))
+            if (!VolunteerSystem.VaildScps.TryGetValue(arguments.At(0), out role) && !Enum.TryParse(arguments.At(0), true, out role))
             {
                 response = "Error parsing the RoleTypeId.";
                 return false;
@@ -81,7 +77,7 @@ namespace SillySCP.Commands
             
             volunteer.Players.Add(player);
             
-            player.Broadcast(5, "You have volunteered to become SCP-" + arguments.First() + "!", Broadcast.BroadcastFlags.Normal, true);
+            player.Broadcast(5, "You have volunteered to become " + role.GetFullName() + "!", Broadcast.BroadcastFlags.Normal, true);
             
             response = "Done!";
             return true;
