@@ -44,7 +44,7 @@ namespace SillySCP.API.Features
             Volunteers.Add(volunteer);
             Timing.RunCoroutine(ChooseVolunteers(volunteer));
             
-             var annoucement =                                      // if we add support for other roles this ↓ will need to be changed
+             string annoucement =                                      // if we add support for other roles this ↓ will need to be changed
                 $"{role.GetFullName()} has left the game\nPlease run .volunteer {role.GetFullName().Substring(4)} to volunteer to be the SCP";
             
             if (role == RoleTypeId.Scp0492)
