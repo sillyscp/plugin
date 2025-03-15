@@ -49,7 +49,7 @@ namespace SillySCP.API.Features
             
             if (role == RoleTypeId.Scp0492)
             {
-                foreach (var player in Player.List)
+                foreach (Player player in Player.List)
                 {
                     if (player.IsAlive) continue;
                     
