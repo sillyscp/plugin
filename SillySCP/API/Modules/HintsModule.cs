@@ -41,9 +41,7 @@ namespace SillySCP.API.Modules
         {
             float pos = position ?? Ruetility.FunctionalToScaledPosition(0);
             
-            TimedElemRef<SetElement> elemRef = new();
-            
-            DisplayCore.Get(hub).SetElemTemp(text, pos, TimeSpan.FromSeconds(duration), elemRef);
+            DisplayCore.Get(hub).SetElemTemp(text, pos, TimeSpan.FromSeconds(duration), new ());
         }
 
         public static void ShowString(this Player player, string text, float duration = 3f, float? position = null)
