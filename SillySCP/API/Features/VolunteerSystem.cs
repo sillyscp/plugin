@@ -11,7 +11,7 @@ namespace SillySCP.API.Features
         public static bool ReadyVolunteers => Round.ElapsedTime.TotalSeconds < Plugin.Instance.Config.VolunteerTime;
         public static List<Volunteers> Volunteers = new();
 
-        public static Dictionary<string, RoleTypeId> VaildScps { get; set; } = new Dictionary<string, RoleTypeId>
+        public static Dictionary<string, RoleTypeId> VaildScps { get; set; } = new ()
         {
             { "173", RoleTypeId.Scp173 },
             { "peanut", RoleTypeId.Scp173 },
