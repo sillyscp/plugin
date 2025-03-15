@@ -10,6 +10,9 @@ namespace SillySCP.Handlers
 {
     public class PlayerStatHandler : IRegisterable
     {
+        private Exiled.API.Features.Player _firstPlayerEscaped = null;
+        private TimeSpan _escapeTime = TimeSpan.Zero;
+        
         public void Init()
         {
             Exiled.Events.Handlers.Player.ChangingSpectatedPlayer += OnChangingSpectatedPlayer;
@@ -20,6 +23,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Server.RoundEnded += OnRoundEnded;
             Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
             Exiled.Events.Handlers.Player.Hurt += OnHurt;
+            Exiled.Events.Handlers.Player.Escaped += OnEscape;
         }
 
         public void Unregister()
@@ -32,6 +36,16 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Server.RoundEnded -= OnRoundEnded;
             Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
             Exiled.Events.Handlers.Player.Hurt -= OnHurt;
+            Exiled.Events.Handlers.Player.Escaped -= OnEscape;
+        }
+
+        private void OnEscape(EscapedEventArgs ev)
+        {
+            if (_firstPlayerEscaped == null)
+            {
+                _firstPlayerEscaped = ev.Player;
+                _escapeTime = TimeSpan.FromSeconds(ev.EscapeTime);
+            }
         }
 
         private void OnHurt(HurtEventArgs ev)
@@ -117,12 +131,16 @@ namespace SillySCP.Handlers
             string damageMvpMessage = highestDamage != null
                 ? $"Highest damage was {highestDamage.Player.Nickname} with {Convert.ToInt32(highestDamage.Damage)}"
                 : null;
+            string firstEscapeMessage = _firstPlayerEscaped != null
+                ? $"First to escape was {_firstPlayerEscaped.Nickname} in {_escapeTime.Minutes.ToString("D1")}m {_escapeTime.Seconds.ToString("D2")}s"
+                : null;
             
             string message = "";
             
             if(normalMvpMessage != null) message += normalMvpMessage + "\n";
             if(scpMvpMessage != null) message += scpMvpMessage + "\n";
-            if(damageMvpMessage != null) message += damageMvpMessage;
+            if(damageMvpMessage != null) message += damageMvpMessage + "\n";
+            if(firstEscapeMessage != null) message += firstEscapeMessage;
 
             message = message.Trim();
 
@@ -130,6 +148,8 @@ namespace SillySCP.Handlers
                 10,
                 message
             );
+
+            _firstPlayerEscaped = null;
         }
 
         private void OnRoundStarted()
