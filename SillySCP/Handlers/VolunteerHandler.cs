@@ -56,7 +56,7 @@ namespace SillySCP.Handlers
             if (!VolunteerSystem.ReadyVolunteers) return;
             if (!ev.TargetOldRole.IsScp()) return;
             if (ev.TargetOldRole == RoleTypeId.Scp0492) return;
-            if (ev.DamageHandler.IsSuicide || ev.DamageHandler.Type is DamageType.Unknown or DamageType.Custom || ev.Attacker == ev.Player)
+            if (ev.DamageHandler.IsSuicide || ev.DamageHandler.Type is DamageType.Unknown or DamageType.Custom or DamageType.Tesla or DamageType.Crushed || ev.Attacker == ev.Player)
             {
                 Volunteer(ev.Player, ev.TargetOldRole);
             }
