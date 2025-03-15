@@ -45,7 +45,7 @@ namespace SillySCP.API.Features
             Timing.RunCoroutine(ChooseVolunteers(volunteer));
             if (role == RoleTypeId.Scp0492)
             {
-                foreach (var player in Player.List.Where(player => !player.IsAlive))
+                foreach (Player player in Player.List.Where(player => !player.IsAlive))
                 {
                     player.Broadcast(10,
                         $"{role.GetFullName()} has left the game\nPlease run .volunteer {role.GetFullName().Substring(4)} to volunteer to be the SCP");
