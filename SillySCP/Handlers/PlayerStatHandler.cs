@@ -10,16 +10,13 @@ namespace SillySCP.Handlers
 {
     public class PlayerStatHandler : IRegisterable
     {
-        private Exiled.API.Features.Player _firstPlayerEscaped = null;
+        private Exiled.API.Features.Player _firstPlayerEscaped;
         private TimeSpan _escapeTime = TimeSpan.Zero;
         
         public void Init()
         {
-            Exiled.Events.Handlers.Player.ChangingSpectatedPlayer += OnChangingSpectatedPlayer;
             Exiled.Events.Handlers.Player.Died += OnPlayerDead;
             Exiled.Events.Handlers.Player.Spawned += OnSpawned;
-            Exiled.Events.Handlers.Player.Left += OnPlayerLeave;
-            Exiled.Events.Handlers.Server.RespawningTeam += OnRespawn;
             Exiled.Events.Handlers.Server.RoundEnded += OnRoundEnded;
             Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
             Exiled.Events.Handlers.Player.Hurt += OnHurt;
@@ -28,11 +25,8 @@ namespace SillySCP.Handlers
 
         public void Unregister()
         {
-            Exiled.Events.Handlers.Player.ChangingSpectatedPlayer -= OnChangingSpectatedPlayer;
             Exiled.Events.Handlers.Player.Died -= OnPlayerDead;
             Exiled.Events.Handlers.Player.Spawned -= OnSpawned;
-            Exiled.Events.Handlers.Player.Left -= OnPlayerLeave;
-            Exiled.Events.Handlers.Server.RespawningTeam -= OnRespawn;
             Exiled.Events.Handlers.Server.RoundEnded -= OnRoundEnded;
             Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
             Exiled.Events.Handlers.Player.Hurt -= OnHurt;
@@ -57,14 +51,6 @@ namespace SillySCP.Handlers
             playerStat.Damage += ev.Amount;
         }
 
-        private void OnChangingSpectatedPlayer(ChangingSpectatedPlayerEventArgs ev)
-        {
-            if (ev.NewTarget == null)
-                return;
-            PlayerStat playerStats = ev.Player.FindOrCreatePlayerStat();
-            playerStats.Spectating = ev.NewTarget;
-        }
-
         private void OnPlayerDead(DiedEventArgs ev)
         {
             if (ev.DamageHandler.Type == DamageType.PocketDimension)
@@ -87,27 +73,7 @@ namespace SillySCP.Handlers
             {
                 if (ev.Player.Role == RoleTypeId.Scp106 && !ev.Player.DoNotTrack)
                     Plugin.Instance.Scp106 = ev.Player;
-                ev.Player.ShowHint("", int.MaxValue);
-                PlayerStat playerStats = ev.Player.FindPlayerStat();
-                if (playerStats != null) playerStats.Spectating = null;
             }
-        }
-
-        private void OnPlayerLeave(LeftEventArgs ev)
-        {
-            PlayerStat playerStats = ev.Player.FindPlayerStat();
-            if (playerStats != null) playerStats.Spectating = null;
-        }
-
-        private void OnRespawn(RespawningTeamEventArgs ev)
-        {
-            ev.Players.ForEach(p =>
-            {
-                p.ShowHint("", int.MaxValue);
-                PlayerStat playerStats = p.FindPlayerStat();
-                if (playerStats == null) return;
-                playerStats.Spectating = null;
-            });
         }
 
         private void OnRoundEnded(RoundEndedEventArgs _)

@@ -18,17 +18,6 @@ namespace SillySCP.API.Features
         public int? Kills { get; set; }
         public float? Damage { get; set; }
         
-        private Player _spectating;
-        public Player Spectating
-        {
-            get => _spectating;
-            set
-            {
-                _spectating = value;
-                SpectatingKillsDisplay.Update();
-            }
-        }
-        
         public int? ScpKills { get; set; }
         public Display SpectatingKillsDisplay { get; set; }
     }

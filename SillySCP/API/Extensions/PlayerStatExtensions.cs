@@ -1,5 +1,7 @@
 ﻿using Exiled.API.Features;
+using Exiled.API.Features.Roles;
 using SillySCP.API.Features;
+using Utils.NonAllocLINQ;
 
 namespace SillySCP.API.Extensions
 {
@@ -13,7 +15,6 @@ namespace SillySCP.API.Extensions
             {
                 Kills = player.DoNotTrack ? null : 0,
                 ScpKills = player.DoNotTrack ? null : 0,
-                Spectating = null
             };
             Plugin.Instance.PlayerStats.Add(playerStat);
             return playerStat;
@@ -44,9 +45,9 @@ namespace SillySCP.API.Extensions
             if (player.DoNotTrack) 
                 return;
 
-            foreach (PlayerStat playerStat in Plugin.Instance.PlayerStats)
+            foreach (Player target in Player.List)
             {
-                if(playerStat.Spectating == player)
+                if(target.Role is SpectatorRole spectatorRole && spectatorRole.SpectatedPlayer == player && Plugin.Instance.PlayerStats.TryGetFirst(pStat => pStat.Player == target, out PlayerStat playerStat))
                     playerStat.SpectatingKillsDisplay.Update();
             }
         }
