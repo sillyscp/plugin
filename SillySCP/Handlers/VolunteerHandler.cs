@@ -1,6 +1,5 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Extensions;
-using Exiled.API.Features;
 using Exiled.Events.EventArgs.Player;
 using MEC;
 using PlayerRoles;
@@ -64,7 +63,7 @@ namespace SillySCP.Handlers
             Timing.RunCoroutine(VolunteerSystem.DisableVolunteers());
         }
 
-        private void OnVolunteerPeriodEnd(object _, EventArgs __)
+        private void OnVolunteerPeriodEnd()
         {
             // only doing this to save some resources, don't come at me
             List<Exiled.API.Features.Player> scps = Exiled.API.Features.Player.List.Where(p => p.IsScp).ToList();

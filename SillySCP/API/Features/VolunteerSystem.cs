@@ -1,5 +1,6 @@
 ﻿using Exiled.API.Extensions;
 using Exiled.API.Features;
+using Exiled.Events.Features;
 using MEC;
 using PlayerRoles;
 using SillySCP.API.EventArgs;
@@ -12,10 +13,10 @@ namespace SillySCP.API.Features
         public static bool ReadyVolunteers => Round.ElapsedTime.TotalSeconds < Plugin.Instance.Config.VolunteerTime;
         public static List<Volunteers> Volunteers = new();
         
-        public static event EventHandler VolunteerPeriodEnd;
-        public static event EventHandler<VolunteerEventArgs> Volunteer;
-        public static event EventHandler<VolunteerCreatedEventArgs> VolunteerCreated;
-        public static event EventHandler<VolunteerChosenEventArgs> VolunteerChosen;
+        public static Event VolunteerPeriodEnd = new ();
+        public static Event<VolunteerEventArgs> Volunteer = new ();
+        public static Event<VolunteerCreatedEventArgs> VolunteerCreated = new ();
+        public static Event<VolunteerChosenEventArgs> VolunteerChosen = new ();
 
         public static Dictionary<string, RoleTypeId> VaildScps { get; set; } = new ()
         {
@@ -65,7 +66,7 @@ namespace SillySCP.API.Features
             }
             Map.Broadcast(10, annoucement);
             
-            VolunteerCreated?.Invoke(null, new (volunteer));
+            VolunteerCreated.InvokeSafely(new (volunteer));
         }
         public static IEnumerator<float> DisableVolunteers()
         {
@@ -73,7 +74,7 @@ namespace SillySCP.API.Features
             List<Player> scps = Player.List.Where(p => p.IsScp).ToList();
             if(scps.Count == 1 && scps.First().Role.Type == RoleTypeId.Scp079 && !ReadyVolunteers)
                 Scp079Recontainment.Recontain();
-            VolunteerPeriodEnd?.Invoke(null, null);
+            VolunteerPeriodEnd.InvokeSafely();
         }
 
         public static IEnumerator<float> ChooseVolunteers(Volunteers volunteer)
@@ -93,13 +94,13 @@ namespace SillySCP.API.Features
             replacementPlayer.Role.Set(volunteerClone.Replacement);
             Map.Broadcast(10, volunteerClone.Replacement.GetFullName() + " has been replaced!",
                 Broadcast.BroadcastFlags.Normal, true);
-            VolunteerChosen?.Invoke(null, new (replacementPlayer, volunteerClone));
+            VolunteerChosen.InvokeSafely(new (replacementPlayer, volunteerClone));
             yield return 0;
         }
         
         public static void RaiseVolunteerEvent(Player player, Volunteers volunteer)
         {
-            Volunteer?.Invoke(null, new (player, volunteer));
+            Volunteer.InvokeSafely(new (player, volunteer));
         }
     }
 }
