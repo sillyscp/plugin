@@ -33,7 +33,7 @@ namespace SillySCP.Commands
                 return false;
             }
 
-            if (player.IsScp)
+            if (player.IsScp && player.Role != RoleTypeId.Scp0492) // zombies should beable to volunteer for regular scp's 
             {
                 response = "You are already an SCP! If they get replaced, you can swap with the person if they wish!";
                 return false;

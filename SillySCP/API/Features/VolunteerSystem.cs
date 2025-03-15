@@ -43,18 +43,21 @@ namespace SillySCP.API.Features
             Volunteers ??= new();
             Volunteers.Add(volunteer);
             Timing.RunCoroutine(ChooseVolunteers(volunteer));
+            
+             string annoucement =                                      // if we add support for other roles this ↓ will need to be changed
+                $"{role.GetFullName()} has left the game\nPlease run .volunteer {role.GetFullName().Substring(4)} to volunteer to be the SCP";
+            
             if (role == RoleTypeId.Scp0492)
             {
-                foreach (Player player in Player.List.Where(player => !player.IsAlive))
+                foreach (Player player in Player.List)
                 {
-                    player.Broadcast(10,
-                        $"{role.GetFullName()} has left the game\nPlease run .volunteer {role.GetFullName().Substring(4)} to volunteer to be the SCP");
+                    if (player.IsAlive) continue;
                     
+                    player.Broadcast(10, annoucement);
                 }
                 return;
             }
-            Map.Broadcast(10,
-                $"{role.GetFullName()} has left the game\nPlease run .volunteer {role.GetFullName().Substring(4)} to volunteer to be the SCP");
+            Map.Broadcast(10, annoucement);
         }
         public static IEnumerator<float> DisableVolunteers()
         {
