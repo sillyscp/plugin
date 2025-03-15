@@ -2,6 +2,7 @@
 using Exiled.API.Features;
 using MEC;
 using PlayerRoles;
+using SillySCP.API.EventArgs;
 using SillySCP.API.Modules;
 
 namespace SillySCP.API.Features
@@ -10,6 +11,11 @@ namespace SillySCP.API.Features
     {
         public static bool ReadyVolunteers => Round.ElapsedTime.TotalSeconds < Plugin.Instance.Config.VolunteerTime;
         public static List<Volunteers> Volunteers = new();
+        
+        public static event EventHandler VolunteerPeriodEnd;
+        public static event EventHandler<VolunteerEventArgs> Volunteer;
+        public static event EventHandler<VolunteerCreatedEventArgs> VolunteerCreated;
+        public static event EventHandler<VolunteerChosenEventArgs> VolunteerChosen;
 
         public static Dictionary<string, RoleTypeId> VaildScps { get; set; } = new ()
         {
@@ -44,7 +50,7 @@ namespace SillySCP.API.Features
             Volunteers.Add(volunteer);
             Timing.RunCoroutine(ChooseVolunteers(volunteer));
             
-             string annoucement =                                      // if we add support for other roles this ↓ will need to be changed
+            string annoucement =                                      // if we add support for other roles this ↓ will need to be changed
                 $"{role.GetFullName()} has left the game\nPlease run .volunteer {role.GetFullName().Substring(4)} to volunteer to be the SCP";
             
             if (role == RoleTypeId.Scp0492)
@@ -58,6 +64,8 @@ namespace SillySCP.API.Features
                 return;
             }
             Map.Broadcast(10, annoucement);
+            
+            VolunteerCreated?.Invoke(null, new (volunteer));
         }
         public static IEnumerator<float> DisableVolunteers()
         {
@@ -65,6 +73,7 @@ namespace SillySCP.API.Features
             List<Player> scps = Player.List.Where(p => p.IsScp).ToList();
             if(scps.Count == 1 && scps.First().Role.Type == RoleTypeId.Scp079 && !ReadyVolunteers)
                 Scp079Recontainment.Recontain();
+            VolunteerPeriodEnd?.Invoke(null, null);
         }
 
         public static IEnumerator<float> ChooseVolunteers(Volunteers volunteer)
@@ -84,8 +93,13 @@ namespace SillySCP.API.Features
             replacementPlayer.Role.Set(volunteerClone.Replacement);
             Map.Broadcast(10, volunteerClone.Replacement.GetFullName() + " has been replaced!",
                 Broadcast.BroadcastFlags.Normal, true);
-
+            VolunteerChosen?.Invoke(null, new (replacementPlayer, volunteerClone));
             yield return 0;
+        }
+        
+        public static void RaiseVolunteerEvent(Player player, Volunteers volunteer)
+        {
+            Volunteer?.Invoke(null, new (player, volunteer));
         }
     }
 }

@@ -17,6 +17,8 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
             Exiled.Events.Handlers.Player.Died += OnDead;
             Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
+
+            VolunteerSystem.VolunteerPeriodEnd += OnVolunteerPeriodEnd;
         }
 
         public void Unregister()
@@ -60,6 +62,25 @@ namespace SillySCP.Handlers
         {
             VolunteerSystem.Volunteers = new();
             Timing.RunCoroutine(VolunteerSystem.DisableVolunteers());
+        }
+
+        private void OnVolunteerPeriodEnd(object _, EventArgs __)
+        {
+            // only doing this to save some resources, don't come at me
+            List<Exiled.API.Features.Player> scps = Exiled.API.Features.Player.List.Where(p => p.IsScp).ToList();
+            List<string> scpNames = scps.Select(scp => scp.Role.Name).ToList();
+            List<string> scpNamesCopy = new(scpNames);
+            scpNamesCopy.RemoveAt(scpNamesCopy.Count-1);
+            foreach (Exiled.API.Features.Player player in scps)
+            {
+                if (scpNames.Count == 1)
+                {
+                    if(Exiled.API.Features.Server.PlayerCount >= 8)
+                        player.ShowHint("You are the only SCP on your team");
+                    return;
+                }
+                player.ShowHint($"You currently have {string.Join(", ", scpNamesCopy)} and {scpNames.Last()} as your team mates", 10);   
+            }
         }
     }
 }

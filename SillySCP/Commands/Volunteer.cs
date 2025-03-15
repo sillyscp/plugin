@@ -79,6 +79,8 @@ namespace SillySCP.Commands
             
             player.Broadcast(5, "You have volunteered to become " + role.GetFullName() + "!", Broadcast.BroadcastFlags.Normal, true);
             
+            VolunteerSystem.RaiseVolunteerEvent(player, volunteer);
+            
             response = "Done!";
             return true;
         }
