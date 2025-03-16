@@ -20,24 +20,32 @@ namespace SillySCP.API.Features
 
         public static Dictionary<string, RoleTypeId> VaildScps { get; set; } = new ()
         {
-            { "173", RoleTypeId.Scp173 },
             { "peanut", RoleTypeId.Scp173 },
+            { "173", RoleTypeId.Scp173 },
+            
+            { "dog", RoleTypeId.Scp173 },
             { "939", RoleTypeId.Scp939 },
+            
+            { "computer", RoleTypeId.Scp079 },
+            { "pc", RoleTypeId.Scp079 },
             { "079", RoleTypeId.Scp079 },
             { "79", RoleTypeId.Scp079 },
-            { "computer", RoleTypeId.Scp079 },
-            { "106", RoleTypeId.Scp106 },
+            
             { "larry", RoleTypeId.Scp106 },
+            { "106", RoleTypeId.Scp106 },
+            
+            { "shyguy", RoleTypeId.Scp096 },
             { "096", RoleTypeId.Scp096 },
             { "96", RoleTypeId.Scp096 },
-            { "shyguy", RoleTypeId.Scp096 },
+            
+            { "doctor", RoleTypeId.Scp049 },
             { "049", RoleTypeId.Scp049 },
             { "49", RoleTypeId.Scp049 },
-            { "doctor", RoleTypeId.Scp049 },
+            
+            { "zombie", RoleTypeId.Scp0492 },
             { "0492", RoleTypeId.Scp0492 },
             { "049-2", RoleTypeId.Scp0492 },
             { "492", RoleTypeId.Scp0492 },
-            { "zombie", RoleTypeId.Scp0492 },
         };
         
         public static void NewVolunteer(RoleTypeId role)
