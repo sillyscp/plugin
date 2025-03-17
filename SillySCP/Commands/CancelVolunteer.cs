@@ -3,6 +3,7 @@ using Exiled.API.Extensions;
 using Exiled.API.Features;
 using PlayerRoles;
 using SillySCP.API.Features;
+using Utils.NonAllocLINQ;
 
 namespace SillySCP.Commands
 {
@@ -32,17 +33,21 @@ namespace SillySCP.Commands
                 return false;
             }
 
-            response = "Canceling " + role.GetFullName();
             if (VolunteerSystem.Volunteers.Count < 1)
             {
-                response = "You do not have any volunteers yet";
+                response = "No Active Volunteers";
                 return false;
             }
 
-            var volunteer = VolunteerSystem.Volunteers.Find(v => v.Replacement == role);
+            if (!VolunteerSystem.Volunteers.TryGetFirst(v => v.Replacement == role,out Volunteers volunteer))
+            {
+                response = "Cant find this volunteer";
+                return false;
+            }
 
             Map.Broadcast(5, $"Volunteer {volunteer.Replacement.GetFullName()} was revoked", shouldClearPrevious: true);
             VolunteerSystem.Volunteers.Remove(volunteer);
+            
             response = "Canceling " + role.GetFullName();
             return true;
         }
