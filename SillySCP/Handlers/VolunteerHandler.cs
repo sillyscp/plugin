@@ -45,9 +45,14 @@ namespace SillySCP.Handlers
         {
             if (ev.Volunteer.OriginalPlayer != null) // If a Volunteer specified a player, for sake of sanity and simplicity, its treated as a replacement
             {
+                // lumi before you chop my balls off, I elected to handle canceling the volunteer entirely if the player is dead in the VolunteerSystem
                 Exiled.API.Features.Player originalPlayer = ev.Volunteer.OriginalPlayer;
+                ev.Player.MaxHealth = originalPlayer.MaxHealth;
                 ev.Player.Health = originalPlayer.Health;
+                
                 ev.Player.Position = originalPlayer.Position;
+                
+                ev.Player.MaxHumeShield = originalPlayer.MaxHumeShield;
                 ev.Player.HumeShield = originalPlayer.HumeShield;
                 originalPlayer.Role.Set(RoleTypeId.Spectator,SpawnReason.None);
             }
