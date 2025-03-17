@@ -1,13 +1,13 @@
 ﻿using Exiled.API.Features;
+using JetBrains.Annotations;
 using PlayerRoles;
 
 namespace SillySCP.API.Features
 {
-    #nullable enable
     public class Volunteers
     {
         public RoleTypeId Replacement;
-        public Player? OriginalPlayer;
-        public required List<Player> Players;
+        [CanBeNull] public Player OriginalPlayer;
+        public List<Player> Players;
     }
 }
