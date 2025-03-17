@@ -68,6 +68,7 @@ namespace SillySCP.Handlers
         {
             // only doing this to save some resources, don't come at me
             List<Exiled.API.Features.Player> scps = Exiled.API.Features.Player.List.Where(p => p.IsScp).ToList();
+            if (scps.Count == 0) return;
             List<string> scpNames = scps.Select(scp => scp.Role.Name).ToList();
             List<string> scpNamesCopy = new(scpNames);
             scpNamesCopy.RemoveAt(scpNamesCopy.Count-1);
