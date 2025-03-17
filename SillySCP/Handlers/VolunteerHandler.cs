@@ -43,10 +43,9 @@ namespace SillySCP.Handlers
         
         private void OnChosenVolunteer(VolunteerChosenEventArgs ev)
         {
-            if (ev.Volunteer.OriginalPlayer != null)
+            if (ev.Volunteer.OriginalPlayer != null) // If a Volunteer specified a player, for sake of sanity and simplicity, its treated as a replacement
             {
                 Exiled.API.Features.Player originalPlayer = ev.Volunteer.OriginalPlayer;
-                if (!originalPlayer.IsAlive) return;
                 ev.Player.Health = originalPlayer.Health;
                 ev.Player.Position = originalPlayer.Position;
                 ev.Player.HumeShield = originalPlayer.HumeShield;
