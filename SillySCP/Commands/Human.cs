@@ -23,7 +23,10 @@ namespace SillySCP.Commands
             out string response
         )
         {
-            Player.TryGet(sender, out Player player);
+            if (!Player.TryGet(sender, out Player player))
+            {
+                response = "Only Players can use this command.";
+            }
             
             if (player.Role == RoleTypeId.Scp0492)
             {
