@@ -80,6 +80,7 @@ namespace SillySCP.API.Features
             
             VolunteerCreated.InvokeSafely(new (volunteer));
         }
+            #nullable disable
         public static IEnumerator<float> DisableVolunteers()
         {
             yield return Timing.WaitForSeconds(120);
@@ -89,9 +90,8 @@ namespace SillySCP.API.Features
             VolunteerPeriodEnd.InvokeSafely();
         }
 
-        public static IEnumerator<float> ChooseVolunteers(Volunteers? volunteer)
+        public static IEnumerator<float> ChooseVolunteers(Volunteers volunteer)
         {
-            if (volunteer == null) yield break;
             yield return Timing.WaitForSeconds(15);
             volunteer = Volunteers.FirstOrDefault(v => v.Replacement == volunteer.Replacement);
             if (volunteer == null)
