@@ -106,7 +106,7 @@ namespace SillySCP.API.Features
 
             if (volunteerClone.OriginalPlayer != null)
             {
-                if (!volunteerClone.OriginalPlayer.IsAlive) yield break; // you get weird behavior if they're dead
+                if (volunteerClone.OriginalPlayer.IsDead) yield break; // you get inconsistent and weird behavior if they're dead (like teleporting into the void and then landing on top of chaos spawn over and over)
             }
             
             if (volunteerClone.Players.Count == 0) yield break;
