@@ -1,7 +1,6 @@
 name: "Build project"
-description: "Test if the project builds, if not then fail the build"
 
-on: [pull_request, workflow_dispatch] 
+on: [pull_request,push, workflow_dispatch] 
 
 jobs:
   build:
