@@ -20,38 +20,50 @@ namespace SillySCP.API.Features
 
         public static Dictionary<string, RoleTypeId> VaildScps { get; set; } = new ()
         {
-            { "173", RoleTypeId.Scp173 },
             { "peanut", RoleTypeId.Scp173 },
+            { "173", RoleTypeId.Scp173 },
+            
+            { "dog", RoleTypeId.Scp173 },
             { "939", RoleTypeId.Scp939 },
+            
+            { "computer", RoleTypeId.Scp079 },
+            { "pc", RoleTypeId.Scp079 },
             { "079", RoleTypeId.Scp079 },
             { "79", RoleTypeId.Scp079 },
-            { "computer", RoleTypeId.Scp079 },
-            { "106", RoleTypeId.Scp106 },
+            
             { "larry", RoleTypeId.Scp106 },
+            { "106", RoleTypeId.Scp106 },
+            
+            { "shyguy", RoleTypeId.Scp096 },
             { "096", RoleTypeId.Scp096 },
             { "96", RoleTypeId.Scp096 },
-            { "shyguy", RoleTypeId.Scp096 },
+            
+            { "doctor", RoleTypeId.Scp049 },
             { "049", RoleTypeId.Scp049 },
             { "49", RoleTypeId.Scp049 },
-            { "doctor", RoleTypeId.Scp049 },
+            
+            { "zombie", RoleTypeId.Scp0492 },
             { "0492", RoleTypeId.Scp0492 },
             { "049-2", RoleTypeId.Scp0492 },
             { "492", RoleTypeId.Scp0492 },
-            { "zombie", RoleTypeId.Scp0492 },
         };
         
-        public static void NewVolunteer(RoleTypeId role)
+            /// <summary>
+            /// if supplied with an original player the <see cref="SillySCP.Handlers.VolunteerHandler"/> will treat this as a replacement
+            /// </summary>
+        #nullable enable
+        public static void NewVolunteer(RoleTypeId role, Player? original=null)
         {
             Volunteers volunteer = new ()
             {
                 Replacement = role,
-                Players = new()
+                Players = new(),
+                OriginalPlayer = original,
             };
-            Volunteers ??= new();
             Volunteers.Add(volunteer);
             Timing.RunCoroutine(ChooseVolunteers(volunteer));
             
-            string annoucement =                                      // if we add support for other roles this ↓ will need to be changed
+            string announcement = // TODO if we add support for other roles this will need to be changed to use something else
                 $"{role.GetFullName()} has left the game\nPlease run .volunteer {role.GetFullName().Substring(4)} to volunteer to be the SCP";
             
             if (role == RoleTypeId.Scp0492)
@@ -60,14 +72,15 @@ namespace SillySCP.API.Features
                 {
                     if (player.IsAlive) continue;
                     
-                    player.Broadcast(10, annoucement);
+                    player.Broadcast(10, announcement);
                 }
                 return;
             }
-            Map.Broadcast(10, annoucement);
+            Map.Broadcast(10, announcement);
             
             VolunteerCreated.InvokeSafely(new (volunteer));
         }
+            #nullable disable
         public static IEnumerator<float> DisableVolunteers()
         {
             yield return Timing.WaitForSeconds(120);
@@ -86,9 +99,16 @@ namespace SillySCP.API.Features
             Volunteers volunteerClone = new ()
             {
                 Replacement = volunteer.Replacement,
-                Players = volunteer.Players
+                Players = volunteer.Players,
+                OriginalPlayer = volunteer.OriginalPlayer,
             };
             Volunteers.Remove(volunteer);
+
+            if (volunteerClone.OriginalPlayer != null)
+            {
+                if (volunteerClone.OriginalPlayer.IsDead) yield break; // you get inconsistent and weird behavior if they're dead (like teleporting into the void and then landing on top of chaos spawn over and over)
+            }
+            
             if (volunteerClone.Players.Count == 0) yield break;
             Player replacementPlayer = volunteerClone.Players.GetRandomValue();
             replacementPlayer.Role.Set(volunteerClone.Replacement);
