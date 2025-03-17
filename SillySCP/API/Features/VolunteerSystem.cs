@@ -49,7 +49,7 @@ namespace SillySCP.API.Features
         };
         
             /// <summary>
-            /// if supplied with a orginal player the <see cref="SillySCP.Handlers.VolunteerHandler"/> will treat this as a replacement
+            /// if supplied with an original player the <see cref="SillySCP.Handlers.VolunteerHandler"/> will treat this as a replacement
             /// </summary>
         #nullable enable
         public static void NewVolunteer(RoleTypeId role, Player? original=null)
@@ -63,7 +63,7 @@ namespace SillySCP.API.Features
             Volunteers.Add(volunteer);
             Timing.RunCoroutine(ChooseVolunteers(volunteer));
             
-            string annoucement = // TODO if we add support for other roles this will need to be changed to use something else
+            string announcement = // TODO if we add support for other roles this will need to be changed to use something else
                 $"{role.GetFullName()} has left the game\nPlease run .volunteer {role.GetFullName().Substring(4)} to volunteer to be the SCP";
             
             if (role == RoleTypeId.Scp0492)
@@ -72,11 +72,11 @@ namespace SillySCP.API.Features
                 {
                     if (player.IsAlive) continue;
                     
-                    player.Broadcast(10, annoucement);
+                    player.Broadcast(10, announcement);
                 }
                 return;
             }
-            Map.Broadcast(10, annoucement);
+            Map.Broadcast(10, announcement);
             
             VolunteerCreated.InvokeSafely(new (volunteer));
         }
