@@ -103,6 +103,12 @@ namespace SillySCP.API.Features
                 OriginalPlayer = volunteer.OriginalPlayer,
             };
             Volunteers.Remove(volunteer);
+
+            if (volunteerClone.OriginalPlayer != null)
+            {
+                if (!volunteerClone.OriginalPlayer.IsAlive) yield break; // you get weird behavior if they're dead
+            }
+            
             if (volunteerClone.Players.Count == 0) yield break;
             Player replacementPlayer = volunteerClone.Players.GetRandomValue();
             replacementPlayer.Role.Set(volunteerClone.Replacement);

@@ -46,6 +46,7 @@ namespace SillySCP.Handlers
             if (ev.Volunteer.OriginalPlayer != null)
             {
                 Exiled.API.Features.Player originalPlayer = ev.Volunteer.OriginalPlayer;
+                if (!originalPlayer.IsAlive) return;
                 ev.Player.Health = originalPlayer.Health;
                 ev.Player.Position = originalPlayer.Position;
                 ev.Player.HumeShield = originalPlayer.HumeShield;
