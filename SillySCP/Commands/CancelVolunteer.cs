@@ -43,6 +43,7 @@ namespace SillySCP.Commands
 
             Map.Broadcast(5, $"Volunteer {volunteer.Replacement.GetFullName()} was revoked", shouldClearPrevious: true);
             VolunteerSystem.Volunteers.Remove(volunteer);
+            response = "Canceling " + role.GetFullName();
             return true;
         }
     }
