@@ -23,23 +23,25 @@ namespace SillySCP.Commands
             out string response
         )
         {
+            Player.TryGet(sender, out Player player);
+            
+            if (player.Role == RoleTypeId.Scp0492)
+            {
+                VolunteerSystem.NewVolunteer(player.Role,original:player);
+                response = "Opening a replacement for SCP-049-2!";
+                return true;
+            }
+            
             if (!VolunteerSystem.ReadyVolunteers)
             {
                 response = "You can not change into a human after the volunteer period is over!";
                 return false;
             }
             
-            Player.TryGet(sender, out Player player);
             
             if (!player.IsScp)
             {
                 response = "Only SCPs can use this command!";
-                return false;
-            }
-
-            if (player.Role.Type == RoleTypeId.Scp0492)
-            {
-                response = "You can not change into a human as SCP-049-2!";
                 return false;
             }
             

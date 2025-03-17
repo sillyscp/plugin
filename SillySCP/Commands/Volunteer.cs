@@ -32,13 +32,6 @@ namespace SillySCP.Commands
                 response = "Only players can use this command!";
                 return false;
             }
-
-            if (player.IsScp && player.Role != RoleTypeId.Scp0492) // zombies should beable to volunteer for regular scp's 
-            {
-                response = "You are already an SCP! If they get replaced, you can swap with the person if they wish!";
-                return false;
-            }
-            
             
             if(arguments.Count != 1)
             {
@@ -46,6 +39,8 @@ namespace SillySCP.Commands
                 return false;
             }
 
+            
+            
             RoleTypeId role;
             
             if (!VolunteerSystem.VaildScps.TryGetValue(arguments.At(0), out role) && !Enum.TryParse(arguments.At(0), true, out role))
@@ -53,6 +48,13 @@ namespace SillySCP.Commands
                 response = "Error parsing the RoleTypeId.";
                 return false;
             }
+            
+            if (player.IsScp && player.Role != RoleTypeId.Scp0492 && role is not RoleTypeId.Scp0492) // zombies should beable to volunteer for regular scp's 
+            {
+                response = "You are already an SCP! If they get replaced, you can swap with the person if they wish!";
+                return false;
+            }
+            
             if (player.IsAlive && role == RoleTypeId.Scp0492)
             {
                 response = "Alive Players cannot volunteer as a zombie";
@@ -67,7 +69,7 @@ namespace SillySCP.Commands
                 return false;
             }
 
-            volunteer.Players ??= new ();
+
             
             if (volunteer.Players.Contains(player))
             {

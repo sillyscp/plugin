@@ -3,6 +3,7 @@ using Exiled.API.Extensions;
 using Exiled.Events.EventArgs.Player;
 using MEC;
 using PlayerRoles;
+using SillySCP.API.EventArgs;
 using SillySCP.API.Features;
 using SillySCP.API.Interfaces;
 using SillySCP.API.Modules;
@@ -19,6 +20,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
 
             VolunteerSystem.VolunteerPeriodEnd += OnVolunteerPeriodEnd;
+            VolunteerSystem.VolunteerChosen += OnChosenVolunteer;
         }
 
         public void Unregister()
@@ -27,6 +29,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
             Exiled.Events.Handlers.Player.Died -= OnDead;
             Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
+            VolunteerSystem.VolunteerChosen -= OnChosenVolunteer;
         }
 
         private void OnChangingRole(ChangingRoleEventArgs ev)
@@ -38,6 +41,18 @@ namespace SillySCP.Handlers
             }
         }
         
+        private void OnChosenVolunteer(VolunteerChosenEventArgs ev)
+        {
+            if (ev.Volunteer.OriginalPlayer != null)
+            {
+                Exiled.API.Features.Player originalPlayer = ev.Volunteer.OriginalPlayer;
+                ev.Player.Health = originalPlayer.Health;
+                ev.Player.Position = originalPlayer.Position;
+                ev.Player.HumeShield = originalPlayer.HumeShield;
+                originalPlayer.Role.Set(RoleTypeId.Spectator,SpawnReason.None);
+            }
+            
+        }
 
         private void OnDead(DiedEventArgs ev)
         {

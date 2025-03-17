@@ -48,14 +48,18 @@ namespace SillySCP.API.Features
             { "492", RoleTypeId.Scp0492 },
         };
         
-        public static void NewVolunteer(RoleTypeId role)
+            /// <summary>
+            /// if supplied with a orginal player the <see cref="SillySCP.Handlers.VolunteerHandler"/> will treat this as a replacement
+            /// </summary>
+        #nullable enable
+        public static void NewVolunteer(RoleTypeId role, Player? original=null)
         {
             Volunteers volunteer = new ()
             {
                 Replacement = role,
-                Players = new()
+                Players = new(),
+                OriginalPlayer = original,
             };
-            Volunteers ??= new();
             Volunteers.Add(volunteer);
             Timing.RunCoroutine(ChooseVolunteers(volunteer));
             
@@ -85,8 +89,9 @@ namespace SillySCP.API.Features
             VolunteerPeriodEnd.InvokeSafely();
         }
 
-        public static IEnumerator<float> ChooseVolunteers(Volunteers volunteer)
+        public static IEnumerator<float> ChooseVolunteers(Volunteers? volunteer)
         {
+            if (volunteer == null) yield break;
             yield return Timing.WaitForSeconds(15);
             volunteer = Volunteers.FirstOrDefault(v => v.Replacement == volunteer.Replacement);
             if (volunteer == null)
@@ -94,7 +99,8 @@ namespace SillySCP.API.Features
             Volunteers volunteerClone = new ()
             {
                 Replacement = volunteer.Replacement,
-                Players = volunteer.Players
+                Players = volunteer.Players,
+                OriginalPlayer = volunteer.OriginalPlayer,
             };
             Volunteers.Remove(volunteer);
             if (volunteerClone.Players.Count == 0) yield break;
