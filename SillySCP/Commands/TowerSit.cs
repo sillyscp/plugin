@@ -43,14 +43,12 @@ namespace SillySCP.Commands
             out string response
         )
         {
+            
             if (arguments.Count != 2)
             {
                 response = Usage;
                 return false;
             }
-
-
-            
             
             if (!Player.TryGet(arguments.At(1), out Player player))
             {
@@ -71,13 +69,13 @@ namespace SillySCP.Commands
                     {
                         response = "Player already has a return position!";
                         return false;
-                    };
-                    _addPlayer(player);
+                    }
+                    AddPlayer(player);
                     response = $"{player.Nickname} teleporting to the tower!";
                     return true;
                 
                 case "restore":
-                    if (!_restorePlayer(player))
+                    if (!RestorePlayer(player))
                     {
                         response = $"Player {player.Nickname} doesnt have a return position!";
                         return false;
@@ -88,6 +86,7 @@ namespace SillySCP.Commands
                 default:
                     response = Usage;
                     return false;
+                
             }
             
         }
