@@ -32,7 +32,6 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem += OnScp914UpgradeInv;
             Exiled.Events.Handlers.Player.Escaping += OnEscaping;
             Exiled.Events.Handlers.Player.UsingItemCompleted += OnUsingItemCompleted;
-            Exiled.Events.Handlers.Scp330.InteractingScp330 += OnInteraction;
         }
 
         public void Unregister()
@@ -44,17 +43,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem -= OnScp914UpgradeInv;
             Exiled.Events.Handlers.Player.Escaping -= OnEscaping;
             Exiled.Events.Handlers.Player.UsingItemCompleted -= OnUsingItemCompleted;
-            Exiled.Events.Handlers.Scp330.InteractingScp330 -= OnInteraction;
         }
-
-        private void OnInteraction(InteractingScp330EventArgs ev)
-        {
-            if (Random.Range(0f, 100f) <= 50)
-            {
-                ev.Candy = CandyKindID.Pink;
-            }
-        } 
-        // april fools stuff
 
         private void OnUpgradingPlayer(UpgradingPlayerEventArgs ev)
         {

@@ -86,7 +86,7 @@ namespace SillySCP.Handlers
                 .FirstOrDefault();
             PlayerStat highestDamage = Plugin.Instance.PlayerStats.OrderByDescending(p => p.Damage).FirstOrDefault();
             
-            // Exiled.API.Features.Server.FriendlyFire = true;
+            Exiled.API.Features.Server.FriendlyFire = true;
 
             string normalMvpMessage = highestKiller != null
                 ? $"Highest kills as a human was {highestKiller.Player.Nickname} with {highestKiller.Kills}"
