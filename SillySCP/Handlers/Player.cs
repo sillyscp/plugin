@@ -3,7 +3,9 @@ using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Exiled.Events.EventArgs.Player;
+using Exiled.Events.EventArgs.Scp330;
 using Exiled.Events.EventArgs.Scp914;
+using InventorySystem.Items.Usables.Scp330;
 using MEC;
 using PlayerRoles;
 using Scp914;
@@ -42,6 +44,15 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.Escaping -= OnEscaping;
             Exiled.Events.Handlers.Player.UsingItemCompleted -= OnUsingItemCompleted;
         }
+
+        private void OnInteraction(InteractingScp330EventArgs ev)
+        {
+            if (Random.Range(0f, 100f) <= 50)
+            {
+                ev.Candy = CandyKindID.Pink;
+            }
+        } 
+        // april fools stuff
 
         private void OnUpgradingPlayer(UpgradingPlayerEventArgs ev)
         {

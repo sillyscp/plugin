@@ -65,14 +65,14 @@ namespace SillySCP.Handlers
         
         private void OnRoundStarted()
         {
-            Features.Server.FriendlyFire = false;
+            // Features.Server.FriendlyFire = false;
             Timing.RunCoroutine(Plugin.Instance.HeartAttack());
             // Timing.RunCoroutine(CheckNukeRoom()); //legacy Anti-Nuke
         }
 
         private void OnRoundRestart()
         {
-            Features.Server.FriendlyFire = false;
+            // Features.Server.FriendlyFire = false;
         }
         
         private void OnScp914UpgradePickup(UpgradingPickupEventArgs ev)
