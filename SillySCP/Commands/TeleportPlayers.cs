@@ -21,33 +21,22 @@ namespace SillySCP.Commands
                 response = "Usage: teleportplayers <player1> <player2>";
                 return false;
             }
+            
 
-            if (!int.TryParse(arguments.At(0), out int player1Id))
-            {
-                response = "Player 1 must be a number!";
-                return false;
-            }
-
-            if (!int.TryParse(arguments.At(1), out int player2Id))
-            {
-                response = "Player 2 must be a number!";
-                return false;
-            }
-
-            if (!Player.TryGet(player1Id, out Player player1))
+            if (!Player.TryGet(arguments.At(0), out Player player1))
             {
                 response = "Player 1 not found!";
                 return false;
             }
 
-            if (!Player.TryGet(player2Id, out Player player2))
+            if (!Player.TryGet(arguments.At(1), out Player player2))
             {
                 response = "Player 2 not found!";
                 return false;
             }
 
             player1.Position = player2.Position;
-            response = $"Teleported {player1.Nickname} to {player2.Nickname}";
+            response = $"Teleported {player1.Nickname} to {player2.Nickname}";  
             return true;
         }
     }
