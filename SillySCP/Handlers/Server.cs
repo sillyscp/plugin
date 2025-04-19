@@ -79,7 +79,7 @@ namespace SillySCP.Handlers
         {
             if (ev.KnobSetting == Scp914KnobSetting.Fine && ev.Pickup.Type == ItemType.Coin)
             {
-                int randomNum = UnityEngine.Random.Range(1, 3);
+                int randomNum = UnityEngine.Random.Range(1, 4);
                 switch (randomNum)
                 {
                     case 1:
