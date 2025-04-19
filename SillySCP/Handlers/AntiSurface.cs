@@ -56,26 +56,35 @@ public class AntiSurface : IRegisterable
 
     private static IEnumerator<float> SurfaceChecker()
     {
-        IEnumerable<Exiled.API.Features.Player> lastKnownPlayers = GetSurfacePlayers();
+        HashSet<Exiled.API.Features.Player> lastKnownPlayers = new (GetSurfacePlayers());
         DateTime firstCalled = DateTime.Now;
-        foreach (int seconds in _seconds)
+        bool isFirstRun = true;
+
+        foreach (int seconds in Seconds)
         {
-            if(TotalSeconds(_wave) < seconds) continue;
+            if (TotalSeconds(_wave) < seconds) 
+                continue;
+    
             yield return Timing.WaitUntilTrue(() => TotalSeconds(_wave) <= seconds);
-            IEnumerable<Exiled.API.Features.Player> currentPlayers = GetSurfacePlayers();
-            if (Convert.ToInt32((DateTime.Now - firstCalled).TotalSeconds) < 29)
+    
+            if (isFirstRun && (DateTime.Now - firstCalled).TotalSeconds < 29)
             {
-                lastKnownPlayers = currentPlayers;
+                lastKnownPlayers = new (GetSurfacePlayers());
+                isFirstRun = false;
                 continue;
             }
-
-            foreach (Exiled.API.Features.Player currentPlayer in currentPlayers)
+    
+            IEnumerable<Exiled.API.Features.Player> currentPlayers = GetSurfacePlayers();
+    
+            foreach (Exiled.API.Features.Player player in currentPlayers)
             {
-                if(!lastKnownPlayers.Contains(currentPlayer)) continue;
-                currentPlayer.Kick("Holding up the round on surface.");
+                if (lastKnownPlayers.Contains(player))
+                {
+                    player.Kick("Holding up the round on surface.");
+                }
             }
-
-            lastKnownPlayers = currentPlayers;
+    
+            lastKnownPlayers = new (currentPlayers);
         }
     }
 
@@ -84,7 +93,7 @@ public class AntiSurface : IRegisterable
         return Exiled.API.Features.Player.List.Where(player => player.Zone == ZoneType.Surface && player.IsHuman);
     }
 
-    private static int[] _seconds = new[]
+    private static readonly int[] Seconds = new[]
     {
         180,
         120,
