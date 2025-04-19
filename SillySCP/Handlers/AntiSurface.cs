@@ -33,20 +33,6 @@ public class AntiSurface : IRegisterable
 
     private void OnObjectiveComplete(CompletingObjectiveEventArgs ev)
     {
-        float? timeReward = null;
-        
-        if (ev.Objective.GetType().IsGenericType && 
-            ev.Objective.GetType().GetGenericTypeDefinition() == typeof(HumanObjective<>))
-        {
-            PropertyInfo propertyInfo = ev.Objective.GetType().GetProperty("TimeReward");
-            if (propertyInfo != null)
-            {
-                timeReward = (float)propertyInfo.GetValue(ev.Objective);
-            }
-        }
-
-        if (timeReward == null) return;
-
         _wave = GetWave();
     }
 
@@ -72,7 +58,7 @@ public class AntiSurface : IRegisterable
     {
         IEnumerable<Exiled.API.Features.Player> lastKnownPlayers = GetSurfacePlayers();
         DateTime firstCalled = DateTime.Now;
-        foreach (int seconds in Seconds)
+        foreach (int seconds in _seconds)
         {
             if(TotalSeconds(_wave) < seconds) continue;
             yield return Timing.WaitUntilTrue(() => TotalSeconds(_wave) <= seconds);
@@ -98,7 +84,7 @@ public class AntiSurface : IRegisterable
         return Exiled.API.Features.Player.List.Where(player => player.Zone == ZoneType.Surface && player.IsHuman);
     }
 
-    private static int[] Seconds = new[]
+    private static int[] _seconds = new[]
     {
         180,
         120,
