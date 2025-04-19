@@ -1,8 +1,11 @@
 ﻿using System.Collections;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 using Exiled.API.Features.Doors;
+using Exiled.API.Features.Objectives;
+using Exiled.API.Features.Waves;
 using Exiled.Events.EventArgs.Map;
 using Exiled.Events.EventArgs.Player;
 using Exiled.Events.EventArgs.Server;
@@ -18,100 +21,93 @@ public class AntiSurface : IRegisterable
 {
     public void Init()
     {
-        Exiled.Events.Handlers.Map.ElevatorSequencesUpdated += OnElevatorSequencesUpdated;
-        Exiled.Events.Handlers.Server.RespawnedTeam += OnRespawned;
-        Exiled.Events.Handlers.Player.Died += OnPlayerDied;
+        Exiled.Events.Handlers.Server.RespawnedTeam += OnRespawnedTeam;
+        Exiled.Events.Handlers.Server.CompletingObjective += OnObjectiveComplete;
     }
 
     public void Unregister()
     {
-        Exiled.Events.Handlers.Map.ElevatorSequencesUpdated -= OnElevatorSequencesUpdated;
-        Exiled.Events.Handlers.Server.RespawnedTeam -= OnRespawned;
-        Exiled.Events.Handlers.Player.Died -= OnPlayerDied;
+        Exiled.Events.Handlers.Server.RespawnedTeam -= OnRespawnedTeam;
+        Exiled.Events.Handlers.Server.CompletingObjective += OnObjectiveComplete;
     }
 
-    private void OnPlayerDied(DiedEventArgs ev)
+    private void OnObjectiveComplete(CompletingObjectiveEventArgs ev)
     {
-        if (Exiled.API.Features.Player.List.Count(p => p.IsAlive && !p.IsScp) > 3) return;
-        TryStartCoroutine();
-    }
-
-    private void OnElevatorSequencesUpdated(ElevatorSequencesUpdatedEventArgs ev)
-    {
-        if (ev.Sequence != ElevatorChamber.ElevatorSequence.DoorOpening) return;
-        if (ev.Lift.Type is not ElevatorType.GateA and not ElevatorType.GateB) return;
-        if (ev.Lift.CurrentLevel != 1) return;
-        TryStartCoroutine();
-    }
-
-    private void OnRespawned(RespawnedTeamEventArgs ev)
-    {
-        _handle = null;
+        float? timeReward = null;
         
-        Door ezA = Door.Get(DoorType.GateA);
-        Door ezB = Door.Get(DoorType.GateB);
-        ezA.Unlock();
-        ezB.Unlock();
-        
-        TryStartCoroutine();
-    }
-    
-    private CoroutineHandle? _handle;
+        if (ev.Objective.GetType().IsGenericType && 
+            ev.Objective.GetType().GetGenericTypeDefinition() == typeof(HumanObjective<>))
+        {
+            PropertyInfo propertyInfo = ev.Objective.GetType().GetProperty("TimeReward");
+            if (propertyInfo != null)
+            {
+                timeReward = (float)propertyInfo.GetValue(ev.Objective);
+            }
+        }
 
-    private void TryStartCoroutine()
+        if (timeReward == null) return;
+
+        _wave = GetWave();
+    }
+
+    private void OnRespawnedTeam(RespawnedTeamEventArgs ev)
     {
-        if (_handle != null) return;
+        Timing.KillCoroutines(_handle);
+        _wave = GetWave();
         _handle = Timing.RunCoroutine(SurfaceChecker());
     }
 
-    private IEnumerator<float> SurfaceChecker()
+    private static TimedWave GetWave()
     {
-        yield return Timing.WaitForSeconds(120);
-        
-        if (Exiled.API.Features.Player.List.Count(player => player.IsAlive && !player.IsScp) > 3) 
-            yield break;
-
-        List<Exiled.API.Features.Player> surfacePlayers = Room.Get(RoomType.Surface).Players.ToList();
-        
-        if (surfacePlayers.Count == 0 || 
-            surfacePlayers.Count(p => p.IsScp) > 1 || 
-            surfacePlayers.Select(p => p.Role.Team).Distinct().Count() > 1)
-            yield break;
-
-        Team team = surfacePlayers[0].Role.Team;
-        int playerCount = surfacePlayers.Count;
-        
-        Door gateA = Door.Get(DoorType.ElevatorGateA);
-        Door gateB = Door.Get(DoorType.ElevatorGateB);
-        Door ezA = Door.Get(DoorType.GateA);
-        Door ezB = Door.Get(DoorType.GateB);
-        
-        int closerToACount = surfacePlayers.Count(player => 
-            Vector3.Distance(player.Position, gateA.Position) <= Vector3.Distance(player.Position, gateB.Position));
-        
-        ezA.IsOpen = ezB.IsOpen = true;
-        ezA.Lock(DoorLockType.Warhead);
-        ezB.Lock(DoorLockType.Warhead);
-        
-        string message;
-        string translation;
-        
-        if (playerCount != closerToACount)
-        {
-            message = $"{playerCount} {Spaceify(team.ToString())} personnel located on surface";
-            translation = $"{playerCount} {Spaceify(team.ToString())} personnel located on Surface";
-        }
-        else
-        {
-            string nearGate = closerToACount > 0 ? "a" : "b";
-            string nearGateTranslation = closerToACount > 0 ? "A" : "B";
-            message = $"{playerCount} {Spaceify(team.ToString())} personnel located near gate {nearGate}";
-            translation = $"{playerCount} {Spaceify(team.ToString())} personnel located near Gate {nearGateTranslation}";
-        }
-        
-        Cassie.MessageTranslated(message, translation);
-        _handle = null;
+        if (Respawn.NextKnownSpawnableFaction == SpawnableFaction.None) return null;
+        TimedWave wave = TimedWave.GetTimedWaves()
+            .FirstOrDefault(wave => wave.SpawnableFaction == Respawn.NextKnownSpawnableFaction && !wave.Timer.IsPaused);
+        return wave;
     }
 
-    private string Spaceify(string input) => Regex.Replace(input, "([A-Z])", " $1").Trim();
+    private static TimedWave _wave;
+    private CoroutineHandle _handle;
+
+    private static IEnumerator<float> SurfaceChecker()
+    {
+        IEnumerable<Exiled.API.Features.Player> lastKnownPlayers = GetSurfacePlayers();
+        DateTime firstCalled = DateTime.Now;
+        foreach (int seconds in Seconds)
+        {
+            if(TotalSeconds(_wave) < seconds) continue;
+            yield return Timing.WaitUntilTrue(() => TotalSeconds(_wave) <= seconds);
+            IEnumerable<Exiled.API.Features.Player> currentPlayers = GetSurfacePlayers();
+            if (Convert.ToInt32((DateTime.Now - firstCalled).TotalSeconds) < 29)
+            {
+                lastKnownPlayers = currentPlayers;
+                continue;
+            }
+
+            foreach (Exiled.API.Features.Player currentPlayer in currentPlayers)
+            {
+                if(!lastKnownPlayers.Contains(currentPlayer)) continue;
+                currentPlayer.Kick("Holding up the round on surface.");
+            }
+
+            lastKnownPlayers = currentPlayers;
+        }
+    }
+
+    private static IEnumerable<Exiled.API.Features.Player> GetSurfacePlayers()
+    {
+        return Exiled.API.Features.Player.List.Where(player => player.Zone == ZoneType.Surface && player.IsHuman);
+    }
+
+    private static int[] Seconds = new[]
+    {
+        180,
+        120,
+        60,
+        30
+    };
+
+    private static int TotalSeconds(TimedWave wave)
+    {
+        return Convert.ToInt32(wave.Timer.TimeLeft.TotalSeconds);
+    }
 }
