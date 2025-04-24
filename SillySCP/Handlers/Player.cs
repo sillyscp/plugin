@@ -32,6 +32,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem += OnScp914UpgradeInv;
             Exiled.Events.Handlers.Player.Escaping += OnEscaping;
             Exiled.Events.Handlers.Player.UsingItemCompleted += OnUsingItemCompleted;
+            Exiled.Events.Handlers.Player.Kicking += OnKickingPlayer;
         }
 
         public void Unregister()
@@ -43,6 +44,12 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem -= OnScp914UpgradeInv;
             Exiled.Events.Handlers.Player.Escaping -= OnEscaping;
             Exiled.Events.Handlers.Player.UsingItemCompleted -= OnUsingItemCompleted;
+            Exiled.Events.Handlers.Player.Kicking -= OnKickingPlayer;
+        }
+
+        private void OnKickingPlayer(KickingEventArgs ev)
+        {
+            if(ev.Reason.Contains("AFK")) ev.IsAllowed = Vector3.Distance(RoleTypeId.Tutorial.GetRandomSpawnLocation().Position, ev.Player.Position) > 11f;
         }
 
         private void OnUpgradingPlayer(UpgradingPlayerEventArgs ev)
