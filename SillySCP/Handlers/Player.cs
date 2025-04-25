@@ -2,6 +2,7 @@
 using Exiled.API.Enums;
 using Exiled.API.Extensions;
 using Exiled.API.Features;
+using Exiled.API.Features.Roles;
 using Exiled.Events.EventArgs.Player;
 using Exiled.Events.EventArgs.Scp330;
 using Exiled.Events.EventArgs.Scp914;
@@ -49,7 +50,14 @@ namespace SillySCP.Handlers
 
         private void OnKickingPlayer(KickingEventArgs ev)
         {
-            if(ev.Reason.Contains("AFK")) ev.IsAllowed = Vector3.Distance(RoleTypeId.Tutorial.GetRandomSpawnLocation().Position, ev.Player.Position) > 11f;
+            if (!ev.Reason.Contains("AFK")) return;
+
+            bool allowed = true;
+            
+            if(Vector3.Distance(RoleTypeId.Tutorial.GetRandomSpawnLocation().Position, ev.Player.Position) > 11f) allowed = false;
+            else if (ev.Player.IsSpeaking) allowed = false;
+
+            ev.IsAllowed = allowed;
         }
 
         private void OnUpgradingPlayer(UpgradingPlayerEventArgs ev)
