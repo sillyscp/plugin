@@ -23,6 +23,7 @@ namespace SillySCP.API.Features
             { "173", RoleTypeId.Scp173 },
             { "peanut", RoleTypeId.Scp173 },
             { "939", RoleTypeId.Scp939 },
+            { "dog", RoleTypeId.Scp939 },
             { "079", RoleTypeId.Scp079 },
             { "79", RoleTypeId.Scp079 },
             { "computer", RoleTypeId.Scp079 },
