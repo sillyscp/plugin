@@ -157,12 +157,24 @@ namespace SillySCP.Handlers
 
         private void OnSpawned(SpawnedEventArgs ev)
         {
-            if (ev.Player.Role.Type == RoleTypeId.ClassD && ev.SpawnFlags.HasFlag(RoleSpawnFlags.AssignInventory))
-                ev.Player.AddItem(ItemType.Coin);
+            if (ev.SpawnFlags.HasFlag(RoleSpawnFlags.AssignInventory))
+                switch (ev.Player.Role.Type)
+                {
+                case RoleTypeId.ClassD:
+                    ev.Player.AddItem(ItemType.Coin);
+                    break;
+                
+                case RoleTypeId.Scientist:
+                    ev.Player.AddItem(ItemType.Flashlight);
+                    break;
+                }
+            
+            
             if (ev.Player.Role == RoleTypeId.Tutorial && ev.Player.RemoteAdminAccess)
             {
                 ev.Player.IsGodModeEnabled = true;
-            } else if (ev.Player.Role != RoleTypeId.Tutorial && ev.Player.RemoteAdminAccess && ev.Player.IsGodModeEnabled)
+            } 
+            if (ev.Player.Role != RoleTypeId.Tutorial && ev.Player.RemoteAdminAccess && ev.Player.IsGodModeEnabled)
             {
                 ev.Player.IsGodModeEnabled = false;
             }
