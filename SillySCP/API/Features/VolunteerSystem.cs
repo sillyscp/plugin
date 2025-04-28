@@ -23,6 +23,7 @@ namespace SillySCP.API.Features
             { "173", RoleTypeId.Scp173 },
             { "peanut", RoleTypeId.Scp173 },
             { "939", RoleTypeId.Scp939 },
+            { "dog", RoleTypeId.Scp939 },
             { "079", RoleTypeId.Scp079 },
             { "79", RoleTypeId.Scp079 },
             { "computer", RoleTypeId.Scp079 },
@@ -38,6 +39,8 @@ namespace SillySCP.API.Features
             { "049-2", RoleTypeId.Scp0492 },
             { "492", RoleTypeId.Scp0492 },
             { "zombie", RoleTypeId.Scp0492 },
+            { "skeleton", RoleTypeId.Scp3114 },
+            { "3114", RoleTypeId.Scp3114 },
         };
         
         public static void NewVolunteer(RoleTypeId role)
