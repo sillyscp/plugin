@@ -43,8 +43,7 @@ namespace SillySCP.API.Features
 
         protected override void HandleSettingUpdate(Player player)
         {
-            if (SelectedOption == "default") return;
-            player.GroupColor = SelectedOption;
+            player.GroupColor = SelectedOption == "default" ? ServerStatic.PermissionsHandler.GetUserGroup(player.UserId).BadgeColor : SelectedOption;
         }
 
         public override CustomHeader Header { get; } = SSSSModule.ExclusiveHeader;
