@@ -106,7 +106,7 @@ namespace SillySCP.Handlers
         private void TryAddEffect(Exiled.API.Features.Player player)
         {
             if (player.CurrentRoom.Type != RoomType.HczNuke) return;
-            if (player.Position.y > -1050f) return;
+            if (player.Position.y > -150f) return;
             player.ShowString("You feel a sharp pain...");
             _handles.Add(player, Timing.RunCoroutine(AntiNuke(player)));
         }
