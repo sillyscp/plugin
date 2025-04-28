@@ -160,13 +160,13 @@ namespace SillySCP.Handlers
             if (ev.SpawnFlags.HasFlag(RoleSpawnFlags.AssignInventory))
                 switch (ev.Player.Role.Type)
                 {
-                case RoleTypeId.ClassD:
-                    ev.Player.AddItem(ItemType.Coin);
-                    break;
-                
-                case RoleTypeId.Scientist:
-                    ev.Player.AddItem(ItemType.Flashlight);
-                    break;
+                    case RoleTypeId.ClassD:
+                        ev.Player.AddItem(ItemType.Coin);
+                        break;
+                    
+                    case RoleTypeId.Scientist:
+                        ev.Player.AddItem(ItemType.Flashlight);
+                        break;
                 }
             
             
