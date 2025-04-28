@@ -1,10 +1,13 @@
 ﻿using Exiled.API.Features.Core.UserSettings;
+using SecretAPI.Features.UserSettings;
 
 namespace SillySCP.API.Modules
 {
     public static class SSSSModule
     {
         public static HeaderSetting Header { get; } = new("SillySCP Settings");
+        
+        public static CustomHeader ExclusiveHeader { get; } = new("SillySCP Exclusive Settings");
         
         public static int PronounsDropdownSettingId { get; } = 834;
 
