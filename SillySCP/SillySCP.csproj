@@ -20,7 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Costura.Fody" Version="6.0.0-beta0000" PrivateAssets="All" />
-    <PackageReference Include="ExMod.Exiled" Version="9.4.0" />
+    <PackageReference Include="ExMod.Exiled" Version="9.6.0-beta7" />
     <PackageReference Include="Fody" Version="6.8.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
