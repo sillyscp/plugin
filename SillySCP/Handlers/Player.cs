@@ -140,18 +140,15 @@ namespace SillySCP.Handlers
         {
             if (ev.Player.Role.Type == RoleTypeId.FacilityGuard && ev.Player.IsCuffed)
             {
-                ev.IsAllowed = true;
-                ev.NewRole = RoleTypeId.ChaosConscript;
+                ev.Player.Role.Set(RoleTypeId.ChaosConscript);
             }
             if(ev.Player.IsNTF && ev.Player.IsCuffed)
             {
-                ev.IsAllowed = true;
-                ev.NewRole = RoleTypeId.ChaosConscript;
+                ev.Player.Role.Set(RoleTypeId.ChaosConscript);
             }
             if(ev.Player.IsCHI && ev.Player.IsCuffed)
             {
-                ev.IsAllowed = true;
-                ev.NewRole = RoleTypeId.NtfPrivate;
+                ev.Player.Role.Set(RoleTypeId.NtfPrivate);
             }
         }
 
