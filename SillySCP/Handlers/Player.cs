@@ -138,18 +138,22 @@ namespace SillySCP.Handlers
 
         private void OnEscaping(EscapingEventArgs ev)
         {
+            
             if (ev.Player.Role.Type == RoleTypeId.FacilityGuard && ev.Player.IsCuffed)
             {
+                ev.EscapeScenario = EscapeScenario.CustomEscape;
                 ev.IsAllowed = true;
                 ev.NewRole = RoleTypeId.ChaosConscript;
             }
             if(ev.Player.IsNTF && ev.Player.IsCuffed)
             {
+                ev.EscapeScenario = EscapeScenario.CustomEscape;
                 ev.IsAllowed = true;
                 ev.NewRole = RoleTypeId.ChaosConscript;
             }
             if(ev.Player.IsCHI && ev.Player.IsCuffed)
             {
+                ev.EscapeScenario = EscapeScenario.CustomEscape;
                 ev.IsAllowed = true;
                 ev.NewRole = RoleTypeId.NtfPrivate;
             }
