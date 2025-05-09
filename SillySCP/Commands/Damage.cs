@@ -7,8 +7,8 @@ namespace SillySCP.Commands
     [CommandHandler(typeof(ClientCommandHandler))]
     public class Damage : ICommand
     {
-        public string Command { get; } = "stats";
-        public string[] Aliases { get; } = new [] { "s" };
+        public string Command { get; } = "damage";
+        public string[] Aliases { get; } = new [] { "d", "dmg" };
         public string Description { get; } = "Get the amount of damage you've dealt.";
 
         public bool Execute(
