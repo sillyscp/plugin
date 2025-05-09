@@ -45,7 +45,7 @@ namespace SillySCP.Commands
                 return true;
             }
 
-            response = "You have dealt " + (playerStat.Damage ?? 0) + "damage!";
+            response = "You have dealt " + (playerStat.Damage ?? 0) + " damage!";
             return true;
         }
     }
