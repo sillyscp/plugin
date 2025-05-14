@@ -37,9 +37,6 @@ namespace SillySCP
                 _inits.Add(init);
                 init!.Init();
             }
-
-            SettingBase.Register(SSSSModule.Settings);
-            SettingBase.SendToAll();
             
             base.OnEnabled();
         }
