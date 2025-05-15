@@ -10,9 +10,7 @@ namespace SillySCP.API.Features
             : base(834, "Pronouns",
                 new[] { "none specified", "she/her", "he/him", "they/them", "any pronouns", "ask" },
                 hint: "Select the pronouns which appear next to your name.")
-        {
-            LabApi.Events.Handlers.PlayerEvents.Joined += ev => HandleSettingUpdate(ev.Player);
-        }
+        {}
 
         public override CustomHeader Header { get; } = SSSSModule.Header;
 
