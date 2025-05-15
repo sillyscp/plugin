@@ -19,7 +19,7 @@ namespace SillySCP.API.Features
         public StruggleSetting()
             : base(SettingId, "Struggle", KeyCode.E, hint: "The key bind to press when being strangled by 3114 to potentially break free.")
         {
-            LabApi.Events.Handlers.PlayerEvents.UpdatingEffect += OnUpdatingEffect;
+            LabApi.Events.Handlers.PlayerEvents.UpdatedEffect += OnUpdatedEffect;
         }
 
         protected override CustomSetting CreateDuplicate() => new StruggleSetting();
@@ -39,7 +39,7 @@ namespace SillySCP.API.Features
             _stranglePercentage[player] = val;
         }
 
-        private void OnUpdatingEffect(PlayerEffectUpdatingEventArgs ev)
+        private void OnUpdatedEffect(PlayerEffectUpdatedEventArgs ev)
         {
             if(ev.Effect is Strangled) AddOrRemove(ev.Player);
         }
