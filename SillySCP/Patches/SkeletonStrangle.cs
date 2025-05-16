@@ -14,7 +14,6 @@ namespace SillySCP.Patches
 #pragma warning restore SA1313
         {
             if (!value.HasValue && !__instance.SyncTarget.HasValue) return true;
-            Log.Info(value.HasValue);
             if(!value.HasValue) {
                 Player player = Player.Get(__instance.SyncTarget.Value.Target);
                 StruggleSetting.Remove(player);
