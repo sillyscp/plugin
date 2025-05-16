@@ -1,12 +1,18 @@
 ﻿using CustomPlayerEffects;
+using Exiled.API.Features;
+using InventorySystem.Items.Firearms.Modules;
 using LabApi.Events.Arguments.PlayerEvents;
-using LabApi.Features.Wrappers;
+using PlayerRoles;
+using PlayerRoles.PlayableScps.Scp3114;
 using RueI.Displays;
 using RueI.Elements;
 using RueI.Extensions;
 using SecretAPI.Features.UserSettings;
 using SillySCP.API.Modules;
 using UnityEngine;
+using Display = RueI.Displays.Display;
+using Player = LabApi.Features.Wrappers.Player;
+using Scp3114Role = Exiled.API.Features.Roles.Scp3114Role;
 
 namespace SillySCP.API.Features
 {
@@ -16,53 +22,58 @@ namespace SillySCP.API.Features
 
         internal static int SettingId => 836;
 
+        private static readonly DynamicElement Element = new (HintContent, 300);
+
         public StruggleSetting()
             : base(SettingId, "Struggle", KeyCode.E, hint: "The key bind to press when being strangled by 3114 to potentially break free.")
-        {
-            LabApi.Events.Handlers.PlayerEvents.UpdatedEffect += OnUpdatedEffect;
-        }
+        {}
 
         protected override CustomSetting CreateDuplicate() => new StruggleSetting();
 
         public override CustomHeader Header { get; } = SSSSModule.Header;
 
-        private readonly Dictionary<Player, (float percentage, IElemReference<SetElement> elemReference)> _stranglePercentage = new ();
+        private static readonly Dictionary<Player, (float percentage, Display display)> StranglePercentage = new ();
 
         protected override void HandleSettingUpdate(Player player)
         {
             if (!player.HasEffect<Strangled>()) return;
-            (float percentage, IElemReference<SetElement> elemReference) val = _stranglePercentage[player];
-            val.percentage += 9.5f;
-            if(val.percentage >= 100) 
-                player.DisableEffect<Strangled>();
-            UpdateHint(player, val.percentage, val.elemReference);
-            _stranglePercentage[player] = val;
-        }
-
-        private void OnUpdatedEffect(PlayerEffectUpdatedEventArgs ev)
-        {
-            if(ev.Effect is Strangled) AddOrRemove(ev.Player);
-        }
-
-        private void AddOrRemove(Player player)
-        {
-            if (player.HasEffect<Strangled>())
+            (float percentage, Display display) val = StranglePercentage[player];
+            val.percentage += 2f;
+            if(val.percentage >= 100)
             {
-                IElemReference<SetElement> elemReference = DisplayCore.GetReference<SetElement>();
-                _stranglePercentage.Add(player, (0, elemReference));
-                UpdateHint(player, 0, elemReference);
+                Scp3114Role role = (Scp3114Role)Exiled.API.Features.Player.Get(RoleTypeId.Scp3114).First().Role;
+                role.SubroutineModule.TryGetSubroutine(out Scp3114Strangle strangle);
+                strangle.SyncTarget = null;
+                strangle._rpcType = Scp3114Strangle.RpcType.AttackInterrupted;
+                strangle.ServerSendRpc(true);
+                Remove(player);
+                return;
             }
-            else
-            {
-                (float percentage, IElemReference<SetElement> elemReference) val = _stranglePercentage[player];
-                DisplayCore.Get(player.ReferenceHub).RemoveReference(val.elemReference);
-                _stranglePercentage.Remove(player);
-            }
+            val.display.Update();
+            StranglePercentage[player] = val;
         }
 
-        private static void UpdateHint(Player player, float percentage, IElemReference<SetElement> elemReference)
+        internal static void Add(Player player)
         {
-            DisplayCore.Get(player.ReferenceHub).SetElementOrNew(elemReference, $"{Hint}\n{percentage}%", 300);
+            if (StranglePercentage.ContainsKey(player)) return;
+            Display display = new(player.ReferenceHub);
+            StranglePercentage.Add(player, (0, display));
+            display.Elements.Add(Element);
+            display.Update();
+        }
+
+        internal static void Remove(Player player)
+        {
+            if (!StranglePercentage.TryGetValue(player, out var displayInfo)) return;
+            displayInfo.display.Delete();
+            StranglePercentage.Remove(player);
+        }
+
+        private static string HintContent(DisplayCore core)
+        {
+            Player player = Player.Get(core.Hub);
+            (float percentage, Display display) val = StranglePercentage[player];
+            return $"{Hint}\n{val.percentage}%";
         }
     }
 }

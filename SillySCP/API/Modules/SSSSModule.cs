@@ -8,5 +8,14 @@ namespace SillySCP.API.Modules
         public static CustomHeader Header { get; } = new("SillySCP Settings");
         
         public static CustomHeader ExclusiveHeader { get; } = new("SillySCP Exclusive Settings");
+        
+        public static int PronounsDropdownSettingId { get; } = 834;
+
+        public static IEnumerable<SettingBase> Settings = new SettingBase[]
+        {
+            new DropdownSetting(PronounsDropdownSettingId, "Pronouns",
+                new[] { "none specified", "she/her", "he/him", "they/them", "any pronouns", "ask" },
+                hintDescription: "Select the pronouns which appear next to your name."),
+        };
     }
 }
