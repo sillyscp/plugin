@@ -14,7 +14,8 @@ using UnityEngine;
 
 namespace SillySCP.Handlers
 {
-    public class NukeHandler : IRegisterable
+    public class NukeHandler
+        // : IRegisterable
     {
         public void Init()
         {
