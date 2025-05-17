@@ -26,6 +26,7 @@ namespace SillySCP.API.Features
         public void Spawn()
         {
             Primitive primitive = Primitive.Create(PrimitiveType.Cube, Room.WorldPosition(LocalPosition), Room.Rotation.eulerAngles + RotationOffset, Size);
+            primitive.Visible = false;
             primitive.Collidable = false;
             primitive.GameObject.AddComponent<CheckVoid>();
             BoxCollider collider = primitive.GameObject.AddComponent<BoxCollider>();

@@ -29,14 +29,15 @@ namespace SillySCP.Handlers
         private static void OnRoomAdded(RoomIdentifier r)
         {
             Room room = Room.Get(r);
-            if (r.name.ToLower().Contains("HCZ_Straight_PipeRoom".ToLower()))
-            {
-                SpecialWeaponsPrimitive primitive = new (new (0, 7f, -4.8f), room, new (14f, 3, 3.9f));
-                primitive.Spawn();
-            }
             // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
             switch (room.Type)
             {
+                case RoomType.HczStraightPipeRoom:
+                {
+                    SpecialWeaponsPrimitive primitive = new (new (0, 7f, -4.8f), room, new (14f, 3, 3.9f));
+                    primitive.Spawn();
+                    break;
+                }
                 case RoomType.Hcz127:
                 {
                     // the spot with the ladder
@@ -60,6 +61,12 @@ namespace SillySCP.Handlers
                 case RoomType.Hcz079:
                 {
                     SpecialWeaponsPrimitive primitive = new(new(-5.40f, -3.5f, -13.5f), room, new(4.5f, 1, 6));
+                    primitive.Spawn();
+                    break;
+                }
+                case RoomType.Hcz049:
+                {
+                    SpecialWeaponsPrimitive primitive = new(new(0, 0, -5f), room, new(15, 1, 5.2f));
                     primitive.Spawn();
                     break;
                 }
