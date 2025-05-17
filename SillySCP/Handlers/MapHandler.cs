@@ -53,6 +53,12 @@ namespace SillySCP.Handlers
                 SpecialWeaponsPrimitive pitPrimitive = new(new(0, -2, -7), room, new(23, 1, 12));
                 pitPrimitive.Spawn();
             }
+
+            if (room.Type == RoomType.Hcz079)
+            {
+                SpecialWeaponsPrimitive primitive = new(new(-5.40f, -3.5f, -13.5f), room, new(4.5f, 1, 6));
+                primitive.Spawn();
+            }
         }
     }
 }
