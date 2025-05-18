@@ -1,4 +1,5 @@
 ﻿using CustomPlayerEffects;
+using Exiled.API.Enums;
 using Exiled.API.Features;
 using InventorySystem.Items.Firearms.Modules;
 using LabApi.Events.Arguments.PlayerEvents;
@@ -41,12 +42,15 @@ namespace SillySCP.API.Features
             val.percentage += 2f;
             if(val.percentage >= 100)
             {
-                Scp3114Role role = (Scp3114Role)Exiled.API.Features.Player.Get(RoleTypeId.Scp3114).First().Role;
+                Exiled.API.Features.Player skeleton = Exiled.API.Features.Player.Get(RoleTypeId.Scp3114).First();
+                Scp3114Role role = (Scp3114Role)skeleton.Role;
                 role.SubroutineModule.TryGetSubroutine(out Scp3114Strangle strangle);
                 strangle.SyncTarget = null;
                 strangle._rpcType = Scp3114Strangle.RpcType.AttackInterrupted;
                 strangle.ServerSendRpc(true);
                 Remove(player);
+                skeleton.EnableEffect(EffectType.Disabled, duration:5);
+                skeleton.PlayShieldBreakSound();
                 return;
             }
             val.display.Update();
