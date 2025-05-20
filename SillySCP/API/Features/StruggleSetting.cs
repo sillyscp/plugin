@@ -28,7 +28,9 @@ namespace SillySCP.API.Features
 
         public StruggleSetting()
             : base(SettingId, "Struggle", KeyCode.E, hint: "The key bind to press when being strangled by 3114 to potentially break free.")
-        {}
+        {
+            _cooldown = new();
+        }
 
         protected override CustomSetting CreateDuplicate() => new StruggleSetting();
 
