@@ -46,7 +46,7 @@ namespace SillySCP.API.Features
             if (!player.HasEffect<Strangled>() || !_cooldown.IsReady) return;
             _cooldown.Trigger(0.1f);
             (float percentage, Display display) val = StranglePercentage[player];
-            val.percentage += 2f;
+            val.percentage += 5f;
             if(val.percentage >= 100)
             {
                 Exiled.API.Features.Player skeleton = Exiled.API.Features.Player.Get(RoleTypeId.Scp3114).First();
@@ -56,7 +56,7 @@ namespace SillySCP.API.Features
                 strangle._rpcType = Scp3114Strangle.RpcType.AttackInterrupted;
                 strangle.ServerSendRpc(true);
                 Remove(player);
-                skeleton.EnableEffect(EffectType.Disabled, duration:5);
+                skeleton.EnableEffect(EffectType.Disabled, 2, 5);
                 skeleton.PlayShieldBreakSound();
                 return;
             }
