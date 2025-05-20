@@ -5,6 +5,7 @@ using InventorySystem.Items.Firearms.Modules;
 using LabApi.Events.Arguments.PlayerEvents;
 using PlayerRoles;
 using PlayerRoles.PlayableScps.Scp3114;
+using PlayerRoles.Subroutines;
 using RueI.Displays;
 using RueI.Elements;
 using RueI.Extensions;
@@ -35,9 +36,13 @@ namespace SillySCP.API.Features
 
         private static readonly Dictionary<Player, (float percentage, Display display)> StranglePercentage = new ();
 
+        private AbilityCooldown _cooldown;
+        
         protected override void HandleSettingUpdate(Player player)
         {
-            if (!player.HasEffect<Strangled>()) return;
+            if (StranglePercentage.ContainsKey(player) && !player.HasEffect<Strangled>()) Remove(player);
+            if (!player.HasEffect<Strangled>() || !_cooldown.IsReady) return;
+            _cooldown.Trigger(0.1f);
             (float percentage, Display display) val = StranglePercentage[player];
             val.percentage += 2f;
             if(val.percentage >= 100)
