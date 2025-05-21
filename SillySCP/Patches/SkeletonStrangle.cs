@@ -21,6 +21,9 @@ namespace SillySCP.Patches
                 if(!pair.Value.TryGetFirst(sett => sett.GetType() == typeof(StruggleSetting), out CustomSetting setting)) continue;
                 if(setting is not StruggleSetting struggle) continue;
                 if(!pair.Key.HasEffect<Strangled>() && struggle.Display.Elements.Contains(StruggleSetting.Element)) struggle.Display.Delete();
+                if (!pair.Key.HasEffect<Strangled>() || struggle.Display.Elements.Contains(StruggleSetting.Element)) continue;
+                struggle.Display.Elements.Add(StruggleSetting.Element);
+                struggle.Display.Update();
             }
 
             return true;
