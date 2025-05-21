@@ -29,7 +29,7 @@ namespace SillySCP.Patches
                     continue;
                 }
                 if (!pair.Key.HasEffect<Strangled>() || (struggle.Display?.Elements.Contains(StruggleSetting.Element) ?? false)) continue;
-                if(struggle.Display == null) struggle.Display = new (pair.Key.ReferenceHub);
+                struggle.Display ??= new(pair.Key.ReferenceHub);
                 struggle.Display.Elements.Add(StruggleSetting.Element);
                 struggle.Display.Update();
             }
