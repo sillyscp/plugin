@@ -2,6 +2,7 @@
 using Exiled.API.Enums;
 using Exiled.API.Features;
 using InventorySystem.Items.Firearms.Modules;
+using JetBrains.Annotations;
 using LabApi.Events.Arguments.PlayerEvents;
 using PlayerRoles;
 using PlayerRoles.PlayableScps.Scp3114;
@@ -39,7 +40,7 @@ namespace SillySCP.API.Features
 
         private float _percentage;
 
-        internal Display Display;
+        [CanBeNull] internal Display Display;
 
         private readonly AbilityCooldown _cooldown;
         
