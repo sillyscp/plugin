@@ -1,9 +1,6 @@
 ﻿using CustomPlayerEffects;
-using Exiled.API.Features;
 using HarmonyLib;
 using PlayerRoles.PlayableScps.Scp3114;
-using PlayerRoles.Subroutines;
-using RueI.Displays;
 using SecretAPI.Features.UserSettings;
 using SillySCP.API.Features;
 using Utils.NonAllocLINQ;
@@ -11,14 +8,13 @@ using Player = LabApi.Features.Wrappers.Player;
 
 namespace SillySCP.Patches
 {
-    [HarmonyPatch(typeof(SubroutineBase), nameof(SubroutineBase.ServerSendRpc), typeof(bool))]
+    [HarmonyPatch(typeof(Scp3114Strangle), nameof(Scp3114Strangle._rpcType), MethodType.Setter)]
     public static class SkeletonStrangle
     {
 #pragma warning disable SA1313
-        private static bool Prefix(SubroutineBase __instance)
+        private static bool Prefix()
 #pragma warning restore SA1313
         {
-            if (__instance is not Scp3114Strangle) return true;
             foreach (KeyValuePair<Player, List<CustomSetting>> pair in CustomSetting.PlayerSettings)
             {
                 if(!pair.Value.TryGetFirst(sett => sett.GetType() == typeof(StruggleSetting), out CustomSetting setting)) continue;
@@ -29,6 +25,7 @@ namespace SillySCP.Patches
                     continue;
                 }
                 if (!pair.Key.HasEffect<Strangled>() || (struggle.Display?.Elements.Contains(StruggleSetting.Element) ?? false)) continue;
+                struggle.Percentage = 0;
                 struggle.Display ??= new(pair.Key.ReferenceHub);
                 struggle.Display.Elements.Add(StruggleSetting.Element);
                 struggle.Display.Update();

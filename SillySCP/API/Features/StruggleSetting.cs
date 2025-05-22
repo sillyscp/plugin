@@ -31,14 +31,14 @@ namespace SillySCP.API.Features
             : base(SettingId, "Struggle", KeyCode.E, hint: "The key bind to press when being strangled by 3114 to potentially break free.")
         {
             _cooldown = new();
-            _percentage = 0;
+            Percentage = 0;
         }
 
         protected override CustomSetting CreateDuplicate() => new StruggleSetting();
 
         public override CustomHeader Header { get; } = SSSSModule.Header;
 
-        private float _percentage;
+        internal float Percentage;
 
         [CanBeNull] internal Display Display;
 
@@ -48,8 +48,8 @@ namespace SillySCP.API.Features
         {
             if (!player.HasEffect<Strangled>() || !_cooldown.IsReady) return;
             _cooldown.Trigger(0.1f);
-            _percentage += 5f;
-            if(_percentage >= 100)
+            Percentage += 5f;
+            if(Percentage >= 100)
             {
                 Exiled.API.Features.Player skeleton = Exiled.API.Features.Player.Get(RoleTypeId.Scp3114).First();
                 Scp3114Role role = (Scp3114Role)skeleton.Role;
