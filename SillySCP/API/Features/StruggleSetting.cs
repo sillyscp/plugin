@@ -48,10 +48,20 @@ namespace SillySCP.API.Features
         {
             if (!player.HasEffect<Strangled>() || !_cooldown.IsReady) return;
             _cooldown.Trigger(0.1f);
-            Percentage += 5f;
+            Percentage += 4f;
             if(Percentage >= 100)
             {
-                Exiled.API.Features.Player skeleton = Exiled.API.Features.Player.Get(RoleTypeId.Scp3114).First();
+                Exiled.API.Features.Player skeleton = Exiled.API.Features.Player.Get(RoleTypeId.Scp3114).FirstOrDefault(skele =>
+                {
+                    Scp3114Role role = (Scp3114Role)skele.Role;
+                    role.SubroutineModule.TryGetSubroutine(out Scp3114Strangle strang);
+                    return strang.SyncTarget.HasValue && strang.SyncTarget.Value.Target == player.ReferenceHub;
+                });
+                if(skeleton == null)
+                {
+                    player.DisableEffect<Strangled>();
+                    return;
+                }
                 Scp3114Role role = (Scp3114Role)skeleton.Role;
                 role.SubroutineModule.TryGetSubroutine(out Scp3114Strangle strangle);
                 strangle.SyncTarget = null;
@@ -68,7 +78,7 @@ namespace SillySCP.API.Features
         private static string HintContent(DisplayCore core)
         {
             StruggleSetting setting = GetPlayerSetting<StruggleSetting>(SettingId, Player.Get(core.Hub));
-            return setting == null ? "" : $"{Hint}\n{setting._percentage}%";
+            return setting == null ? "" : $"{Hint}\n{setting.Percentage}%";
         }
     }
 }
