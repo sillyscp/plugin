@@ -67,11 +67,21 @@ namespace SillySCP.API.Features
                 strangle.SyncTarget = null;
                 strangle._rpcType = Scp3114Strangle.RpcType.AttackInterrupted;
                 strangle.ServerSendRpc(true);
+                player.DisableEffect<Strangled>();
+                Reset();
                 skeleton.EnableEffect(EffectType.Disabled, 2, 5);
                 skeleton.PlayShieldBreakSound();
                 return;
             }
             Display ??= new(player.ReferenceHub);
+            Display.Update();
+        }
+
+        internal void Reset()
+        {
+            if (Display == null) return;
+            Percentage = 0;
+            Display.Elements.Clear();
             Display.Update();
         }
 
