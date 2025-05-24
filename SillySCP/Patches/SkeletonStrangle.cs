@@ -1,6 +1,7 @@
 ﻿using CustomPlayerEffects;
 using Exiled.API.Features;
 using HarmonyLib;
+using LabApi.Features.Wrappers;
 using PlayerRoles.PlayableScps.Scp3114;
 using PlayerRoles.Subroutines;
 using RueI.Elements;
@@ -28,6 +29,13 @@ namespace SillySCP.Patches
                 if (elemCount == 1)
                 {
                     return;
+                }
+
+                if (player.CurrentItem is UsableItem { IsUsing: true })
+                {
+                    ItemType itemType = player.CurrentItem.Type;
+                    player.RemoveItem(player.CurrentItem);
+                    player.AddItem(itemType);
                 }
                 setting.Percentage = 0;
                 setting.Display ??= new(player.ReferenceHub);
