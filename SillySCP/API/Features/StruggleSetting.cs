@@ -77,7 +77,7 @@ namespace SillySCP.API.Features
             Display.Update();
         }
 
-        internal void Reset()
+        private void Reset()
         {
             if (Display == null) return;
             Percentage = 0;
@@ -89,6 +89,25 @@ namespace SillySCP.API.Features
         {
             StruggleSetting setting = GetPlayerSetting<StruggleSetting>(SettingId, Player.Get(core.Hub));
             return setting == null ? "" : $"{Hint}\n{setting.Percentage}%";
+        }
+
+        private static Player GetFirstStrangled()
+        {
+            return Player.List.FirstOrDefault(player =>
+            {
+                if (player.HasEffect<Strangled>()) return false;
+                StruggleSetting setting = GetPlayerSetting<StruggleSetting>(SettingId, player);
+                if (setting == null) return false;
+                return setting.Display?.Elements.Count == 1;
+            });
+        }
+
+        internal static void RemoveFromFirst()
+        {
+            Player player = GetFirstStrangled();
+            if (player == null) return;
+            StruggleSetting setting = GetPlayerSetting<StruggleSetting>(SettingId, player)!;
+            setting.Reset();
         }
     }
 }

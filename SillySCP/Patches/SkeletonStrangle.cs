@@ -44,16 +44,7 @@ namespace SillySCP.Patches
             }
             else
             {
-                Player player = Player.List.FirstOrDefault(play =>
-                {
-                    if (play.HasEffect<Strangled>()) return false;
-                    StruggleSetting setting = CustomSetting.GetPlayerSetting<StruggleSetting>(StruggleSetting.SettingId, play);
-                    if (setting == null) return false;
-                    return setting.Display?.Elements.Count == 1;
-                });
-                if (player == null) return;
-                StruggleSetting setting = CustomSetting.GetPlayerSetting<StruggleSetting>(StruggleSetting.SettingId, player)!;
-                setting.Reset();
+                StruggleSetting.RemoveFromFirst();
             }
         }
     }
