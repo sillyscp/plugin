@@ -32,13 +32,22 @@ namespace SillySCP.Handlers
 
         private void OnJailbirdSwing(SwingingEventArgs ev)
         {
-            AudioPlayer audioPlayer = AudioPlayer.CreateOrGet($"Jailbird {ev.Player.Nickname}", onIntialCreation: (p) =>
-            {
-                p.transform.parent = ev.Player.Transform;
-                Speaker speaker = p.AddSpeaker("Jailbird Speaker", isSpatial: true, minDistance: 5f, maxDistance: 15f);
-                speaker.transform.parent = ev.Player.Transform;
-                speaker.transform.localPosition = Vector3.zero;
-            });
+            AudioPlayer audioPlayer = AudioPlayer.CreateOrGet($"Jailbird {ev.Player.Nickname}", 
+                condition: hub =>
+                    {
+                        LabApi.Features.Wrappers.Player player = LabApi.Features.Wrappers.Player.Get(hub);
+                        if (player == null) return true;
+                        JailbirdSetting setting = CustomSetting.GetPlayerSetting<JailbirdSetting>(JailbirdSetting.SettingId, player);
+                        return setting == null || setting.IsDefault;
+                    }, 
+                onIntialCreation: (p) =>
+                    {
+                        p.transform.parent = ev.Player.Transform;
+                        Speaker speaker = p.AddSpeaker("Jailbird Speaker", isSpatial: true, minDistance: 5f, maxDistance: 15f);
+                        speaker.transform.parent = ev.Player.Transform;
+                        speaker.transform.localPosition = Vector3.zero;
+                    }
+            );
         }
 
         private void OnVerified(VerifiedEventArgs ev)
