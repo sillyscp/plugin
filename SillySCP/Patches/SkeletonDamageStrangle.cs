@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using PlayerRoles.PlayableScps.Scp3114;
 using SillySCP.API.Features;
+using SillySCP.API.Settings;
 
 namespace SillySCP.Patches
 {

@@ -17,7 +17,7 @@ using Display = RueI.Displays.Display;
 using Player = LabApi.Features.Wrappers.Player;
 using Scp3114Role = Exiled.API.Features.Roles.Scp3114Role;
 
-namespace SillySCP.API.Features
+namespace SillySCP.API.Settings
 {
     public class StruggleSetting : CustomKeybindSetting
     {

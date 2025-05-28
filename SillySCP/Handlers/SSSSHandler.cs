@@ -1,8 +1,10 @@
-﻿using Exiled.Events.EventArgs.Player;
+﻿using Exiled.Events.EventArgs.Item;
+using Exiled.Events.EventArgs.Player;
 using SecretAPI.Features.UserSettings;
-using SillySCP.API.Features;
 using SillySCP.API.Interfaces;
 using SillySCP.API.Modules;
+using SillySCP.API.Settings;
+using UnityEngine;
 using UserSettings.ServerSpecific;
 
 namespace SillySCP.Handlers
@@ -14,12 +16,29 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.Verified += OnVerified;
             ServerSpecificSettingsSync.ServerOnSettingValueReceived += SettingRecieved;
             
-            CustomSetting.Register(new ExclusiveColorSetting(), new StruggleSetting());
+            CustomSetting.Register(new ExclusiveColorSetting(), new StruggleSetting(), new JailbirdSetting());
+            
+            // jailbird handler
+
+            Exiled.Events.Handlers.Item.Swinging += OnJailbirdSwing;
         }
         
         public void Unregister()
         {
             Exiled.Events.Handlers.Player.Verified -= OnVerified;
+            
+            Exiled.Events.Handlers.Item.Swinging -= OnJailbirdSwing;
+        }
+
+        private void OnJailbirdSwing(SwingingEventArgs ev)
+        {
+            AudioPlayer audioPlayer = AudioPlayer.CreateOrGet($"Jailbird {ev.Player.Nickname}", onIntialCreation: (p) =>
+            {
+                p.transform.parent = ev.Player.Transform;
+                Speaker speaker = p.AddSpeaker("Jailbird Speaker", isSpatial: true, minDistance: 5f, maxDistance: 15f);
+                speaker.transform.parent = ev.Player.Transform;
+                speaker.transform.localPosition = Vector3.zero;
+            });
         }
 
         private void OnVerified(VerifiedEventArgs ev)
