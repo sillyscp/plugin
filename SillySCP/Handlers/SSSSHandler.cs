@@ -3,6 +3,7 @@ using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Exiled.Events.EventArgs.Item;
 using Exiled.Events.EventArgs.Player;
+using LabApi.Events.Arguments.PlayerEvents;
 using PlayerRoles.PlayableScps.Scp079.Cameras;
 using SecretAPI.Features.UserSettings;
 using SillySCP.API.Interfaces;
@@ -10,6 +11,7 @@ using SillySCP.API.Modules;
 using SillySCP.API.Settings;
 using UnityEngine;
 using UserSettings.ServerSpecific;
+using VoiceChat;
 using Camera = Exiled.API.Features.Camera;
 
 namespace SillySCP.Handlers
@@ -21,7 +23,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.Verified += OnVerified;
             ServerSpecificSettingsSync.ServerOnSettingValueReceived += SettingRecieved;
             
-            CustomSetting.Register(new ExclusiveColorSetting(), new StruggleSetting(), new JailbirdSetting());
+            CustomSetting.Register(new ExclusiveColorSetting(), new StruggleSetting(), new JailbirdSetting(), new IntercomSetting());
             
             // jailbird handler
 
@@ -33,6 +35,9 @@ namespace SillySCP.Handlers
             AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "kali 2.ogg"), "meow 2");
             AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "cyn 1.ogg"), "meow 3");
             AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "cyn 2.ogg"), "meow 4");
+
+            // intercom handler
+            LabApi.Events.Handlers.PlayerEvents.ReceivingVoiceMessage += OnReceivingVoiceMessage;
         }
         
         public void Unregister()
@@ -40,6 +45,16 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.Verified -= OnVerified;
             
             Exiled.Events.Handlers.Item.Swinging -= OnJailbirdSwing;
+            
+            LabApi.Events.Handlers.PlayerEvents.ReceivingVoiceMessage -= OnReceivingVoiceMessage;
+        }
+
+        private void OnReceivingVoiceMessage(PlayerReceivingVoiceMessageEventArgs ev)
+        {
+            if (ev.Message.Channel != VoiceChatChannel.Intercom) return;
+            IntercomSetting setting = CustomSetting.GetPlayerSetting<IntercomSetting>(IntercomSetting.SettingId, ev.Player);
+            if (setting == null) return;
+            ev.IsAllowed = setting.IsOptionA;
         }
 
         private void OnJailbirdEvent(Exiled.API.Features.Player player)
