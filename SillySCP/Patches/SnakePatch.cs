@@ -7,7 +7,6 @@ using InventorySystem.Items.Keycards;
 using InventorySystem.Items.Keycards.Snake;
 using static HarmonyLib.AccessTools;
 using MEC;
-using Mirror;
 
 namespace SillySCP.Patches
 {

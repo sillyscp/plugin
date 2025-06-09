@@ -3,7 +3,7 @@ using LabApi.Features.Wrappers;
 using SecretAPI.Features.UserSettings;
 using SillySCP.API.Modules;
 
-namespace SillySCP.API.Features
+namespace SillySCP.API.Settings
 {
     public class ExclusiveColorSetting : CustomDropdownSetting
     {

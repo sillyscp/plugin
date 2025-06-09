@@ -1,13 +1,8 @@
-﻿using CustomPlayerEffects;
-using Exiled.API.Features;
-using HarmonyLib;
+﻿using HarmonyLib;
 using LabApi.Features.Wrappers;
 using PlayerRoles.PlayableScps.Scp3114;
-using PlayerRoles.Subroutines;
-using RueI.Elements;
 using SecretAPI.Features.UserSettings;
-using SillySCP.API.Features;
-using Utils.NonAllocLINQ;
+using SillySCP.API.Settings;
 using Player = LabApi.Features.Wrappers.Player;
 
 namespace SillySCP.Patches

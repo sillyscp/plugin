@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using Hints;
 using RueI;
-using SillySCP.API.Features;
+using SillySCP.API.Settings;
 
 namespace SillySCP.Patches
 {

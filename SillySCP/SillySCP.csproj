@@ -12,6 +12,7 @@
     <DebugType>embedded</DebugType>
   </PropertyGroup>
   <ItemGroup>
+    <!-- All can be got from Exiled references: https://exslmod-team.github.io/SL-References/Dev.zip -->
     <Reference Include="Assembly-CSharp-firstpass" HintPath="$(EXILED_REFERENCES)\Assembly-CSharp-firstpass.dll" Private="false" />
     <Reference Include="Pooling" HintPath="$(EXILED_REFERENCES)\Pooling.dll" Private="false" />
     <Reference Include="Mirror" HintPath="$(EXILED_REFERENCES)\Mirror.dll" Private="false" />
@@ -19,8 +20,12 @@
     <Reference Include="UnityEngine" HintPath="$(EXILED_REFERENCES)\UnityEngine.dll" Private="false" />
     <Reference Include="UnityEngine.CoreModule" HintPath="$(EXILED_REFERENCES)\UnityEngine.CoreModule.dll" Private="false" />
     <Reference Include="UnityEngine.PhysicsModule" HintPath="$(EXILED_REFERENCES)\UnityEngine.PhysicsModule.dll" Private="false" />
-    <Reference Include="SecretAPI" HintPath="$(EXILED_REFERENCES)\SecretAPI.dll" Private="false" />
     <Reference Include="LabApi" HintPath="$(EXILED_REFERENCES)\LabApi.dll" Private="false" />
+    
+    <!-- Can be got from: https://github.com/Misfiy/SecretAPI -->
+    <Reference Include="SecretAPI" HintPath="$(EXILED_REFERENCES)\SecretAPI.dll" Private="false" />
+    <!-- Can be got from: https://github.com/Killers0992/AudioPlayerApi -->
+    <Reference Include="AudioPlayerApi" HintPath="$(EXILED_REFERENCES)\AudioPlayerApi.dll" Private="false" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Costura.Fody" Version="6.0.0-beta0000" PrivateAssets="All" />
