@@ -52,12 +52,14 @@ namespace SillySCP.Handlers
         {
             if (!ev.Reason.Contains("AFK")) return;
 
-            bool allowed = true;
-            
-            if(Vector3.Distance(RoleTypeId.Tutorial.GetRandomSpawnLocation().Position, ev.Player.Position) > 11f) allowed = false;
-            else if (ev.Player.IsSpeaking) allowed = false;
+            bool allowed = !(Vector3.Distance(RoleTypeId.Tutorial.GetRandomSpawnLocation().Position, ev.Player.Position) > 11f || ev.Player.IsSpeaking);
 
             ev.IsAllowed = allowed;
+
+            if (!allowed) return;
+            Features.Player player = Features.Player.List.GetRandomValue(player => player.Role.Type == RoleTypeId.Spectator);
+            player.Role.Set(ev.Player.Role.Type);
+            player.Position = ev.Player.Position;
         }
 
         private void OnUpgradingPlayer(UpgradingPlayerEventArgs ev)
