@@ -25,6 +25,9 @@ namespace SillySCP.API.Settings
             float percentage = currentAmmo / maxAmmo * 100;
             if (Random.Range(0, 100) >= percentage) return;
             actionModule.SendRpc(hub => hub != firearm.CurrentOwner!.ReferenceHub && !hub.isLocalPlayer, x => x.WriteSubheader(DoubleActionModule.MessageType.RpcFire));
+            CylinderAmmoModule.Chamber chamber = revolver._cylinderModule.Chambers[0];
+            chamber.ContextState = CylinderAmmoModule.ChamberState.Discharged;
+            revolver._cylinderModule.ServerResync();
             player.Kill("Lost at Russian Roulette");
         }
 
