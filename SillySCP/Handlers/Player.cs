@@ -58,6 +58,7 @@ namespace SillySCP.Handlers
 
             if (!allowed) return;
             Features.Player player = Features.Player.List.GetRandomValue(player => player.Role.Type == RoleTypeId.Spectator);
+            if(player == null) return;
             player.Role.Set(ev.Player.Role.Type);
             player.Position = ev.Player.Position;
         }
