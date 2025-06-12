@@ -54,7 +54,7 @@ namespace SillySCP.Handlers
             if (ev.Message.Channel != VoiceChatChannel.Intercom) return;
             IntercomSetting setting = CustomSetting.GetPlayerSetting<IntercomSetting>(IntercomSetting.SettingId, ev.Player);
             if (setting == null) return;
-            ev.IsAllowed = setting.IsOptionA;
+            ev.IsAllowed = setting.IsOptionB;
         }
 
         private void OnJailbirdEvent(Exiled.API.Features.Player player)
