@@ -23,7 +23,7 @@ namespace SillySCP.Handlers
             Exiled.Events.Handlers.Player.Verified += OnVerified;
             ServerSpecificSettingsSync.ServerOnSettingValueReceived += SettingRecieved;
             
-            CustomSetting.Register(new ExclusiveColorSetting(), new StruggleSetting(), new JailbirdSetting(), new IntercomSetting());
+            CustomSetting.Register(new ExclusiveColorSetting(), new StruggleSetting(), new JailbirdSetting(), new IntercomSetting(), new RussianRoulette());
             
             // jailbird handler
 
