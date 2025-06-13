@@ -1,29 +1,40 @@
 ﻿using CommandSystem;
-using Exiled.API.Extensions;
-using Exiled.API.Features;
+using LabApi.Features.Stores;
+using LabApi.Features.Wrappers;
 using PlayerRoles;
+using SecretAPI.Extensions;
+using UnityEngine;
 
 namespace SillySCP.Commands
 {
+    public class DataStore : CustomDataStore
+    {
+        public DataStore(Player player)
+            : base(player)
+        {}
+        
+        public Vector3? Position { get; set; }
+    }
+    
     [CommandHandler(typeof(RemoteAdminCommandHandler))]
     public class TowerSit : ICommand
     {
-        
         private void AddPlayer(Player player)
         {
-            player.SessionVariables.Add("pre_sit_position",player.Position);
+            player.GetDataStore<DataStore>().Position = player.Position;
             player.IsGodModeEnabled = true;
-            if (player.IsScp)
+            if (player.IsSCP)
             {
-                player.Broadcast(10,"If you go to Settings, Server-specific, you can set a bind for proximity chat");
+                player.SendBroadcast("If you go to Settings, Server-specific, you can set a bind for proximity chat",10);
             }
-            player.Teleport(RoleTypeId.Tutorial.GetRandomSpawnLocation());
+            RoleTypeId.Tutorial.GetRandomSpawnPosition(out Vector3 position, out float _);
+            player.Position = position;
         }
         private static bool RestorePlayer(Player player)
         {
-            if (!player.SessionVariables.TryGetValue("pre_sit_position", out var position)) return false; // would use Vector3 but it won't let me 
-            player.Teleport(position);
-            player.SessionVariables.Remove("pre_sit_position");
+            DataStore store = player.GetDataStore<DataStore>();
+            player.Position = (Vector3)store.Position!;
+            store.Position = null;
             player.IsGodModeEnabled = false;
             return true;
         }
@@ -56,7 +67,7 @@ namespace SillySCP.Commands
                 return false;
             }
 
-            if (player.IsDead)
+            if (!player.IsAlive)
             {
                 response = "Player is dead!";
                 return false;
@@ -65,7 +76,7 @@ namespace SillySCP.Commands
             switch (arguments.At(0))
             {
                 case "add":
-                    if (player.SessionVariables.ContainsKey("pre_sit_position"))
+                    if (player.GetDataStore<DataStore>().Position != null)
                     {
                         response = "Player already has a return position!";
                         return false;

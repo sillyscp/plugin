@@ -1,5 +1,5 @@
 ﻿using CommandSystem;
-using Exiled.API.Features;
+using LabApi.Features.Wrappers;
 
 namespace SillySCP.Commands
 {
@@ -20,7 +20,7 @@ namespace SillySCP.Commands
                 return false;
             }
             Player player = Player.Get(sender);
-            response = $"{player.CurrentRoom.LocalPosition(player.Position).ToString()}, current room: {player.CurrentRoom}";
+            response = $"{player?.Room?.Transform.InverseTransformPoint(player.Position).ToString()}, current room: {player.Room}";
             return true;
         }
     }

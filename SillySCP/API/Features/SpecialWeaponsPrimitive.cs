@@ -1,7 +1,8 @@
-﻿using Exiled.API.Features;
-using Exiled.API.Features.Toys;
+﻿using AdminToys;
+using LabApi.Features.Wrappers;
 using SillySCP.API.Components;
 using UnityEngine;
+using PrimitiveObjectToy = LabApi.Features.Wrappers.PrimitiveObjectToy;
 
 namespace SillySCP.API.Features
 {
@@ -25,9 +26,10 @@ namespace SillySCP.API.Features
 
         public void Spawn()
         {
-            Primitive primitive = Primitive.Create(PrimitiveType.Cube, Room.WorldPosition(LocalPosition), Room.Rotation.eulerAngles + RotationOffset, Size);
-            primitive.Visible = false;
-            primitive.Collidable = false;
+            PrimitiveObjectToy primitive = PrimitiveObjectToy.Create(Room.Transform.TransformPoint(LocalPosition), Quaternion.Euler(Room.Rotation.eulerAngles + RotationOffset), Size, networkSpawn:false);
+            primitive.Type = PrimitiveType.Cube;
+            primitive.Spawn();
+            primitive.Flags = PrimitiveFlags.None;
             primitive.GameObject.AddComponent<CheckVoid>();
             BoxCollider collider = primitive.GameObject.AddComponent<BoxCollider>();
             collider.isTrigger = true;

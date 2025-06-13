@@ -1,21 +1,16 @@
 ﻿using CustomPlayerEffects;
-using Exiled.API.Enums;
-using Exiled.API.Features;
-using InventorySystem.Items.Firearms.Modules;
 using JetBrains.Annotations;
-using LabApi.Events.Arguments.PlayerEvents;
 using PlayerRoles;
 using PlayerRoles.PlayableScps.Scp3114;
 using PlayerRoles.Subroutines;
 using RueI.Displays;
 using RueI.Elements;
-using RueI.Extensions;
 using SecretAPI.Features.UserSettings;
 using SillySCP.API.Modules;
 using UnityEngine;
+using Utils.Networking;
 using Display = RueI.Displays.Display;
 using Player = LabApi.Features.Wrappers.Player;
-using Scp3114Role = Exiled.API.Features.Roles.Scp3114Role;
 
 namespace SillySCP.API.Settings
 {
@@ -28,7 +23,7 @@ namespace SillySCP.API.Settings
         internal static readonly DynamicElement Element = new (HintContent, 300);
 
         public StruggleSetting()
-            : base(SettingId, "Struggle", KeyCode.E, hint: "The key bind to press when being strangled by 3114 to potentially break free.")
+            : base(SettingId, "Struggle", KeyCode.E, true, false, "The key bind to press when being strangled by 3114 to potentially break free.")
         {
             _cooldown = new();
             Percentage = 0;
@@ -51,9 +46,9 @@ namespace SillySCP.API.Settings
             Percentage += 4f;
             if(Percentage >= 100)
             {
-                Exiled.API.Features.Player skeleton = Exiled.API.Features.Player.Get(RoleTypeId.Scp3114).FirstOrDefault(skele =>
+                Player skeleton = Player.List.FirstOrDefault(skele =>
                 {
-                    Scp3114Role role = (Scp3114Role)skele.Role;
+                    if (skele.RoleBase is not Scp3114Role role) return false;
                     role.SubroutineModule.TryGetSubroutine(out Scp3114Strangle strang);
                     return strang.SyncTarget.HasValue && strang.SyncTarget.Value.Target == player.ReferenceHub;
                 });
@@ -62,15 +57,16 @@ namespace SillySCP.API.Settings
                     player.DisableEffect<Strangled>();
                     return;
                 }
-                Scp3114Role role = (Scp3114Role)skeleton.Role;
+                Scp3114Role role = (Scp3114Role)skeleton.RoleBase;
                 role.SubroutineModule.TryGetSubroutine(out Scp3114Strangle strangle);
                 strangle.SyncTarget = null;
                 strangle._rpcType = Scp3114Strangle.RpcType.AttackInterrupted;
                 strangle.ServerSendRpc(true);
                 player.DisableEffect<Strangled>();
                 Reset();
-                skeleton.EnableEffect(EffectType.Disabled, 2, 5);
-                skeleton.PlayShieldBreakSound();
+                skeleton.EnableEffect<Disabled>(2, 5);
+                new PlayerRoles.PlayableScps.HumeShield.DynamicHumeShieldController.ShieldBreakMessage { Target = skeleton.ReferenceHub }
+                    .SendToAuthenticated();
                 return;
             }
             Display ??= new(player.ReferenceHub);

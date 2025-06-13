@@ -1,7 +1,6 @@
 ﻿using CommandSystem;
-using Exiled.API.Enums;
-using Exiled.API.Extensions;
-using Exiled.API.Features;
+using LabApi.Features.Extensions;
+using LabApi.Features.Wrappers;
 using PlayerRoles;
 using PlayerRoles.RoleAssign;
 using SillySCP.API.Features;
@@ -31,13 +30,13 @@ namespace SillySCP.Commands
             
             Player.TryGet(sender, out Player player);
             
-            if (!player.IsScp)
+            if (!player.IsSCP)
             {
                 response = "Only SCPs can use this command!";
                 return false;
             }
 
-            if (player.Role.Type == RoleTypeId.Scp0492)
+            if (player.Role == RoleTypeId.Scp0492)
             {
                 response = "You can not change into a human as SCP-049-2!";
                 return false;
@@ -45,7 +44,7 @@ namespace SillySCP.Commands
             
             RoleTypeId role = HumanSpawner.NextHumanRoleToSpawn;
             VolunteerSystem.NewVolunteer(player.Role);
-            player.Role.Set(role, SpawnReason.None);
+            player.Role = role;
             response = $"You have been changed into {role.GetFullName()}!";
             return true;
         }

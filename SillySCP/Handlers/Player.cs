@@ -1,75 +1,89 @@
 ﻿using CustomPlayerEffects;
-using Exiled.API.Enums;
-using Exiled.API.Extensions;
-using Exiled.API.Features;
-using Exiled.API.Features.Roles;
-using Exiled.Events.EventArgs.Player;
-using Exiled.Events.EventArgs.Scp330;
-using Exiled.Events.EventArgs.Scp914;
-using InventorySystem.Items.Usables.Scp330;
-using MEC;
+using LabApi.Events.Arguments.PlayerEvents;
+using LabApi.Events.Arguments.Scp914Events;
+using LabApi.Events.Handlers;
+using LabApi.Features.Extensions;
+using LabApi.Features.Wrappers;
+using MapGeneration;
 using PlayerRoles;
 using Scp914;
+using SecretAPI.Extensions;
+using SecretAPI.Features;
+using SillySCP.API.Extensions;
 using SillySCP.API.Features;
-using SillySCP.API.Interfaces;
 using SillySCP.API.Modules;
 using UnityEngine;
-using Features = Exiled.API.Features;
 using Random = UnityEngine.Random;
 
 namespace SillySCP.Handlers
 {
-    public class Player : IRegisterable
+    public class Player : IRegister
     {
         public static Player Instance { get; private set; }
         
-        public void Init()
+        public void TryRegister()
         {
             Instance = this;
-            Exiled.Events.Handlers.Player.Spawned += OnSpawned;
-            Exiled.Events.Handlers.Player.Died += ScpDeathHandler;
-            Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
-            Exiled.Events.Handlers.Scp914.UpgradingPlayer += OnUpgradingPlayer;
-            Exiled.Events.Handlers.Scp914.UpgradingInventoryItem += OnScp914UpgradeInv;
-            Exiled.Events.Handlers.Player.Escaping += OnEscaping;
-            Exiled.Events.Handlers.Player.UsingItemCompleted += OnUsingItemCompleted;
-            Exiled.Events.Handlers.Player.Kicking += OnKickingPlayer;
+            PlayerEvents.Spawned += OnSpawned;
+            PlayerEvents.Dying += ScpDeathHandler;
+            Scp914Events.ProcessingPlayer += OnUpgradingPlayer;
+            Scp914Events.ProcessingInventoryItem += OnScp914UpgradeInv;
+            PlayerEvents.Escaping += OnEscaping;
+            PlayerEvents.Kicking += OnKickingPlayer;
+            
+            PlayerEvents.Death += OnDeath;
+            PlayerEvents.ChangedSpectator += OnChangedSpectator;
         }
 
-        public void Unregister()
+        public void TryUnregister()
         {
-            Exiled.Events.Handlers.Player.Spawned -= OnSpawned;
-            Exiled.Events.Handlers.Player.Died -= ScpDeathHandler;
-            Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
-            Exiled.Events.Handlers.Scp914.UpgradingPlayer -= OnUpgradingPlayer;
-            Exiled.Events.Handlers.Scp914.UpgradingInventoryItem -= OnScp914UpgradeInv;
-            Exiled.Events.Handlers.Player.Escaping -= OnEscaping;
-            Exiled.Events.Handlers.Player.UsingItemCompleted -= OnUsingItemCompleted;
-            Exiled.Events.Handlers.Player.Kicking -= OnKickingPlayer;
+            PlayerEvents.Spawned -= OnSpawned;
+            PlayerEvents.Dying -= ScpDeathHandler;
+            Scp914Events.ProcessingPlayer -= OnUpgradingPlayer;
+            Scp914Events.ProcessingInventoryItem -= OnScp914UpgradeInv;
+            PlayerEvents.Escaping -= OnEscaping;
+            PlayerEvents.Kicking -= OnKickingPlayer;
+            
+            PlayerEvents.Death -= OnDeath;
+            PlayerEvents.ChangedSpectator -= OnChangedSpectator;
         }
 
-        private void OnKickingPlayer(KickingEventArgs ev)
+        private void OnDeath(PlayerDeathEventArgs ev)
+        {
+            PlayerStat stat = ev.Player.FindOrCreatePlayerStat();
+            stat.SpectatingKillsDisplay.Update();
+        }
+
+        private void OnChangedSpectator(PlayerChangedSpectatorEventArgs ev)
+        {
+            PlayerStat stat = ev.Player.FindOrCreatePlayerStat();
+            stat.SpectatingKillsDisplay.Update();
+        }
+
+        private void OnKickingPlayer(PlayerKickingEventArgs ev)
         {
             if (!ev.Reason.Contains("AFK")) return;
 
-            bool allowed = !(Vector3.Distance(RoleTypeId.Tutorial.GetRandomSpawnLocation().Position, ev.Player.Position) > 11f || ev.Player.IsSpeaking);
+            RoleTypeId.Tutorial.GetRandomSpawnPosition(out Vector3 position, out float _);
+            
+            bool allowed = !(Vector3.Distance(position, ev.Player.Position) > 11f || ev.Player.IsSpeaking);
 
             ev.IsAllowed = allowed;
 
             if (!allowed) return;
-            Features.Player player = Features.Player.List.GetRandomValue(player => player.Role.Type == RoleTypeId.Spectator);
+            LabApi.Features.Wrappers.Player player = LabApi.Features.Wrappers.Player.List.Where(player => player.Role == RoleTypeId.Spectator).GetRandomValue();
             if(player == null) return;
-            player.Role.Set(ev.Player.Role.Type);
+            player.Role = ev.Player.Role;
             player.Position = ev.Player.Position;
         }
 
-        private void OnUpgradingPlayer(UpgradingPlayerEventArgs ev)
+        private void OnUpgradingPlayer(Scp914ProcessingPlayerEventArgs ev)
         {
             if (ev.KnobSetting == Scp914KnobSetting.Rough && ev.Player.CurrentItem == null)
             {
                 ev.IsAllowed = false;
-                Room randomRoom = Room.Get(ZoneType.LightContainment)
-                    .Where(r => r.Type is not RoomType.Lcz330 and not RoomType.Lcz914 and not RoomType.LczArmory and not RoomType.Lcz173)
+                Room randomRoom = Room.Get(FacilityZone.LightContainment)
+                    .Where(r => r.GameObject.GetStrippedName() is not "LCZ_330" and not "LCZ_914" and not "LCZ_Armory" and not "LCZ_173")
                     .GetRandomValue();
                 
                 ev.Player.Position = new (randomRoom.Position.x, randomRoom.Position.y + 1, randomRoom.Position.z);
@@ -77,105 +91,102 @@ namespace SillySCP.Handlers
                 {
                     if (ev.Player.Health <= 25)
                     {
-                        ev.Player.Kill(DamageType.Scp);
+                        ev.Player.Kill("Killed whilst trying to escape SCP-914...");
                         return;
                     }
-                    ev.Player.EnableEffect(EffectType.Disabled, 1, 10);
+                    ev.Player.EnableEffect<Disabled>(1, 10);
                 }
                 else
                 {
-                    ev.Player.EnableEffect(EffectType.Flashed, 1, 10);
+                    ev.Player.EnableEffect<Flashed>(1, 10);
                 }
 
                 ev.Player.Health *= 0.75f;
             }
         }
 
-        private void ScpDeathHandler(DiedEventArgs ev)
+        private void ScpDeathHandler(PlayerDyingEventArgs ev)
         {
-            if (!ev.TargetOldRole.IsScp()) return;
-            List<Features.Player> scps = Features.Player.List.Where(p => p.IsScp).ToList();
-            if (scps.Count == 1 && scps.First().Role.Type == RoleTypeId.Scp079 &&
+            if (!ev.Player.Role.IsScp()) return;
+            List<LabApi.Features.Wrappers.Player> scps = LabApi.Features.Wrappers.Player.List.Where(p => p.IsSCP).ToList();
+            if (scps.Count == 1 && scps.First().Role == RoleTypeId.Scp079 &&
                 !VolunteerSystem.ReadyVolunteers)
             {
                 Scp079Recontainment.Recontain();
             }
         }
         
-        private void OnUsingItemCompleted(UsingItemCompletedEventArgs ev)
-        {
-            Vector3 pos = ev.Player.Position;
-            StatusEffectBase effectNormal = ev.Player.GetEffect(EffectType.Scp207);
-            StatusEffectBase effectAnti = ev.Player.GetEffect(EffectType.AntiScp207);
-            if (!effectNormal.IsEnabled || effectAnti.IsEnabled) return;
-            if (ev.Item.Type == ItemType.SCP207 && effectAnti.Intensity > 1)
-            {
-                byte intensity = effectAnti.Intensity;
-                Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
-                if (intensity == 2)
-                {
-                    Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
-                }
-                else if (intensity == 3)
-                {
-                    Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
-                    Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
-                }
-            }
+        // private void OnUsingItemCompleted(PlayerItem ev)
+        // {
+        //     Vector3 pos = ev.Player.Position;
+        //     StatusEffectBase effectNormal = ev.Player.GetEffect(EffectType.Scp207);
+        //     StatusEffectBase effectAnti = ev.Player.GetEffect(EffectType.AntiScp207);
+        //     if (!effectNormal.IsEnabled || effectAnti.IsEnabled) return;
+        //     if (ev.Item.Type == ItemType.SCP207 && effectAnti.Intensity > 1)
+        //     {
+        //         byte intensity = effectAnti.Intensity;
+        //         Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
+        //         if (intensity == 2)
+        //         {
+        //             Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
+        //         }
+        //         else if (intensity == 3)
+        //         {
+        //             Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
+        //             Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
+        //         }
+        //     }
+        //
+        //     if (ev.Item.Type == ItemType.AntiSCP207 && effectNormal.Intensity > 1)
+        //     {
+        //         byte intensity = effectNormal.Intensity;
+        //         Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
+        //         if (intensity == 2)
+        //         {
+        //             Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
+        //         }
+        //         else if (intensity == 3)
+        //         {
+        //             Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
+        //             Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
+        //         }
+        //     }
+        // }
 
-            if (ev.Item.Type == ItemType.AntiSCP207 && effectNormal.Intensity > 1)
-            {
-                byte intensity = effectNormal.Intensity;
-                Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
-                if (intensity == 2)
-                {
-                    Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
-                }
-                else if (intensity == 3)
-                {
-                    Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
-                    Map.Explode(pos, ProjectileType.FragGrenade, ev.Player);
-                }
-            }
-        }
-
-        private void OnEscaping(EscapingEventArgs ev)
+        private void OnEscaping(PlayerEscapingEventArgs ev)
         {
-            
-            if (ev.Player.Role.Type == RoleTypeId.FacilityGuard && ev.Player.IsCuffed)
+            if (ev.Player.Role == RoleTypeId.FacilityGuard && ev.Player.IsDisarmed)
             {
-                ev.EscapeScenario = EscapeScenario.CustomEscape;
+                ev.EscapeScenario = Escape.EscapeScenarioType.Custom;
                 ev.IsAllowed = true;
                 ev.NewRole = RoleTypeId.ChaosConscript;
             }
-            if(ev.Player.IsNTF && ev.Player.IsCuffed)
+            if(ev.Player.IsNTF && ev.Player.IsDisarmed)
             {
-                ev.EscapeScenario = EscapeScenario.CustomEscape;
+                ev.EscapeScenario = Escape.EscapeScenarioType.Custom;
                 ev.IsAllowed = true;
                 ev.NewRole = RoleTypeId.ChaosConscript;
             }
-            if(ev.Player.IsCHI && ev.Player.IsCuffed)
+            if(ev.Player.IsChaos && ev.Player.IsDisarmed)
             {
-                ev.EscapeScenario = EscapeScenario.CustomEscape;
+                ev.EscapeScenario = Escape.EscapeScenarioType.Custom;
                 ev.IsAllowed = true;
                 ev.NewRole = RoleTypeId.NtfPrivate;
             }
         }
 
-        private void OnSpawned(SpawnedEventArgs ev)
+        private void OnSpawned(PlayerSpawnedEventArgs ev)
         {
-            if (ev.SpawnFlags.HasFlag(RoleSpawnFlags.AssignInventory))
-                switch (ev.Player.Role.Type)
-                {
-                    case RoleTypeId.ClassD:
-                        ev.Player.AddItem(ItemType.Coin);
-                        break;
-                    
-                    case RoleTypeId.Scientist:
-                        ev.Player.AddItem(ItemType.Flashlight);
-                        break;
-                }
-            
+            switch (ev.Player.Role)
+            {
+                case RoleTypeId.ClassD:
+                    ev.Player.AddItem(ItemType.Coin);
+                    break;
+                
+                case RoleTypeId.Scientist:
+                    ev.Player.AddItem(ItemType.Flashlight);
+                    break;
+            }
             
             if (ev.Player.Role == RoleTypeId.Tutorial && ev.Player.RemoteAdminAccess)
             {
@@ -187,20 +198,12 @@ namespace SillySCP.Handlers
             }
         }
         
-        private void OnChangingRole(ChangingRoleEventArgs ev)
-        {
-            if (ev.Reason == SpawnReason.Escaped)
-            {
-                // PriorityInventoryModule.Main(ev.Player, ev.Items);
-            }
-        }
-        
-        private void OnScp914UpgradeInv(UpgradingInventoryItemEventArgs ev)
+        private void OnScp914UpgradeInv(Scp914ProcessingInventoryItemEventArgs ev)
         {
             if (ev.KnobSetting == Scp914KnobSetting.Fine && ev.Item.Type == ItemType.Coin)
             {
                 int randomNum = Random.Range(1, 4);
-                ev.Player.RemoveHeldItem();
+                ev.Player.RemoveItem(ev.Player.CurrentItem!);
                 ev.IsAllowed = false;
                 switch (randomNum)
                 {
@@ -221,18 +224,6 @@ namespace SillySCP.Handlers
                     }
                 }
             }
-        }
-
-        public IEnumerator<float> StartNukeDamage(Features.Player player)
-        {
-            yield return Timing.WaitForSeconds(180);
-            while(player.CurrentRoom.Type == RoomType.HczNuke)
-            {
-                player.Hurt(1f);
-                yield return Timing.WaitForSeconds(1);
-            }
-
-            yield return 0;
         }
     }
 }

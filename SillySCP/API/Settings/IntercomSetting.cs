@@ -1,5 +1,4 @@
-﻿using Exiled.API.Features;
-using SecretAPI.Features.UserSettings;
+﻿using SecretAPI.Features.UserSettings;
 using SillySCP.API.Modules;
 using Player = LabApi.Features.Wrappers.Player;
 

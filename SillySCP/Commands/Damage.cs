@@ -1,5 +1,5 @@
 ﻿using CommandSystem;
-using Exiled.API.Features;
+using LabApi.Features.Wrappers;
 using SillySCP.API.Features;
 
 namespace SillySCP.Commands

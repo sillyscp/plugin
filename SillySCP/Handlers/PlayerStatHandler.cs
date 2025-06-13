@@ -1,62 +1,63 @@
-﻿using Exiled.API.Enums;
-using Exiled.Events.EventArgs.Player;
-using Exiled.Events.EventArgs.Server;
+﻿using LabApi.Events.Arguments.PlayerEvents;
+using LabApi.Events.Arguments.ServerEvents;
 using PlayerRoles;
+using PlayerStatsSystem;
+using SecretAPI.Features;
 using SillySCP.API.Extensions;
 using SillySCP.API.Features;
-using SillySCP.API.Interfaces;
 
 namespace SillySCP.Handlers
 {
-    public class PlayerStatHandler : IRegisterable
+    public class PlayerStatHandler : IRegister
     {
-        private Exiled.API.Features.Player _firstPlayerEscaped;
+        private LabApi.Features.Wrappers.Player _firstPlayerEscaped;
         private TimeSpan _escapeTime = TimeSpan.Zero;
         
-        public void Init()
+        public void TryRegister()
         {
-            Exiled.Events.Handlers.Player.Died += OnPlayerDead;
-            Exiled.Events.Handlers.Player.Spawned += OnSpawned;
-            Exiled.Events.Handlers.Server.RoundEnded += OnRoundEnded;
-            Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
-            Exiled.Events.Handlers.Player.Hurt += OnHurt;
-            Exiled.Events.Handlers.Player.Escaped += OnEscape;
+            LabApi.Events.Handlers.PlayerEvents.Death += OnPlayerDead;
+            LabApi.Events.Handlers.PlayerEvents.Spawned += OnSpawned;
+            LabApi.Events.Handlers.ServerEvents.RoundEnded += OnRoundEnded;
+            LabApi.Events.Handlers.ServerEvents.RoundStarted += OnRoundStarted;
+            LabApi.Events.Handlers.PlayerEvents.Hurt += OnHurt;
+            LabApi.Events.Handlers.PlayerEvents.Escaping += OnEscape;
+        }
+        
+        public void TryUnregister()
+        {
+            LabApi.Events.Handlers.PlayerEvents.Death -= OnPlayerDead;
+            LabApi.Events.Handlers.PlayerEvents.Spawned -= OnSpawned;
+            LabApi.Events.Handlers.ServerEvents.RoundEnded -= OnRoundEnded;
+            LabApi.Events.Handlers.ServerEvents.RoundStarted -= OnRoundStarted;
+            LabApi.Events.Handlers.PlayerEvents.Hurt -= OnHurt;
+            LabApi.Events.Handlers.PlayerEvents.Escaping -= OnEscape;
         }
 
-        public void Unregister()
+        private void OnEscape(PlayerEscapingEventArgs ev)
         {
-            Exiled.Events.Handlers.Player.Died -= OnPlayerDead;
-            Exiled.Events.Handlers.Player.Spawned -= OnSpawned;
-            Exiled.Events.Handlers.Server.RoundEnded -= OnRoundEnded;
-            Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
-            Exiled.Events.Handlers.Player.Hurt -= OnHurt;
-            Exiled.Events.Handlers.Player.Escaped -= OnEscape;
-        }
-
-        private void OnEscape(EscapedEventArgs ev)
-        {
-            if (_firstPlayerEscaped == null)
+            if (_firstPlayerEscaped == null && ev.IsAllowed)
             {
                 _firstPlayerEscaped = ev.Player;
-                _escapeTime = TimeSpan.FromSeconds(ev.EscapeTime);
+                _escapeTime = TimeSpan.FromSeconds(ev.Player.RoleBase.ActiveTime);
             }
         }
 
-        private void OnHurt(HurtEventArgs ev)
+        private void OnHurt(PlayerHurtEventArgs ev)
         {
             if (ev.Attacker == null) return;
-            if (ev.Attacker.IsScp) return;
+            if (ev.Attacker.IsSCP) return;
+            if (ev.DamageHandler is not StandardDamageHandler handler) return;
             PlayerStat playerStat = ev.Attacker.FindOrCreatePlayerStat();
             if(playerStat.Damage == null) playerStat.Damage = 0;
-            playerStat.Damage += ev.Amount;
+            playerStat.Damage += handler.Damage;
         }
 
-        private void OnPlayerDead(DiedEventArgs ev)
+        private void OnPlayerDead(PlayerDeathEventArgs ev)
         {
-            if (ev.DamageHandler.Type == DamageType.PocketDimension)
+            if (ev.DamageHandler is UniversalDamageHandler handler && handler.TranslationId == DeathTranslations.PocketDecay.Id)
             {
-                Exiled.API.Features.Player scp106 = Plugin.Instance.Scp106 ??
-                             Exiled.API.Features.Player.List.FirstOrDefault(p => p.Role == RoleTypeId.Scp106);
+                LabApi.Features.Wrappers.Player scp106 = Plugin.Instance.Scp106 ??
+                             LabApi.Features.Wrappers.Player.List.FirstOrDefault(p => p.Role == RoleTypeId.Scp106);
                 scp106.UpdateKills();
             }
 
@@ -67,7 +68,7 @@ namespace SillySCP.Handlers
             ev.Attacker.UpdateKills();
         }
 
-        private void OnSpawned(SpawnedEventArgs ev)
+        private void OnSpawned(PlayerSpawnedEventArgs ev)
         {
             if (ev.Player.IsAlive)
             {
@@ -86,7 +87,7 @@ namespace SillySCP.Handlers
                 .FirstOrDefault();
             PlayerStat highestDamage = Plugin.Instance.PlayerStats.OrderByDescending(p => p.Damage).FirstOrDefault();
             
-            Exiled.API.Features.Server.FriendlyFire = true;
+            LabApi.Features.Wrappers.Server.FriendlyFire = true;
 
             string normalMvpMessage = highestKiller != null
                 ? $"Highest kills as a human was {highestKiller.Player.Nickname} with {highestKiller.Kills}"
@@ -110,9 +111,9 @@ namespace SillySCP.Handlers
 
             message = message.Trim();
 
-            Exiled.API.Features.Map.Broadcast(
-                10,
-                message
+            LabApi.Features.Wrappers.Server.SendBroadcast(
+                message,
+                10
             );
 
             _firstPlayerEscaped = null;

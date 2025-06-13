@@ -2,7 +2,7 @@ using SillySCP.API.Features;
 
 namespace SillySCP.API.EventArgs;
 
-public class VolunteerCreatedEventArgs
+public class VolunteerCreatedEventArgs : System.EventArgs
 {
     public VolunteerCreatedEventArgs(Volunteers volunteer)
     {

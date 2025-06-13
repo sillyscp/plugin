@@ -1,39 +1,38 @@
-﻿using Exiled.API.Enums;
-using Exiled.API.Extensions;
-using Exiled.Events.EventArgs.Player;
+﻿using LabApi.Events.Arguments.PlayerEvents;
 using PlayerRoles;
 using PlayerRoles.RoleAssign;
-using SillySCP.API.Interfaces;
+using SecretAPI.Extensions;
+using SecretAPI.Features;
 
 namespace SillySCP.Handlers
 {
-    public class ScpSwapHandler : IRegisterable
+    public class ScpSwapHandler : IRegister
     {
-        public void Init()
+        public void TryRegister()
         {
-            Exiled.Events.Handlers.Player.Spawned += OnPlayerSpawned;
+            LabApi.Events.Handlers.PlayerEvents.Spawned += OnPlayerSpawned;
+        }
+        
+        public void TryUnregister()
+        {
+            LabApi.Events.Handlers.PlayerEvents.Spawned -= OnPlayerSpawned;
         }
 
-        public void Unregister()
+        private void OnPlayerSpawned(PlayerSpawnedEventArgs ev)
         {
-            Exiled.Events.Handlers.Player.Spawned -= OnPlayerSpawned;
-        }
-
-        private void OnPlayerSpawned(SpawnedEventArgs ev)
-        {
-            if (ev.Reason == SpawnReason.ForceClass || ev.Player.Role.Type != RoleTypeId.Scp079 || ScpSpawner.EnqueuedScps.Count != 0) 
+            if (ev.Player.Role != RoleTypeId.Scp079 || ScpSpawner.EnqueuedScps.Count != 0) 
                 return;
 
-            List<Exiled.API.Features.Player> scps = Exiled.API.Features.Player.List.Where(p => p.IsScp).ToList();
+            List<LabApi.Features.Wrappers.Player> scps = LabApi.Features.Wrappers.Player.List.Where(p => p.IsSCP).ToList();
             if (scps.Count > 2) 
                 return;
 
             List<RoleTypeId> spawnableScps = ScpSpawner.SpawnableScps
-                .Where(r => r.RoleTypeId != RoleTypeId.Scp079 && !scps.Any(p => p.Role.Type == r.RoleTypeId))
+                .Where(r => r.RoleTypeId != RoleTypeId.Scp079 && !scps.Any(p => p.Role == r.RoleTypeId))
                 .Select(r => r.RoleTypeId)
                 .ToList();
 
-            ev.Player.Role.Set(spawnableScps.GetRandomValue());
+            ev.Player.Role = spawnableScps.GetRandomValue();
         }
     }
 }

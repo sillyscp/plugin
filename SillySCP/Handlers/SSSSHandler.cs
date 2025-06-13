@@ -1,35 +1,24 @@
-﻿using Exiled.API.Enums;
-using Exiled.API.Extensions;
-using Exiled.API.Features;
-using Exiled.Events.EventArgs.Item;
-using Exiled.Events.EventArgs.Player;
-using LabApi.Events.Arguments.PlayerEvents;
-using PlayerRoles.PlayableScps.Scp079.Cameras;
+﻿using LabApi.Events.Arguments.PlayerEvents;
+using LabApi.Loader.Features.Paths;
+using SecretAPI.Extensions;
+using SecretAPI.Features;
 using SecretAPI.Features.UserSettings;
-using SillySCP.API.Interfaces;
-using SillySCP.API.Modules;
 using SillySCP.API.Settings;
 using UnityEngine;
-using UserSettings.ServerSpecific;
 using VoiceChat;
-using Camera = Exiled.API.Features.Camera;
 
 namespace SillySCP.Handlers
 {
-    public class SSSSHandler : IRegisterable
+    public class SSSSHandler : IRegister
     { 
-        public void Init()
+        public void TryRegister()
         {
-            Exiled.Events.Handlers.Player.Verified += OnVerified;
-            ServerSpecificSettingsSync.ServerOnSettingValueReceived += SettingRecieved;
+            // PlayerEvents.Joined += OnVerified;
+            // ServerSpecificSettingsSync.ServerOnSettingValueReceived += SettingRecieved;
             
-            CustomSetting.Register(new ExclusiveColorSetting(), new StruggleSetting(), new JailbirdSetting(), new IntercomSetting(), new RussianRoulette());
-            
-            // jailbird handler
+            CustomSetting.Register(new StruggleSetting(), new JailbirdSetting(), new IntercomSetting(), new RussianRoulette(), new ExclusiveColorSetting(), new PronounSetting());
 
-            Exiled.Events.Handlers.Item.Swinging += OnJailbirdSwing;
-
-            string sillyAudiosLocation = Path.Combine(Paths.Configs, "Silly Audios");
+            string sillyAudiosLocation = Path.Combine(PathManager.Configs.FullName, "Silly Audios");
             
             AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "kali 1.ogg"), "meow 1");
             AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "kali 2.ogg"), "meow 2");
@@ -39,14 +28,15 @@ namespace SillySCP.Handlers
             // intercom handler
             LabApi.Events.Handlers.PlayerEvents.ReceivingVoiceMessage += OnReceivingVoiceMessage;
         }
-        
-        public void Unregister()
+
+        public void TryUnregister()
         {
-            Exiled.Events.Handlers.Player.Verified -= OnVerified;
-            
-            Exiled.Events.Handlers.Item.Swinging -= OnJailbirdSwing;
-            
             LabApi.Events.Handlers.PlayerEvents.ReceivingVoiceMessage -= OnReceivingVoiceMessage;
+
+            foreach (AudioClipData clipData in AudioClipStorage.AudioClips.Values)
+            {
+                AudioClipStorage.DestroyClip(clipData.Name);
+            }
         }
 
         private void OnReceivingVoiceMessage(PlayerReceivingVoiceMessageEventArgs ev)
@@ -57,7 +47,7 @@ namespace SillySCP.Handlers
             ev.IsAllowed = setting.IsOptionB;
         }
 
-        private void OnJailbirdEvent(Exiled.API.Features.Player player)
+        internal static void OnJailbirdEvent(LabApi.Features.Wrappers.Player player)
         {
             AudioPlayer audioPlayer = AudioPlayer.CreateOrGet($"Jailbird {player.Nickname}", 
                 condition: hub =>
@@ -69,64 +59,13 @@ namespace SillySCP.Handlers
                 }, 
                 onIntialCreation: p =>
                 {
-                    p.transform.parent = player.Transform;
+                    p.transform.parent = player.GameObject.transform;
                     Speaker speaker = p.AddSpeaker("Jailbird Speaker", isSpatial: true, minDistance: 5f, maxDistance: 15f);
-                    speaker.transform.parent = player.Transform;
+                    speaker.transform.parent = player.GameObject.transform;
                     speaker.transform.localPosition = Vector3.zero;
                 }
             );
-            audioPlayer.AddClip(AudioClipStorage.AudioClips.Values.GetRandomValue(data => data.Name.Contains("meow")).Name, 3);
-        }
-
-        private void OnJailbirdSwing(SwingingEventArgs ev)
-        {
-            OnJailbirdEvent(ev.Player);
-        }
-
-        private void OnVerified(VerifiedEventArgs ev)
-        {
-            ServerSpecificSettingsSync.SendToPlayer(ev.Player.ReferenceHub);
-            SSDropdownSetting ssSetting = ServerSpecificSettingsSync.GetSettingOfUser<SSDropdownSetting>(ev.Player.ReferenceHub, SSSSModule.PronounsDropdownSettingId);
-            if (ssSetting != null)
-            {
-                SetNickname(ssSetting, ev.Player);
-            }
-        }
-
-        private void SetNickname(SSDropdownSetting setting, Exiled.API.Features.Player player)
-        {
-            player.DisplayNickname = null;
-            switch (setting.SyncSelectionText)
-            {
-                case "none specified":
-                    player.DisplayNickname = null;
-                    break;
-                case "he/him":
-                    player.DisplayNickname = $"{player.Nickname} (he/him)";
-                    break;
-                case "she/her":
-                    player.DisplayNickname = $"{player.Nickname} (she/her)";
-                    break;
-                case "they/them":
-                    player.DisplayNickname = $"{player.Nickname} (they/them)";
-                    break;
-                case "any pronouns":
-                    player.DisplayNickname = $"{player.Nickname} (any pronouns)";
-                    break;
-                case "ask":
-                    player.DisplayNickname = $"{player.Nickname} (ask)";
-                    break;
-            }
-        }
-        
-        private void SettingRecieved(ReferenceHub hub, ServerSpecificSettingBase settingBase)
-        {
-            if(!Exiled.API.Features.Player.TryGet(hub, out Exiled.API.Features.Player player)) return;
-            
-            if(settingBase.SettingId == SSSSModule.PronounsDropdownSettingId)
-            {
-                SetNickname((SSDropdownSetting) settingBase, player);
-            }
+            audioPlayer.AddClip(AudioClipStorage.AudioClips.Values.Where(data => data.Name.Contains("meow")).GetRandomValue().Name, 3);
         }
     }
 }

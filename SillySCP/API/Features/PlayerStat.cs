@@ -1,4 +1,4 @@
-﻿using Exiled.API.Features;
+﻿using LabApi.Features.Wrappers;
 using RueI.Displays;
 using SillySCP.API.Modules;
 
@@ -14,7 +14,7 @@ namespace SillySCP.API.Features
             SpectatingKillsDisplay.Elements.Add(HintsModule.KillsElement);
         }
         
-        public Player Player { get; init; }
+        public Player Player { get; }
         public int? Kills { get; set; }
         public float? Damage { get; set; }
         

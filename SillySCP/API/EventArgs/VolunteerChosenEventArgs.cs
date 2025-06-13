@@ -1,9 +1,9 @@
-using Exiled.API.Features;
+using LabApi.Features.Wrappers;
 using SillySCP.API.Features;
 
 namespace SillySCP.API.EventArgs;
 
-public class VolunteerChosenEventArgs
+public class VolunteerChosenEventArgs : System.EventArgs
 {
     public VolunteerChosenEventArgs(Player player, Volunteers volunteer)
     {

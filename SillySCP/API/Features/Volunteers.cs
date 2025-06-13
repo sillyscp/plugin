@@ -1,4 +1,4 @@
-﻿using Exiled.API.Features;
+﻿using LabApi.Features.Wrappers;
 using PlayerRoles;
 
 namespace SillySCP.API.Features

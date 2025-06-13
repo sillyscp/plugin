@@ -1,6 +1,6 @@
 ﻿using CommandSystem;
-using Exiled.API.Extensions;
-using Exiled.API.Features;
+using LabApi.Features.Extensions;
+using LabApi.Features.Wrappers;
 using PlayerRoles;
 using SillySCP.API.Features;
 using Utils.NonAllocLINQ;
@@ -45,7 +45,7 @@ namespace SillySCP.Commands
                 return false;
             }
 
-            Map.Broadcast(5, $"Volunteer {volunteer.Replacement.GetFullName()} was revoked", shouldClearPrevious: true);
+            Server.SendBroadcast($"Volunteer {volunteer.Replacement.GetFullName()} was revoked", 5, shouldClearPrevious: true);
             VolunteerSystem.Volunteers.Remove(volunteer);
             
             response = "Canceling " + role.GetFullName();

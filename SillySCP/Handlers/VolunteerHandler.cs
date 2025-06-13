@@ -1,56 +1,60 @@
-﻿using Exiled.API.Enums;
-using Exiled.API.Extensions;
-using Exiled.Events.EventArgs.Player;
+﻿using LabApi.Events.Arguments.PlayerEvents;
+using LabApi.Events.Handlers;
+using LabApi.Features.Extensions;
 using MEC;
 using PlayerRoles;
+using PlayerStatsSystem;
+using SecretAPI.Features;
 using SillySCP.API.Features;
-using SillySCP.API.Interfaces;
 using SillySCP.API.Modules;
 
 namespace SillySCP.Handlers
 {
-    public class VolunteerHandler : IRegisterable
+    public class VolunteerHandler : IRegister
     {
-        public void Init()
+        public void TryRegister()
         {
-            Exiled.Events.Handlers.Player.Left += OnPlayerLeave;
-            Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
-            Exiled.Events.Handlers.Player.Died += OnDead;
-            Exiled.Events.Handlers.Player.ChangingRole += OnChangingRole;
+            PlayerEvents.Left += OnPlayerLeave;
+            ServerEvents.RoundStarted += OnRoundStarted;
+            PlayerEvents.Dying += OnDead;
+            PlayerEvents.ChangingRole += OnChangingRole;
 
             VolunteerSystem.VolunteerPeriodEnd += OnVolunteerPeriodEnd;
         }
-
-        public void Unregister()
+        
+        public void TryUnregister()
         {
-            Exiled.Events.Handlers.Player.Left -= OnPlayerLeave;
-            Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
-            Exiled.Events.Handlers.Player.Died -= OnDead;
-            Exiled.Events.Handlers.Player.ChangingRole -= OnChangingRole;
+            PlayerEvents.Left -= OnPlayerLeave;
+            ServerEvents.RoundStarted -= OnRoundStarted;
+            PlayerEvents.Dying -= OnDead;
+            PlayerEvents.ChangingRole -= OnChangingRole;
+
+            VolunteerSystem.VolunteerPeriodEnd -= OnVolunteerPeriodEnd;
         }
 
-        private void OnChangingRole(ChangingRoleEventArgs ev)
+        private void OnChangingRole(PlayerChangingRoleEventArgs ev)
         {
             if (VolunteerSystem.Volunteers.Any(v => v.Replacement == ev.NewRole))
             {
                 ev.IsAllowed = false;
-                ev.Player.Broadcast(5, "You cannot change to this role as it is in the volunteer phase.");
+                ev.Player.SendBroadcast("You cannot change to this role as it is in the volunteer phase.", 5);
             }
         }
         
 
-        private void OnDead(DiedEventArgs ev)
+        private void OnDead(PlayerDyingEventArgs ev)
         {
             if (!VolunteerSystem.ReadyVolunteers) return;
-            if (!ev.TargetOldRole.IsScp()) return;
-            if (ev.TargetOldRole == RoleTypeId.Scp0492) return;
-            if (ev.DamageHandler.IsSuicide || ev.DamageHandler.Type is DamageType.Unknown or DamageType.Custom or DamageType.Tesla or DamageType.Crushed || ev.Attacker == ev.Player)
+            if (!ev.Player.IsSCP) return;
+            if (ev.Player.Role == RoleTypeId.Scp0492) return;
+            if (ev.DamageHandler is not AttackerDamageHandler handler) return;
+            if (handler.IsSuicide || ev.Attacker == ev.Player)
             {
-                VolunteerSystem.NewVolunteer(ev.TargetOldRole);
+                VolunteerSystem.NewVolunteer(ev.Player.Role);
             }
         }
 
-        private void OnPlayerLeave(LeftEventArgs ev)
+        private void OnPlayerLeave(PlayerLeftEventArgs ev)
         {
             if (VolunteerSystem.Volunteers == null)
                 return;
@@ -67,16 +71,16 @@ namespace SillySCP.Handlers
         private void OnVolunteerPeriodEnd()
         {
             // only doing this to save some resources, don't come at me
-            List<Exiled.API.Features.Player> scps = Exiled.API.Features.Player.List.Where(p => p.IsScp).ToList();
+            List<LabApi.Features.Wrappers.Player> scps = LabApi.Features.Wrappers.Player.List.Where(p => p.IsSCP).ToList();
             if (scps.Count == 0) return;
-            List<string> scpNames = scps.Select(scp => scp.Role.Name).ToList();
+            List<string> scpNames = scps.Select(scp => scp.Role.GetFullName()).ToList();
             List<string> scpNamesCopy = new(scpNames);
             scpNamesCopy.RemoveAt(scpNamesCopy.Count-1);
-            foreach (Exiled.API.Features.Player player in scps)
+            foreach (LabApi.Features.Wrappers.Player player in scps)
             {
                 if (scpNames.Count == 1)
                 {
-                    if(Exiled.API.Features.Server.PlayerCount >= 8)
+                    if(LabApi.Features.Wrappers.Server.PlayerCount >= 8)
                         player.ShowString("<size=10em>You are the only SCP on your team</size>", 5);
                     return;
                 }

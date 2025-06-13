@@ -1,4 +1,6 @@
-﻿using Exiled.Permissions.Extensions;
+﻿using GameCore;
+using LabApi.Features.Console;
+using LabApi.Features.Permissions;
 using LabApi.Features.Wrappers;
 using SecretAPI.Features.UserSettings;
 using SillySCP.API.Modules;
@@ -35,11 +37,7 @@ namespace SillySCP.API.Settings
 
         protected override CustomSetting CreateDuplicate() => new ExclusiveColorSetting();
         
-        protected override bool CanView(Player player)
-        {
-            Exiled.API.Features.Player plr = Exiled.API.Features.Player.Get(player.ReferenceHub);
-            return plr != null && plr.CheckPermission("supporter");
-        }
+        protected override bool CanView(Player player) => player.HasPermissions("supporter");
 
         protected override void HandleSettingUpdate(Player player)
         {

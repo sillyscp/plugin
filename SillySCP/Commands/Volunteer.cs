@@ -1,8 +1,8 @@
 ﻿using CommandSystem;
-using Exiled.API.Extensions;
+using LabApi.Features.Extensions;
+using LabApi.Features.Wrappers;
 using PlayerRoles;
 using SillySCP.API.Features;
-using Player = Exiled.API.Features.Player;
 
 namespace SillySCP.Commands
 {
@@ -21,19 +21,14 @@ namespace SillySCP.Commands
             out string response
         )
         {
-            if (!Player.TryGet(sender, out Player player))
-            {
-                response = "Only players can use this command!";
-                return false;
-            }
-
+            Player player = Player.Get(sender);
             if (player == null)
             {
                 response = "Only players can use this command!";
                 return false;
             }
 
-            if (player.IsScp && player.Role != RoleTypeId.Scp0492) // zombies should beable to volunteer for regular scp's 
+            if (player.IsSCP && player.Role != RoleTypeId.Scp0492) // zombies should beable to volunteer for regular scp's 
             {
                 response = "You are already an SCP! If they get replaced, you can swap with the person if they wish!";
                 return false;
@@ -77,7 +72,7 @@ namespace SillySCP.Commands
             
             volunteer.Players.Add(player);
             
-            player.Broadcast(5, "You have volunteered to become " + role.GetFullName() + "!", Broadcast.BroadcastFlags.Normal, true);
+            player.SendBroadcast("You have volunteered to become " + role.GetFullName() + "!", 5, Broadcast.BroadcastFlags.Normal, true);
             
             VolunteerSystem.RaiseVolunteerEvent(player, volunteer);
             

@@ -1,8 +1,9 @@
-﻿using Exiled.API.Extensions;
-using Exiled.API.Features;
-using Exiled.Events.Features;
+﻿using LabApi.Events;
+using LabApi.Features.Extensions;
+using LabApi.Features.Wrappers;
 using MEC;
 using PlayerRoles;
+using SecretAPI.Extensions;
 using SillySCP.API.EventArgs;
 using SillySCP.API.Modules;
 
@@ -10,13 +11,13 @@ namespace SillySCP.API.Features
 {
     public static class VolunteerSystem
     {
-        public static bool ReadyVolunteers => Round.ElapsedTime.TotalSeconds < Plugin.Instance.Config.VolunteerTime;
+        public static bool ReadyVolunteers => Round.Duration.TotalSeconds < Plugin.Instance.Config.VolunteerTime;
         public static List<Volunteers> Volunteers = new();
         
-        public static Event VolunteerPeriodEnd = new ();
-        public static Event<VolunteerEventArgs> Volunteer = new ();
-        public static Event<VolunteerCreatedEventArgs> VolunteerCreated = new ();
-        public static Event<VolunteerChosenEventArgs> VolunteerChosen = new ();
+        public static event LabEventHandler VolunteerPeriodEnd;
+        public static event LabEventHandler<VolunteerEventArgs> Volunteer;
+        public static event LabEventHandler<VolunteerCreatedEventArgs> VolunteerCreated;
+        public static event LabEventHandler<VolunteerChosenEventArgs> VolunteerChosen;
 
         public static Dictionary<string, RoleTypeId> VaildScps { get; set; } = new ()
         {
@@ -63,21 +64,21 @@ namespace SillySCP.API.Features
                 {
                     if (player.IsAlive) continue;
                     
-                    player.Broadcast(10, annoucement);
+                    player.SendBroadcast(annoucement, 10);
                 }
                 return;
             }
-            Map.Broadcast(10, annoucement);
+            Server.SendBroadcast(annoucement, 10);
             
-            VolunteerCreated.InvokeSafely(new (volunteer));
+            VolunteerCreated?.InvokeEvent(new (volunteer));
         }
         public static IEnumerator<float> DisableVolunteers()
         {
             yield return Timing.WaitForSeconds(120);
-            List<Player> scps = Player.List.Where(p => p.IsScp).ToList();
-            if(scps.Count == 1 && scps.First().Role.Type == RoleTypeId.Scp079 && !ReadyVolunteers)
+            List<Player> scps = Player.List.Where(p => p.IsSCP).ToList();
+            if(scps.Count == 1 && scps.First().Role == RoleTypeId.Scp079 && !ReadyVolunteers)
                 Scp079Recontainment.Recontain();
-            VolunteerPeriodEnd.InvokeSafely();
+            VolunteerPeriodEnd?.InvokeEvent();
         }
 
         public static IEnumerator<float> ChooseVolunteers(Volunteers volunteer)
@@ -94,16 +95,16 @@ namespace SillySCP.API.Features
             Volunteers.Remove(volunteer);
             if (volunteerClone.Players.Count == 0) yield break;
             Player replacementPlayer = volunteerClone.Players.GetRandomValue();
-            replacementPlayer.Role.Set(volunteerClone.Replacement);
-            Map.Broadcast(10, volunteerClone.Replacement.GetFullName() + " has been replaced!",
+            replacementPlayer.Role = volunteerClone.Replacement;
+            Server.SendBroadcast(volunteerClone.Replacement.GetFullName() + " has been replaced!", 10,
                 Broadcast.BroadcastFlags.Normal, true);
-            VolunteerChosen.InvokeSafely(new (replacementPlayer, volunteerClone));
+            VolunteerChosen?.InvokeEvent(new (replacementPlayer, volunteerClone));
             yield return 0;
         }
         
         public static void RaiseVolunteerEvent(Player player, Volunteers volunteer)
         {
-            Volunteer.InvokeSafely(new (player, volunteer));
+            Volunteer?.InvokeEvent(new (player, volunteer));
         }
     }
 }

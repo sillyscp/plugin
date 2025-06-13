@@ -1,43 +1,41 @@
-﻿using Exiled.API.Enums;
-using Exiled.API.Features.Pickups;
-using Exiled.Events.EventArgs.Map;
-using Exiled.Events.EventArgs.Scp914;
-using MapGeneration.Spawnables;
+﻿using LabApi.Events.Arguments.Scp914Events;
+using LabApi.Events.Arguments.ServerEvents;
+using LabApi.Events.Handlers;
+using LabApi.Features.Wrappers;
 using MEC;
 using Scp914;
+using SecretAPI.Features;
 using SillySCP.API.Features;
-using SillySCP.API.Interfaces;
 using UnityEngine;
-using Features = Exiled.API.Features;
 
 namespace SillySCP.Handlers
 {
-    public class Server : IRegisterable
+    public class Server : IRegister
     {
         public static Server Instance { get; private set; }
         
-        public void Init()
+        public void TryRegister()
         {
             Instance = this;
-            Exiled.Events.Handlers.Server.WaitingForPlayers += OnWaitingForPlayers;
-            Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
-            Exiled.Events.Handlers.Server.RestartingRound += OnRoundRestart;
-            Exiled.Events.Handlers.Scp914.UpgradingPickup += OnScp914UpgradePickup;
-            Exiled.Events.Handlers.Map.AnnouncingScpTermination += OnAnnouncingScpTermination;
+            ServerEvents.WaitingForPlayers += OnWaitingForPlayers;
+            ServerEvents.RoundStarted += OnRoundStarted;
+            ServerEvents.RoundRestarted += OnRoundRestart;
+            Scp914Events.ProcessingPickup += OnScp914UpgradePickup;
+            ServerEvents.CassieQueuingScpTermination += OnAnnouncingScpTermination;
+        }
+        
+        public void TryUnregister()
+        {
+            ServerEvents.WaitingForPlayers -= OnWaitingForPlayers;
+            ServerEvents.RoundStarted -= OnRoundStarted;
+            ServerEvents.RoundRestarted -= OnRoundRestart;
+            Scp914Events.ProcessingPickup -= OnScp914UpgradePickup;
+            ServerEvents.CassieQueuingScpTermination -= OnAnnouncingScpTermination;
         }
 
-        public void Unregister()
+        private void OnAnnouncingScpTermination(CassieQueuingScpTerminationEventArgs ev)
         {
-            Exiled.Events.Handlers.Server.WaitingForPlayers -= OnWaitingForPlayers;
-            Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
-            Exiled.Events.Handlers.Server.RestartingRound -= OnRoundRestart;
-            Exiled.Events.Handlers.Scp914.UpgradingPickup -= OnScp914UpgradePickup;
-            Exiled.Events.Handlers.Map.AnnouncingScpTermination -= OnAnnouncingScpTermination;
-        }
-
-        private void OnAnnouncingScpTermination(AnnouncingScpTerminationEventArgs ev)
-        {
-            if (VolunteerSystem.Volunteers.Any(v => v.Replacement == ev.Player.Role.Type) && VolunteerSystem.ReadyVolunteers)
+            if (VolunteerSystem.Volunteers.Any(v => v.Replacement == ev.Player.Role) && VolunteerSystem.ReadyVolunteers)
             {
                 ev.IsAllowed = false;
             }
@@ -50,17 +48,17 @@ namespace SillySCP.Handlers
         
         private void OnRoundStarted()
         {
-            Features.Server.FriendlyFire = false;
+            LabApi.Features.Wrappers.Server.FriendlyFire = false;
             Timing.RunCoroutine(Plugin.Instance.HeartAttack());
             // Timing.RunCoroutine(CheckNukeRoom()); //legacy Anti-Nuke
         }
 
         private void OnRoundRestart()
         {
-            Features.Server.FriendlyFire = false;
+            LabApi.Features.Wrappers.Server.FriendlyFire = false;
         }
         
-        private void OnScp914UpgradePickup(UpgradingPickupEventArgs ev)
+        private void OnScp914UpgradePickup(Scp914ProcessingPickupEventArgs ev)
         {
             if (ev.KnobSetting == Scp914KnobSetting.Fine && ev.Pickup.Type == ItemType.Coin)
             {
@@ -70,19 +68,19 @@ namespace SillySCP.Handlers
                     case 1:
                     {
                         ev.Pickup.Destroy();
-                        Pickup.CreateAndSpawn(ItemType.Flashlight, ev.OutputPosition, Quaternion.identity);
+                        Pickup.Create(ItemType.Flashlight, ev.NewPosition, Quaternion.identity);
                         break;
                     }
                     case 2:
                     {
                         ev.Pickup.Destroy();
-                        Pickup.CreateAndSpawn(ItemType.Radio, ev.OutputPosition, Quaternion.identity);
+                        Pickup.Create(ItemType.Radio, ev.NewPosition, Quaternion.identity);
                         break;
                     }
                     case 3:
                     {
                         ev.Pickup.Destroy();
-                        Pickup.CreateAndSpawn(ItemType.KeycardJanitor, ev.OutputPosition, Quaternion.identity);
+                        Pickup.Create(ItemType.KeycardJanitor, ev.NewPosition, Quaternion.identity);
                         break;
                     }
                 }

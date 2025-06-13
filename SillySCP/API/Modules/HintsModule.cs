@@ -1,8 +1,7 @@
-﻿using Exiled.API.Features;
-using Exiled.API.Features.Roles;
+﻿using LabApi.Features.Wrappers;
+using PlayerRoles.Spectating;
 using RueI;
 using RueI.Displays;
-using RueI.Displays.Scheduling;
 using RueI.Elements;
 using RueI.Extensions;
 using SillySCP.API.Extensions;
@@ -18,12 +17,11 @@ namespace SillySCP.API.Modules
         
         public static string GetKills(DisplayCore core)
         {
-            if (!Player.TryGet(core.Hub, out Player player))
-                return string.Empty;
-
-            if (player.Role is not SpectatorRole spectatorRole) return string.Empty;
+            Player player = Player.Get(core.Hub);
             
-            Player spectating = spectatorRole.SpectatedPlayer;
+            if(player.IsAlive) return string.Empty;
+            
+            Player spectating = player.CurrentlySpectating;
             
             if(spectating == null) return string.Empty;
             
@@ -33,7 +31,7 @@ namespace SillySCP.API.Modules
             
             if (spectatingPlayerStat == null) return "Kill Count: 0";
             
-            if(spectatingPlayerStat.Player.IsScp) return $"Kill Count: {spectatingPlayerStat.ScpKills ?? 0}";
+            if(spectatingPlayerStat.Player.IsSCP) return $"Kill Count: {spectatingPlayerStat.ScpKills ?? 0}";
             
             return $"Kill Count: {spectatingPlayerStat.Kills}";
         }
