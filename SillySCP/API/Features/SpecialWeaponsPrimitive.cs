@@ -1,6 +1,7 @@
 ﻿using AdminToys;
 using LabApi.Features.Wrappers;
 using SillySCP.API.Components;
+using SillySCP.API.Extensions;
 using UnityEngine;
 using PrimitiveObjectToy = LabApi.Features.Wrappers.PrimitiveObjectToy;
 
@@ -29,7 +30,8 @@ namespace SillySCP.API.Features
             PrimitiveObjectToy primitive = PrimitiveObjectToy.Create(Room.Transform.TransformPoint(LocalPosition), Quaternion.Euler(Room.Rotation.eulerAngles + RotationOffset), Size, networkSpawn:false);
             primitive.Type = PrimitiveType.Cube;
             primitive.Spawn();
-            primitive.Flags = PrimitiveFlags.None;
+            primitive.SetVisibility(false);
+            primitive.SetCollidable(false);
             primitive.GameObject.AddComponent<CheckVoid>();
             BoxCollider collider = primitive.GameObject.AddComponent<BoxCollider>();
             collider.isTrigger = true;
