@@ -9,11 +9,11 @@ namespace SillySCP.API.Features
 {
     public class SpecialWeaponsPrimitive
     {
-        public SpecialWeaponsPrimitive(Vector3 localPos, Room room, Vector3 size, Vector3? rotationOffset = null)
+        public SpecialWeaponsPrimitive(Vector3 localPos, Room room, Vector3? size = null, Vector3? rotationOffset = null)
         {
             LocalPosition = localPos;
             Room = room;
-            Size = size;
+            Size = size ?? Vector3.one;
             RotationOffset = rotationOffset ?? Vector3.zero;
         }
 
