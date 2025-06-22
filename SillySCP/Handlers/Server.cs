@@ -63,27 +63,15 @@ namespace SillySCP.Handlers
             if (ev.KnobSetting == Scp914KnobSetting.Fine && ev.Pickup.Type == ItemType.Coin)
             {
                 int randomNum = UnityEngine.Random.Range(1, 4);
-                switch (randomNum)
+                ev.Pickup.Destroy();
+                Pickup pickup = randomNum switch
                 {
-                    case 1:
-                    {
-                        ev.Pickup.Destroy();
-                        Pickup.Create(ItemType.Flashlight, ev.NewPosition, Quaternion.identity);
-                        break;
-                    }
-                    case 2:
-                    {
-                        ev.Pickup.Destroy();
-                        Pickup.Create(ItemType.Radio, ev.NewPosition, Quaternion.identity);
-                        break;
-                    }
-                    case 3:
-                    {
-                        ev.Pickup.Destroy();
-                        Pickup.Create(ItemType.KeycardJanitor, ev.NewPosition, Quaternion.identity);
-                        break;
-                    }
-                }
+                    1 => Pickup.Create(ItemType.Flashlight, ev.NewPosition, Quaternion.identity),
+                    2 => Pickup.Create(ItemType.Radio, ev.NewPosition, Quaternion.identity),
+                    3 => Pickup.Create(ItemType.KeycardJanitor, ev.NewPosition, Quaternion.identity),
+                    _ => null
+                };
+                pickup?.Spawn();
             }
         }
         // Legacy Anti-Nuke
