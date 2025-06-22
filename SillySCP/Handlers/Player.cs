@@ -6,6 +6,8 @@ using LabApi.Features.Extensions;
 using LabApi.Features.Wrappers;
 using MapGeneration;
 using PlayerRoles;
+using PlayerRoles.FirstPersonControl;
+using PlayerRoles.PlayableScps.Scp106;
 using Scp914;
 using SecretAPI.Extensions;
 using SecretAPI.Features;
@@ -31,8 +33,12 @@ namespace SillySCP.Handlers
             PlayerEvents.Escaping += OnEscaping;
             PlayerEvents.Kicking += OnKickingPlayer;
             
+            // PlayerEvents.LeavingPocketDimension += OnLeavingPocketDimension;
+            
             PlayerEvents.Death += OnDeath;
             PlayerEvents.ChangedSpectator += OnChangedSpectator;
+            
+            PlayerEvents.ReceivingLoadout += OnReceivingLoadout;
         }
 
         public void TryUnregister()
@@ -44,9 +50,65 @@ namespace SillySCP.Handlers
             PlayerEvents.Escaping -= OnEscaping;
             PlayerEvents.Kicking -= OnKickingPlayer;
             
+            // PlayerEvents.LeavingPocketDimension -= OnLeavingPocketDimension;
+            
             PlayerEvents.Death -= OnDeath;
             PlayerEvents.ChangedSpectator -= OnChangedSpectator;
+            
+            PlayerEvents.ReceivingLoadout -= OnReceivingLoadout;
         }
+
+        private void OnReceivingLoadout(PlayerReceivingLoadoutEventArgs ev)
+        {
+            switch (ev.Player.Role)
+            {
+                case RoleTypeId.ClassD:
+                    ev.AddItem(ItemType.Coin);
+                    break;
+                
+                case RoleTypeId.Scientist:
+                    ev.AddItem(ItemType.Flashlight);
+                    break;
+            }
+        }
+
+        private void OnLeavingPocketDimension(PlayerLeavingPocketDimensionEventArgs ev)
+        {
+            if (!ev.IsSuccessful) return;
+            FacilityZone zone = Room.GetRoomAtPosition(ev.Player.GetEffect<PocketCorroding>()!.CapturePosition.Position)!.Zone;
+            Vector3[] exits = Scp106PocketExitFinder.GetPosesForZone(zone).Select(x => x.position).ToArray();
+            LabApi.Features.Wrappers.Player[] players = LabApi.Features.Wrappers.Player.List.Where(x => x.Zone == zone && x.Team.GetFaction() != ev.Player.Team.GetFaction()).ToArray();
+            Vector3 bestExit = Scp106PocketExitFinder.GetBestExitPosition(ev.Player.RoleBase as IFpcRole);
+            bool shouldSpawn = true;
+            foreach (LabApi.Features.Wrappers.Player player in players)
+            {
+                if (!shouldSpawn) break;
+                if(CheckIfNear(bestExit, player.Position)) shouldSpawn = false;
+            }
+        
+            if (shouldSpawn)
+            {
+                ev.Player.Position = bestExit;
+                return;
+            }
+            foreach (Vector3 exit in exits)
+            {
+                bool canSpawn = true;
+                foreach (LabApi.Features.Wrappers.Player player in players)
+                {
+                    if (!canSpawn) break;
+                    if (CheckIfNear(exit, player.Position)) canSpawn = false;
+                }
+        
+                if (canSpawn)
+                {
+                    ev.Player.Position = exit;
+                    break;
+                }
+            }
+        }
+        
+        private bool CheckIfNear(Vector3 position, Vector3 position2) => Vector3.Distance(position, position2) <= 15f;
 
         private void OnDeath(PlayerDeathEventArgs ev)
         {
@@ -177,17 +239,6 @@ namespace SillySCP.Handlers
 
         private void OnSpawned(PlayerSpawnedEventArgs ev)
         {
-            switch (ev.Player.Role)
-            {
-                case RoleTypeId.ClassD:
-                    ev.Player.AddItem(ItemType.Coin);
-                    break;
-                
-                case RoleTypeId.Scientist:
-                    ev.Player.AddItem(ItemType.Flashlight);
-                    break;
-            }
-            
             if (ev.Player.Role == RoleTypeId.Tutorial && ev.Player.RemoteAdminAccess)
             {
                 ev.Player.IsGodModeEnabled = true;
