@@ -67,8 +67,12 @@ namespace SillySCP.Handlers
                 }
                 case "HCZ_049":
                 {
+                    // for the area behind the fence
                     SpecialWeaponsPrimitive primitive = new(new(0, 0, -5f), room, new(15, 1, 5.2f));
                     primitive.Spawn();
+
+                    SpecialWeaponsPrimitive primitive2 = new(new(0, 0.9f, 2.5f), room);
+                    primitive2.Spawn();
                     break;
                 }
             }
