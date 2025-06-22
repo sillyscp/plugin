@@ -6,6 +6,7 @@ using PlayerRoles.Subroutines;
 using RueI.Displays;
 using RueI.Elements;
 using SecretAPI.Features.UserSettings;
+using SillySCP.API.Features;
 using SillySCP.API.Modules;
 using UnityEngine;
 using Utils.Networking;
@@ -57,12 +58,7 @@ namespace SillySCP.API.Settings
                     player.DisableEffect<Strangled>();
                     return;
                 }
-                Scp3114Role role = (Scp3114Role)skeleton.RoleBase;
-                role.SubroutineModule.TryGetSubroutine(out Scp3114Strangle strangle);
-                strangle.SyncTarget = null;
-                strangle._rpcType = Scp3114Strangle.RpcType.AttackInterrupted;
-                strangle.ServerSendRpc(true);
-                player.DisableEffect<Strangled>();
+                skeleton.GetDataStore<SkeletonDataStore>().StopStrangle();
                 Reset();
                 skeleton.EnableEffect<Disabled>(2, 5);
                 new PlayerRoles.PlayableScps.HumeShield.DynamicHumeShieldController.ShieldBreakMessage { Target = skeleton.ReferenceHub }
