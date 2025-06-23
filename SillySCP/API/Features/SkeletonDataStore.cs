@@ -32,9 +32,8 @@ namespace SillySCP.API.Features
 
         public void StopStrangle()
         {
-            if (!Strangle.SyncTarget.HasValue) return;
+            if (Strangle.SyncTarget == null || !Strangle.SyncTarget.Value.Target) return;
             Player player = Player.Get(Strangle.SyncTarget.Value.Target);
-            if (player == null) return;
             Strangle.SyncTarget = null;
             Strangle._rpcType = Scp3114Strangle.RpcType.AttackInterrupted;
             Strangle.ServerSendRpc(true);
