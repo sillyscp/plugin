@@ -15,7 +15,8 @@ namespace SillySCP.API.Features
         {
             Skeleton = player;
             Cooldown = new();
-            Role = (Scp3114Role)player.RoleBase;
+            if (player.RoleBase is not Scp3114Role role) return;
+            Role = role;
             Role.SubroutineModule.TryGetSubroutine(out Scp3114Strangle strangle);
             if (!strangle) return;
             Strangle = strangle;
@@ -43,9 +44,13 @@ namespace SillySCP.API.Features
         public bool CanStartStrangle => Cooldown.IsReady;
 
         public static SkeletonDataStore GetFromStrangle(Scp3114Strangle strangle) => 
-            Player.ReadyList
-                .Where(p => p.Role == RoleTypeId.Scp3114)
+            ValidSkeletons
                 .FirstOrDefault(p => p.GetDataStore<SkeletonDataStore>().Strangle == strangle)?
                 .GetDataStore<SkeletonDataStore>();
+
+        public static IEnumerable<Player> ValidSkeletons => Player.ReadyList.Where(IsValidSkeleton);
+
+        public static bool IsValidSkeleton(Player player) =>
+            player.RoleBase is Scp3114Role role && role.SubroutineModule.TryGetSubroutine(out Scp3114Strangle _);
     }
 }
