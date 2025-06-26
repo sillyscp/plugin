@@ -11,7 +11,12 @@ namespace SillySCP.Patches
         {
             SkeletonDataStore store = SkeletonDataStore.GetFromStrangle(__instance);
             if (store == null) return true;
-            if (!store.CanStartStrangle) return false;
+            if (!store.CanStartStrangle)
+            {
+                if(store.IsStrangling)
+                    store.StopStrangle();
+                return false;
+            }
             store.Cooldown.Trigger(10);
             return true;
         }

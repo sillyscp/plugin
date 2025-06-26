@@ -32,8 +32,8 @@ namespace SillySCP.API.Features
 
         public void StopStrangle()
         {
-            if (Strangle.SyncTarget == null || !Strangle.SyncTarget.Value.Target) return;
-            Player player = Player.Get(Strangle.SyncTarget.Value.Target);
+            if (!StrangleTarget) return;
+            Player player = Player.Get(StrangleTarget);
             Strangle.SyncTarget = null;
             Strangle._rpcType = Scp3114Strangle.RpcType.AttackInterrupted;
             Strangle.ServerSendRpc(true);
@@ -41,6 +41,24 @@ namespace SillySCP.API.Features
         }
 
         public bool CanStartStrangle => Cooldown.IsReady;
+
+        public bool IsStrangling => StrangleTarget;
+
+        public ReferenceHub StrangleTarget
+        {
+            get
+            {
+                try
+                {
+                    if(Strangle.SyncTarget == null || !Strangle.SyncTarget.Value.Target) return null;
+                    return Strangle.SyncTarget.Value.Target;
+                }
+                catch (NullReferenceException)
+                {
+                    return null;
+                }
+            }
+        }
 
         public static SkeletonDataStore GetFromStrangle(Scp3114Strangle strangle) => 
             ValidSkeletons
