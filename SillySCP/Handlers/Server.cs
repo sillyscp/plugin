@@ -1,4 +1,6 @@
-﻿using LabApi.Events.Arguments.Scp914Events;
+﻿using System.Net.Http;
+using System.Text;
+using LabApi.Events.Arguments.Scp914Events;
 using LabApi.Events.Arguments.ServerEvents;
 using LabApi.Events.Handlers;
 using LabApi.Features.Wrappers;
@@ -14,23 +16,46 @@ namespace SillySCP.Handlers
     {
         public static Server Instance { get; private set; }
         
+        public HttpClient Client { get; private set; }
+        
         public void TryRegister()
         {
             Instance = this;
+            Client = new();
+            Client.BaseAddress = new (Plugin.Instance.Config!.WebhookUrl);
             ServerEvents.WaitingForPlayers += OnWaitingForPlayers;
             ServerEvents.RoundStarted += OnRoundStarted;
             ServerEvents.RoundRestarted += OnRoundRestart;
             Scp914Events.ProcessingPickup += OnScp914UpgradePickup;
             ServerEvents.CassieQueuingScpTermination += OnAnnouncingScpTermination;
+            
+            Application.logMessageReceived += OnLogReceived;
         }
         
         public void TryUnregister()
         {
+            Client.Dispose();
+            Client = null;
             ServerEvents.WaitingForPlayers -= OnWaitingForPlayers;
             ServerEvents.RoundStarted -= OnRoundStarted;
             ServerEvents.RoundRestarted -= OnRoundRestart;
             Scp914Events.ProcessingPickup -= OnScp914UpgradePickup;
             ServerEvents.CassieQueuingScpTermination -= OnAnnouncingScpTermination;
+            
+            Application.logMessageReceived -= OnLogReceived;
+        }
+
+        private void OnLogReceived(string logString, string stackTrace, LogType type)
+        {
+            if (!logString.StartsWith("Disconnecting connId=")) return;
+            
+            logString = string.Join("\n", logString.Split('\n').Take(2)).Replace("\\", @"\\").Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n");
+            
+            string jsonString = $"{{\"content\":\"{logString}\"}}";
+            
+            StringContent content = new(jsonString, Encoding.UTF8, "application/json");
+
+            Client.PostAsync("", content);
         }
 
         private void OnAnnouncingScpTermination(CassieQueuingScpTerminationEventArgs ev)

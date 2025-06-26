@@ -26,11 +26,11 @@ namespace SillySCP
 
         public override void Enable()
         {
+            Instance = this;
             IRegister.RegisterAll();
             
             RueIMain.EnsureInit();
             Harmony.PatchAll();
-            Instance = this;
         }
 
         public override void Disable()
