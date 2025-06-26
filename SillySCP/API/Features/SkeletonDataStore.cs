@@ -19,14 +19,24 @@ namespace SillySCP.API.Features
             Role = role;
             Role.SubroutineModule.TryGetSubroutine(out Scp3114Strangle strangle);
             if (!strangle) return;
-            Strangle = strangle;
+            _strangle = strangle;
         }
         
         public Player Skeleton { get; set; }
         
-        public Scp3114Role Role { get; set; }
-        
-        public Scp3114Strangle Strangle { get; set; }
+        public Scp3114Role Role { get; }
+
+        private Scp3114Strangle _strangle;
+
+        public Scp3114Strangle Strangle
+        {
+            get
+            {
+                if(_strangle != null) return _strangle;
+                Role.SubroutineModule.TryGetSubroutine(out _strangle);
+                return _strangle;
+            }
+        }
 
         public AbilityCooldown Cooldown;
 
