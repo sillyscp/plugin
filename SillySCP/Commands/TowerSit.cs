@@ -1,11 +1,9 @@
 ﻿using CommandSystem;
 using LabApi.Features.Stores;
 using LabApi.Features.Wrappers;
-using PlayerRoles;
-using SecretAPI.Extensions;
 using SillySCP.API.Features;
 using UnityEngine;
-using Logger = LabApi.Features.Console.Logger;
+
 
 namespace SillySCP.Commands
 {
@@ -48,8 +46,6 @@ namespace SillySCP.Commands
             }
             Player player = players.First();
             
-            
-            
             switch (arguments.At(0))
             {
                 case "add":
@@ -78,7 +74,6 @@ namespace SillySCP.Commands
                     return false;
                 
             }
-            
         }
     }
 }

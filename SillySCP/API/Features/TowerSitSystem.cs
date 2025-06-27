@@ -8,7 +8,6 @@ namespace SillySCP.API.Features;
 
 public sealed class SitInfo // if need be this could be renamed into PlayerState and used in other things (like a mid-game volunteer system)
 {
-
     public readonly Player Player;
     public readonly PlayerRoleBase Role;
 
@@ -17,8 +16,7 @@ public sealed class SitInfo // if need be this could be renamed into PlayerState
 
     public readonly float MaxHealth;
     public readonly float Health;
-
-
+    
     public readonly float MaxHume;
     public readonly float Hume;
 
@@ -27,7 +25,6 @@ public sealed class SitInfo // if need be this could be renamed into PlayerState
     public readonly int ComputerXp;
     public SitInfo(Player player)
     {
-
         Player = player;
         Role = player.RoleBase;
         
@@ -35,7 +32,7 @@ public sealed class SitInfo // if need be this could be renamed into PlayerState
         Ammo = player.DropAllAmmo();
         
         // teleport items/ammo above the tutorial tower and lock the physics
-        foreach (var item in Inventory)
+        foreach (Pickup item in Inventory.Concat(Ammo))
         {
             item.IsLocked = true;
             item.IsInUse = true;
@@ -45,23 +42,8 @@ public sealed class SitInfo // if need be this could be renamed into PlayerState
             item.PickupStandardPhysics!.Rb.constraints = RigidbodyConstraints.FreezeAll;
             item.PickupStandardPhysics!.Rb.isKinematic = true;
             
-            if (item is Scp018Projectile projectile)
-            {
-                projectile.RemainingTime = 60 * 60; // if a round lasts more than an hour we have a problem qwq
-            }
-
+            if (item is Scp018Projectile projectile) projectile.RemainingTime = 60 * 60; // if a round lasts more than an hour we have bigger problems qwq
         }
-        foreach (var ammo in Ammo)
-        {
-            ammo.IsLocked = true;
-            ammo.IsInUse = true;
-            RoleTypeId.Tutorial.GetRandomSpawnPosition(out Vector3 spawnPos, out _);
-            ammo.Position = spawnPos + (Vector3.up * 25);
-            ammo.PickupStandardPhysics!.Rb.detectCollisions = false;
-            ammo.PickupStandardPhysics!.Rb.constraints = RigidbodyConstraints.FreezeAll;
-            ammo.PickupStandardPhysics!.Rb.isKinematic = true;
-        } 
-        
         MaxHealth = player.MaxHealth;
         Health = player.Health;
         
@@ -79,18 +61,13 @@ public sealed class SitInfo // if need be this could be renamed into PlayerState
     public void RestorePlayer()
     {
         if (!Player.IsOnline) return; // just in case they disconnect and something tries to restore them 
-
         Player.SetRole(Role.RoleTypeId,reason:RoleChangeReason.RemoteAdmin, flags:RoleSpawnFlags.None);
-
-        
-        
         
         Player.MaxHealth = MaxHealth;
         Player.Health = Health;
 
         Player.MaxHumeShield = MaxHume;
         Player.HumeShield = Hume;
-
         
         Player.Position = Position;
         
@@ -100,13 +77,13 @@ public sealed class SitInfo // if need be this could be renamed into PlayerState
             tierManager.TotalExp = ComputerXp;
         }
 
-        foreach (var item in Inventory)
+        foreach (Pickup item in Inventory)
         {
             Player.AddItem(item);
             item.Destroy();
         }
 
-        foreach (var ammo in Ammo)
+        foreach (AmmoPickup ammo in Ammo)
         {
             Player.AddAmmo(ammo.Type,ammo.Ammo);
             ammo.Destroy();
