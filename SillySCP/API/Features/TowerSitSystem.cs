@@ -1,8 +1,11 @@
-﻿using LabApi.Features.Wrappers;
+﻿using CustomPlayerEffects;
+using GameCore;
+using LabApi.Features.Wrappers;
 using PlayerRoles;
 using PlayerRoles.PlayableScps.Scp079;
 using SecretAPI.Extensions;
 using UnityEngine;
+using Logger = LabApi.Features.Console.Logger;
 
 namespace SillySCP.API.Features;
 
@@ -11,9 +14,10 @@ public sealed class SitInfo // if need be this could be renamed into PlayerState
     public readonly Player Player;
     public readonly PlayerRoleBase Role;
 
+    public readonly List<(StatusEffectBase Effect,float RemainingDuration,byte Intensity)> ActiveEffects = [];
     public readonly List<Pickup> Inventory;
-    public List<AmmoPickup> Ammo;
-
+    public readonly List<AmmoPickup> Ammo;
+    
     public readonly float MaxHealth;
     public readonly float Health;
     
@@ -28,6 +32,7 @@ public sealed class SitInfo // if need be this could be renamed into PlayerState
         Player = player;
         Role = player.RoleBase;
         
+        foreach (var effect in player.ActiveEffects) ActiveEffects.Add((effect,effect.TimeLeft,effect.Intensity));
         Inventory = player.DropAllItems();
         Ammo = player.DropAllAmmo();
         
@@ -63,6 +68,18 @@ public sealed class SitInfo // if need be this could be renamed into PlayerState
         if (!Player.IsOnline) return; // just in case they disconnect and something tries to restore them 
         Player.SetRole(Role.RoleTypeId,reason:RoleChangeReason.RemoteAdmin, flags:RoleSpawnFlags.None);
         
+        foreach (var effect in ActiveEffects) Player.EnableEffect(effect.Effect,effect.Intensity,effect.RemainingDuration);
+        foreach (Pickup item in Inventory)
+        {
+            Player.AddItem(item);
+            item.Destroy();
+        }
+        foreach (AmmoPickup ammo in Ammo)
+        {
+            Player.AddAmmo(ammo.Type,ammo.Ammo);
+            ammo.Destroy();
+        }
+        
         Player.MaxHealth = MaxHealth;
         Player.Health = Health;
 
@@ -70,24 +87,12 @@ public sealed class SitInfo // if need be this could be renamed into PlayerState
         Player.HumeShield = Hume;
         
         Player.Position = Position;
-        
         if (Player.RoleBase is Scp079Role computerRole)
         {
             computerRole.SubroutineModule.TryGetSubroutine(out Scp079TierManager tierManager);
             tierManager.TotalExp = ComputerXp;
         }
 
-        foreach (Pickup item in Inventory)
-        {
-            Player.AddItem(item);
-            item.Destroy();
-        }
-
-        foreach (AmmoPickup ammo in Ammo)
-        {
-            Player.AddAmmo(ammo.Type,ammo.Ammo);
-            ammo.Destroy();
-        }
         
     }
 }
