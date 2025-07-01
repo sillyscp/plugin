@@ -20,7 +20,7 @@ jobs:
         run: echo "EXILED_REFERENCES=${{ github.workspace }}\\EXILED_REFERENCES" >> $Env:GITHUB_ENV
         shell: pwsh
       - name: Download References
-        run: curl -O https://exmod-team.github.io/SL-References/Dev.zip
+        run: curl -O https://exslmod-team.github.io/SL-References/Dev.zip
         shell: pwsh
       - name: Extract References
         run: Expand-Archive -Path Dev.zip -DestinationPath $Env:EXILED_REFERENCES
