@@ -38,7 +38,7 @@ namespace SillySCP.Handlers
             PlayerEvents.Death += OnDeath;
             PlayerEvents.ChangedSpectator += OnChangedSpectator;
             
-            PlayerEvents.ReceivingLoadout += OnReceivingLoadout;
+            PlayerEvents.ReceivedLoadout += OnReceivedLoadout;
         }
 
         public void TryUnregister()
@@ -55,19 +55,19 @@ namespace SillySCP.Handlers
             PlayerEvents.Death -= OnDeath;
             PlayerEvents.ChangedSpectator -= OnChangedSpectator;
             
-            PlayerEvents.ReceivingLoadout -= OnReceivingLoadout;
+            PlayerEvents.ReceivedLoadout -= OnReceivedLoadout;
         }
 
-        private void OnReceivingLoadout(PlayerReceivingLoadoutEventArgs ev)
+        private void OnReceivedLoadout(PlayerReceivedLoadoutEventArgs ev)
         {
             switch (ev.Player.Role)
             {
                 case RoleTypeId.ClassD:
-                    ev.AddItem(ItemType.Coin);
+                    ev.Player.AddItem(ItemType.Coin);
                     break;
                 
                 case RoleTypeId.Scientist:
-                    ev.AddItem(ItemType.Flashlight);
+                    ev.Player.AddItem(ItemType.Flashlight);
                     break;
             }
         }
