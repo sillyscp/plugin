@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using CustomPlayerEffects;
+using JetBrains.Annotations;
 using LabApi.Features.Stores;
 using LabApi.Features.Wrappers;
 using PlayerRoles;
@@ -16,33 +17,45 @@ namespace SillySCP.API.Features
             Skeleton = player;
             Cooldown = new();
             if (player.RoleBase is not Scp3114Role role) return;
-            Role = role;
-            Role.SubroutineModule.TryGetSubroutine(out Scp3114Strangle strangle);
+            _role = role;
+            role.SubroutineModule.TryGetSubroutine(out Scp3114Strangle strangle);
             if (!strangle) return;
             _strangle = strangle;
         }
         
-        public Player Skeleton { get; set; }
-        
-        public Scp3114Role Role { get; }
+        private Player Skeleton { get; }
 
-        private Scp3114Strangle _strangle;
+        private readonly Scp3114Role _role;
 
-        public Scp3114Strangle Strangle
+        [CanBeNull]
+        private Scp3114Role Role
         {
             get
             {
-                if(_strangle != null) return _strangle;
+                if (_role) return _role;
+                return Skeleton is not { RoleBase: Scp3114Role role } ? null : role;
+            }
+        }
+
+        private Scp3114Strangle _strangle;
+
+        [CanBeNull]
+        private Scp3114Strangle Strangle
+        {
+            get
+            {
+                if(_strangle) return _strangle;
+                if (!Role?.SubroutineModule) return null;
                 Role.SubroutineModule.TryGetSubroutine(out _strangle);
                 return _strangle;
             }
         }
 
-        public AbilityCooldown Cooldown;
+        public readonly AbilityCooldown Cooldown;
 
         public void StopStrangle()
         {
-            if (!StrangleTarget) return;
+            if (!StrangleTarget || !Strangle) return;
             Player player = Player.Get(StrangleTarget);
             Strangle.SyncTarget = null;
             Strangle._rpcType = Scp3114Strangle.RpcType.AttackInterrupted;
@@ -54,13 +67,13 @@ namespace SillySCP.API.Features
 
         public bool IsStrangling => StrangleTarget;
 
-        public ReferenceHub StrangleTarget
+        private ReferenceHub StrangleTarget
         {
             get
             {
                 try
                 {
-                    if(Strangle.SyncTarget == null || !Strangle.SyncTarget.Value.Target) return null;
+                    if(!Strangle || Strangle.SyncTarget == null || !Strangle.SyncTarget.Value.Target) return null;
                     return Strangle.SyncTarget.Value.Target;
                 }
                 catch (NullReferenceException)
@@ -75,9 +88,9 @@ namespace SillySCP.API.Features
                 .FirstOrDefault(p => p.GetDataStore<SkeletonDataStore>().Strangle == strangle)?
                 .GetDataStore<SkeletonDataStore>();
 
-        public static IEnumerable<Player> ValidSkeletons => Player.ReadyList.Where(IsValidSkeleton);
+        private static IEnumerable<Player> ValidSkeletons => Player.ReadyList.Where(IsValidSkeleton);
 
-        public static bool IsValidSkeleton(Player player) =>
+        private static bool IsValidSkeleton(Player player) =>
             player.RoleBase is Scp3114Role role && role.SubroutineModule.TryGetSubroutine(out Scp3114Strangle _);
     }
 }
