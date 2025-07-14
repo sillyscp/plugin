@@ -1,22 +1,23 @@
 ﻿using CustomPlayerEffects;
-using GameCore;
+using InventorySystem.Items.Usables.Scp1344;
 using LabApi.Features.Wrappers;
+using NorthwoodLib.Pools;
 using PlayerRoles;
 using PlayerRoles.PlayableScps.Scp079;
-using SecretAPI.Extensions;
+using SillySCP.API.Extensions;
 using UnityEngine;
-using Logger = LabApi.Features.Console.Logger;
+using Scp1344Item = LabApi.Features.Wrappers.Scp1344Item;
 
 namespace SillySCP.API.Features;
 
-public sealed class SitInfo // if need be this could be renamed into PlayerState and used in other things (like a mid-game volunteer system)
+public sealed class SitInfo // if need be this could be repurposed into a way to Stash a players state 
 {
     public readonly Player Player;
     public readonly PlayerRoleBase Role;
 
     public readonly List<(StatusEffectBase Effect,float RemainingDuration,byte Intensity)> ActiveEffects = [];
     public readonly List<Pickup> Inventory;
-    public readonly List<AmmoPickup> Ammo;
+    public readonly KeyValuePair<ItemType,ushort>[] Ammo;
     
     public readonly float MaxHealth;
     public readonly float Health;
@@ -33,22 +34,10 @@ public sealed class SitInfo // if need be this could be renamed into PlayerState
         Role = player.RoleBase;
         
         foreach (var effect in player.ActiveEffects) ActiveEffects.Add((effect,effect.TimeLeft,effect.Intensity));
-        Inventory = player.DropAllItems();
-        Ammo = player.DropAllAmmo();
         
-        // teleport items/ammo above the tutorial tower and lock the physics
-        foreach (Pickup item in Inventory.Concat(Ammo))
-        {
-            item.IsLocked = true;
-            item.IsInUse = true;
-            RoleTypeId.Tutorial.GetRandomSpawnPosition(out Vector3 spawnPos, out _);
-            item.Position = spawnPos + (Vector3.up * 25);
-            item.PickupStandardPhysics!.Rb.detectCollisions = false;
-            item.PickupStandardPhysics!.Rb.constraints = RigidbodyConstraints.FreezeAll;
-            item.PickupStandardPhysics!.Rb.isKinematic = true;
-            
-            if (item is Scp018Projectile projectile) projectile.RemainingTime = 60 * 60; // if a round lasts more than an hour we have bigger problems qwq
-        }
+        Inventory = player.CloneItems();
+        Ammo = player.Ammo.ToArray();
+        
         MaxHealth = player.MaxHealth;
         Health = player.Health;
         
@@ -69,16 +58,21 @@ public sealed class SitInfo // if need be this could be renamed into PlayerState
         Player.SetRole(Role.RoleTypeId,reason:RoleChangeReason.RemoteAdmin, flags:RoleSpawnFlags.None);
         
         foreach (var effect in ActiveEffects) Player.EnableEffect(effect.Effect,effect.Intensity,effect.RemainingDuration);
-        foreach (Pickup item in Inventory)
+        
+        foreach (Pickup pickup in Inventory)
         {
-            Player.AddItem(item);
-            item.Destroy();
+            Item item = Player.AddItem(pickup);
+            
+            if (ActiveEffects.Exists(activeEffect => activeEffect.Effect is Scp1344))
+                if (item is Scp1344Item scp1344) {
+                    Player.DisableEffect<Scp1344>();
+                    scp1344.Use(); //any effect that puts something on the players screen doesn't like being set frame 0
+                    scp1344.Status = Scp1344Status.Active;
+                }
         }
-        foreach (AmmoPickup ammo in Ammo)
-        {
-            Player.AddAmmo(ammo.Type,ammo.Ammo);
-            ammo.Destroy();
-        }
+        ListPool<Pickup>.Shared.Return(Inventory);
+        
+        foreach (KeyValuePair<ItemType, ushort> ammo in Ammo) Player.AddAmmo(ammo.Key,ammo.Value);
         
         Player.MaxHealth = MaxHealth;
         Player.Health = Health;
@@ -92,34 +86,26 @@ public sealed class SitInfo // if need be this could be renamed into PlayerState
             computerRole.SubroutineModule.TryGetSubroutine(out Scp079TierManager tierManager);
             tierManager.TotalExp = ComputerXp;
         }
-
-        
     }
 }
-
 
 public static class TowerSitSystem
 {
     public static Dictionary<Player,SitInfo> ActiveSits = new ();
     
-    public static bool Start(Player player)
+    public static void Start(Player player)
     {
-
-        if (ActiveSits.ContainsKey(player)) return false;
-
+        if (ActiveSits.ContainsKey(player)) return;
         SitInfo sit = new(player);
         ActiveSits[player] = sit;
         
         player.SetRole(RoleTypeId.Tutorial);
-        return true;
     }
     
-    public static bool End(Player player)
+    public static void End(Player player)
     {
-        if (!ActiveSits.TryGetValue(player, out SitInfo sit)) return false;
+        if (!ActiveSits.TryGetValue(player, out SitInfo sit)) return;
         sit.RestorePlayer();
         ActiveSits.Remove(player);
-        return true;
     }
-    
 }
