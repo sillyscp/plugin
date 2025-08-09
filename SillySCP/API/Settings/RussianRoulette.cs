@@ -2,6 +2,7 @@
 using InventorySystem.Items.Firearms.Modules;
 using LabApi.Features.Wrappers;
 using MEC;
+using PlayerRoles.Subroutines;
 using SecretAPI.Features.UserSettings;
 using SillySCP.API.Modules;
 using UnityEngine;
@@ -19,11 +20,18 @@ namespace SillySCP.API.Settings
 
         protected override void HandleSettingUpdate(Player player)
         {
+            if (!Cooldown.IsReady)
+                return;
+            
+            Cooldown.Trigger(5);
+            
             if (player.CurrentItem is not FirearmItem { Type: ItemType.GunRevolver } firearm) return;
             if(!firearm.Base.TryGetModules(out RevolverRouletteModule revolver, out DoubleActionModule actionModule)) return;
             revolver.SendRpc();
             Timing.RunCoroutine(Shoot(player, firearm, revolver, actionModule));
         }
+        
+        public AbilityCooldown Cooldown { get; } = new ();
 
         private IEnumerator<float> Shoot(Player player, FirearmItem firearm, RevolverRouletteModule revolver, DoubleActionModule actionModule)
         {
