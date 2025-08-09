@@ -1,16 +1,17 @@
 using LabApi.Features.Wrappers;
 using SillySCP.API.Features;
 
-namespace SillySCP.API.EventArgs;
-
-public class VolunteerEventArgs : System.EventArgs
+namespace SillySCP.API.EventArgs
 {
-    public VolunteerEventArgs(Player player, Volunteers volunteer)
+    public class VolunteerEventArgs : System.EventArgs
     {
-        Player = player;
-        Volunteer = volunteer;
+        public VolunteerEventArgs(Player player, Volunteers volunteer)
+        {
+            Player = player;
+            Volunteer = volunteer;
+        }
+
+        public Player Player { get; }
+        public Volunteers Volunteer { get; }
     }
-    
-    public Player Player { get; }
-    public Volunteers Volunteer { get; }
 }
