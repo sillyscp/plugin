@@ -16,7 +16,7 @@ namespace SillySCP.Handlers
             // PlayerEvents.Joined += OnVerified;
             // ServerSpecificSettingsSync.ServerOnSettingValueReceived += SettingRecieved;
             
-            CustomSetting.Register(new StruggleSetting(), new JailbirdSetting(), new IntercomSetting(), new RussianRoulette(), new ExclusiveColorSetting(), new PronounSetting());
+            CustomSetting.Register(new JailbirdSetting(), new IntercomSetting(), new RussianRoulette(), new ExclusiveColorSetting(), new PronounSetting());
 
             string sillyAudiosLocation = Path.Combine(PathManager.Configs.FullName, "Silly Audios");
             
