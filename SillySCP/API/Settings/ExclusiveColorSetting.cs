@@ -39,9 +39,12 @@ namespace SillySCP.API.Settings
         
         protected override bool CanView(Player player) => player.HasPermissions("supporter");
 
-        protected override void HandleSettingUpdate(Player player)
+        protected override void HandleSettingUpdate()
         {
-            player.GroupColor = SelectedOption == "default" ? ServerStatic.PermissionsHandler.GetUserGroup(player.UserId).BadgeColor : SelectedOption;
+            if (KnownOwner == null)
+                return;
+            
+            KnownOwner.GroupColor = SelectedOption == "default" ? ServerStatic.PermissionsHandler.GetUserGroup(KnownOwner.UserId).BadgeColor : SelectedOption;
         }
 
         public override CustomHeader Header { get; } = SSSSModule.ExclusiveHeader;

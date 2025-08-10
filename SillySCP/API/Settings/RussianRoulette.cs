@@ -18,17 +18,20 @@ namespace SillySCP.API.Settings
 
         protected override CustomSetting CreateDuplicate() => new RussianRoulette();
 
-        protected override void HandleSettingUpdate(Player player)
+        protected override void HandleSettingUpdate()
         {
+            if (KnownOwner == null)
+                return;
+            
             if (!Cooldown.IsReady)
                 return;
             
             Cooldown.Trigger(5);
             
-            if (player.CurrentItem is not FirearmItem { Type: ItemType.GunRevolver } firearm) return;
+            if (KnownOwner.CurrentItem is not FirearmItem { Type: ItemType.GunRevolver } firearm) return;
             if(!firearm.Base.TryGetModules(out RevolverRouletteModule revolver, out DoubleActionModule actionModule)) return;
             revolver.SendRpc();
-            Timing.RunCoroutine(Shoot(player, firearm, revolver, actionModule));
+            Timing.RunCoroutine(Shoot(KnownOwner, firearm, revolver, actionModule));
         }
         
         public AbilityCooldown Cooldown { get; } = new ();

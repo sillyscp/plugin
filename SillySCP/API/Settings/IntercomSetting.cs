@@ -16,7 +16,7 @@ namespace SillySCP.API.Settings
 
         public override CustomHeader Header { get; } = SSSSModule.Header;
 
-        protected override void HandleSettingUpdate(Player player)
+        protected override void HandleSettingUpdate()
         { }
     }
 }

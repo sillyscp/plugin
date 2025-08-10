@@ -15,28 +15,31 @@ namespace SillySCP.API.Settings
 
         protected override CustomSetting CreateDuplicate() => new PronounSetting();
 
-        protected override void HandleSettingUpdate(Player player)
+        protected override void HandleSettingUpdate()
         {
-            player.DisplayName = null!;
+            if (KnownOwner == null)
+                return;
+            
+            KnownOwner.DisplayName = null!;
             switch (SelectedOption)
             {
                 case "none specified":
-                    player.DisplayName = null!;
+                    KnownOwner.DisplayName = null!;
                     break;
                 case "he/him":
-                    player.DisplayName = $"{player.Nickname} (he/him)";
+                    KnownOwner.DisplayName = $"{KnownOwner.Nickname} (he/him)";
                     break;
                 case "she/her":
-                    player.DisplayName = $"{player.Nickname} (she/her)";
+                    KnownOwner.DisplayName = $"{KnownOwner.Nickname} (she/her)";
                     break;
                 case "they/them":
-                    player.DisplayName = $"{player.Nickname} (they/them)";
+                    KnownOwner.DisplayName = $"{KnownOwner.Nickname} (they/them)";
                     break;
                 case "any pronouns":
-                    player.DisplayName = $"{player.Nickname} (any pronouns)";
+                    KnownOwner.DisplayName = $"{KnownOwner.Nickname} (any pronouns)";
                     break;
                 case "ask":
-                    player.DisplayName = $"{player.Nickname} (ask)";
+                    KnownOwner.DisplayName = $"{KnownOwner.Nickname} (ask)";
                     break;
             }
         }
