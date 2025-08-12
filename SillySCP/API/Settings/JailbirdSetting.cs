@@ -6,11 +6,14 @@ namespace SillySCP.API.Settings
 {
     public class JailbirdSetting : CustomTwoButtonSetting
     {
-        public const int SettingId = 837;
-        
+        public static int SettingId { get; private set; }
+
         public JailbirdSetting()
-            : base(SettingId, "Meow on Jailbird swing", "Yes", "No", hint: "When you or someone else swings the jailbird, should you hear the meow?")
-        {}
+            : base(null, "Meow on Jailbird swing", "Yes", "No",
+                hint: "When you or someone else swings the jailbird, should you hear the meow?")
+        {
+            SettingId = Id;
+        }
 
         protected override CustomSetting CreateDuplicate() => new JailbirdSetting();
 

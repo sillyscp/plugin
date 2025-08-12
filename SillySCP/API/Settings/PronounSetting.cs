@@ -10,7 +10,7 @@ namespace SillySCP.API.Settings
     public class PronounSetting : CustomDropdownSetting
     {
         public PronounSetting()
-            : base(834, "Pronouns", new[] { "none specified", "she/her", "he/him", "they/them", "any pronouns", "ask" }, hint: "Select the pronouns which appear next to your name.") 
+            : base(null, "Pronouns", new[] { "none specified", "she/her", "he/him", "they/them", "any pronouns", "ask" }, hint: "Select the pronouns which appear next to your name.") 
         {}
 
         protected override CustomSetting CreateDuplicate() => new PronounSetting();

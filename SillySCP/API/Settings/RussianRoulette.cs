@@ -13,7 +13,7 @@ namespace SillySCP.API.Settings
     public class RussianRoulette : CustomKeybindSetting
     {
         public RussianRoulette()
-            : base(839, "Russian Roulette", KeyCode.None, true, false, "Whenever you press this button with a revolver in hand, the barrel will spin and shoot at you, and the chance of death will be dependent on how many bullets are in the revolver.") 
+            : base(null, "Russian Roulette", KeyCode.None, true, false, "Whenever you press this button with a revolver in hand, the barrel will spin and shoot at you, and the chance of death will be dependent on how many bullets are in the revolver.") 
         {}
 
         protected override CustomSetting CreateDuplicate() => new RussianRoulette();

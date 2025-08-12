@@ -6,11 +6,14 @@ namespace SillySCP.API.Settings
 {
     public class IntercomSetting : CustomTwoButtonSetting
     {
-        
-        public const int SettingId = 838;
+        public static int SettingId { get; private set; }
+
         public IntercomSetting()
-            : base(SettingId, "Mute Intercom?", "Yes", "No", true, "When the option Yes is selected, intercom will be muted for you.")
-        {}
+            : base(null, "Mute Intercom?", "Yes", "No", true,
+                "When the option Yes is selected, intercom will be muted for you.")
+        {
+            SettingId = Id;
+        }
 
         protected override CustomSetting CreateDuplicate() => new IntercomSetting();
 

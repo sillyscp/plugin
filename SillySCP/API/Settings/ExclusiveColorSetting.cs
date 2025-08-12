@@ -31,7 +31,7 @@ namespace SillySCP.API.Settings
         };
 
         public ExclusiveColorSetting()
-            : base(835, "Colour Setting", Options, hint: "Select a colour for your supporter role")
+            : base(null, "Colour Setting", Options, hint: "Select a colour for your supporter role")
         {
         }
 
