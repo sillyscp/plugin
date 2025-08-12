@@ -81,10 +81,10 @@ namespace SillySCP.Handlers
                 if (scpNames.Count == 1)
                 {
                     if(LabApi.Features.Wrappers.Server.PlayerCount >= 8)
-                        player.ShowString("<size=10em>You are the only SCP on your team</size>", 5);
+                        player.ShowString("You are the only SCP on your team", 5);
                     return;
                 }
-                player.ShowString($"<size=10em>You currently have {string.Join(", ", scpNamesCopy)} and {scpNames.Last()} as your team mates</size>", 15);   
+                player.ShowString($"You currently have {string.Join(", ", scpNamesCopy)} and {scpNames.Last()} as your team mates", 15);   
             }
         }
     }
