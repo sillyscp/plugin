@@ -1,9 +1,9 @@
 ﻿using CommandSystem;
 using LabApi.Features.Stores;
 using LabApi.Features.Wrappers;
-using PlayerRoles;
-using SecretAPI.Extensions;
+using SillySCP.API.Features;
 using UnityEngine;
+
 
 namespace SillySCP.Commands
 {
@@ -19,34 +19,13 @@ namespace SillySCP.Commands
     [CommandHandler(typeof(RemoteAdminCommandHandler))]
     public class TowerSit : ICommand
     {
-        private void AddPlayer(Player player)
-        {
-            player.GetDataStore<DataStore>().Position = player.Position;
-            player.IsGodModeEnabled = true;
-            if (player.IsSCP)
-            {
-                player.SendBroadcast("If you go to Settings, Server-specific, you can set a bind for proximity chat",10);
-            }
-            RoleTypeId.Tutorial.GetRandomSpawnPosition(out Vector3 position, out float _);
-            player.Position = position;
-        }
-        private static bool RestorePlayer(Player player)
-        {
-            DataStore store = player.GetDataStore<DataStore>();
-            player.Position = (Vector3)store.Position!;
-            store.Position = null;
-            player.IsGodModeEnabled = false;
-            return true;
-        }
-        
-        
         public string Command { get; } = "towersit";
         public string Description { get; } = "Teleport a player to the tower and return them after";
         public string[] Aliases { get; } = ["ts"];
 
         private const string Usage = "Invalid Usage, Applicable usages:" +
-                                     "\n ts add <PLAYER> - teleport a player to the tower (Both IDs and Partial Usernames are accepted)" +
-                                     "\n ts restore <PLAYER> - restore a players original position (Both IDs and Partial Usernames are accepted)";
+                                     "\n ts add <PLAYER> - Create a towersit (Usernames are accepted)" +
+                                     "\n ts restore <PLAYER> - End a towersit (Usernames are accepted)";
         
         public bool Execute(
             ArraySegment<string> arguments,
@@ -54,44 +33,40 @@ namespace SillySCP.Commands
             out string response
         )
         {
-            
             if (arguments.Count != 2)
             {
                 response = Usage;
                 return false;
             }
             
-            if (!Player.TryGet(arguments.At(1), out Player player))
+            if (!Player.TryGetPlayersByName(arguments.At(1), out List<Player> players)) // no method for the first player to match
             {
                 response = "Must be a player!";
                 return false;
             }
-
-            if (!player.IsAlive)
-            {
-                response = "Player is dead!";
-                return false;
-            }
+            Player player = players.First();
             
             switch (arguments.At(0))
             {
                 case "add":
-                    if (player.GetDataStore<DataStore>().Position != null)
+                    if (TowerSitSystem.ActiveSits.ContainsKey(player))
                     {
-                        response = "Player already has a return position!";
+                        response =$"{player.Nickname} is already in the tower!";
                         return false;
                     }
-                    AddPlayer(player);
-                    response = $"{player.Nickname} teleporting to the tower!";
+                    TowerSitSystem.Start(player);
+                    response = $"{player.Nickname} has been towered!";
                     return true;
                 
                 case "restore":
-                    if (!RestorePlayer(player))
+                    if (!TowerSitSystem.ActiveSits.ContainsKey(player))
                     {
-                        response = $"Player {player.Nickname} doesnt have a return position!";
+                        response = $"Player {player.Nickname} is not actively in the tower!";
                         return false;
                     }
-                    response = $"{player.Nickname} restored from the tower!";
+
+                    TowerSitSystem.End(player);
+                    response = $"returned {player.Nickname} from the tower!";
                     return true;
                 
                 default:
@@ -99,7 +74,6 @@ namespace SillySCP.Commands
                     return false;
                 
             }
-            
         }
     }
 }
