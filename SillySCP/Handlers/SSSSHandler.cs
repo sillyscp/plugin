@@ -1,4 +1,6 @@
-﻿using LabApi.Events.Arguments.PlayerEvents;
+﻿using InventorySystem.Items.Jailbird;
+using LabApi.Events.Arguments.PlayerEvents;
+using LabApi.Events.Handlers;
 using LabApi.Loader.Features.Paths;
 using SecretAPI.Extensions;
 using SecretAPI.Features;
@@ -20,18 +22,23 @@ namespace SillySCP.Handlers
 
             string sillyAudiosLocation = Path.Combine(PathManager.Configs.FullName, "Silly Audios");
             
-            AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "kali 1.ogg"), "meow 1");
-            AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "kali 2.ogg"), "meow 2");
-            AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "cyn 1.ogg"), "meow 3");
-            AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "cyn 2.ogg"), "meow 4");
+            AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "kali 1.ogg"), "jailbird meow 1");
+            AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "kali 2.ogg"), "jailbird meow 2");
+            AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "cyn 1.ogg"), "jailbird meow 3");
+            AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "cyn 2.ogg"), "jailbird meow 4");
 
             // intercom handler
-            LabApi.Events.Handlers.PlayerEvents.ReceivingVoiceMessage += OnReceivingVoiceMessage;
+            PlayerEvents.ReceivingVoiceMessage += OnReceivingVoiceMessage;
+
+            // jailbird handler
+            PlayerEvents.ProcessedJailbirdMessage += OnJailbirdEvent;
         }
 
         public void TryUnregister()
         {
-            LabApi.Events.Handlers.PlayerEvents.ReceivingVoiceMessage -= OnReceivingVoiceMessage;
+            PlayerEvents.ReceivingVoiceMessage -= OnReceivingVoiceMessage;
+
+            PlayerEvents.ProcessedJailbirdMessage -= OnJailbirdEvent;
 
             foreach (AudioClipData clipData in AudioClipStorage.AudioClips.Values)
             {
@@ -47,9 +54,12 @@ namespace SillySCP.Handlers
             ev.IsAllowed = setting.IsOptionB;
         }
 
-        internal static void OnJailbirdEvent(LabApi.Features.Wrappers.Player player)
+        internal static void OnJailbirdEvent(PlayerProcessedJailbirdMessageEventArgs ev)
         {
-            AudioPlayer audioPlayer = AudioPlayer.CreateOrGet($"Jailbird {player.Nickname}", 
+            if (ev.Message != JailbirdMessageType.AttackTriggered)
+                return;
+            
+            AudioPlayer audioPlayer = AudioPlayer.CreateOrGet($"Jailbird {ev.Player.Nickname}", 
                 condition: hub =>
                 {
                     LabApi.Features.Wrappers.Player plr = LabApi.Features.Wrappers.Player.Get(hub);
@@ -59,13 +69,13 @@ namespace SillySCP.Handlers
                 }, 
                 onIntialCreation: p =>
                 {
-                    p.transform.parent = player.GameObject.transform;
+                    p.transform.parent = ev.Player.GameObject.transform;
                     Speaker speaker = p.AddSpeaker("Jailbird Speaker", isSpatial: true, minDistance: 5f, maxDistance: 15f);
-                    speaker.transform.parent = player.GameObject.transform;
+                    speaker.transform.parent = ev.Player.GameObject.transform;
                     speaker.transform.localPosition = Vector3.zero;
                 }
             );
-            audioPlayer.AddClip(AudioClipStorage.AudioClips.Values.Where(data => data.Name.Contains("meow")).GetRandomValue().Name, 3);
+            audioPlayer.AddClip(AudioClipStorage.AudioClips.Values.Where(data => data.Name.Contains("jailbird meow")).GetRandomValue().Name, 3);
         }
     }
 }
