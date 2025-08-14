@@ -1,5 +1,7 @@
 ﻿using CustomPlayerEffects;
 using LabApi.Events.Arguments.PlayerEvents;
+using LabApi.Events.Arguments.Scp096Events;
+using LabApi.Events.Arguments.Scp173Events;
 using LabApi.Events.Arguments.Scp914Events;
 using LabApi.Events.Handlers;
 using LabApi.Features.Extensions;
@@ -39,6 +41,10 @@ namespace SillySCP.Handlers
             PlayerEvents.ChangedSpectator += OnChangedSpectator;
             
             PlayerEvents.ReceivedLoadout += OnReceivedLoadout;
+
+            Scp173Events.AddingObserver += OnAddingObserver;
+
+            Scp096Events.AddingTarget += OnAddingTarget;
         }
 
         public void TryUnregister()
@@ -56,6 +62,26 @@ namespace SillySCP.Handlers
             PlayerEvents.ChangedSpectator -= OnChangedSpectator;
             
             PlayerEvents.ReceivedLoadout -= OnReceivedLoadout;
+            
+            Scp173Events.AddingObserver -= OnAddingObserver;
+
+            Scp096Events.AddingTarget -= OnAddingTarget;
+        }
+
+        private void OnAddingTarget(Scp096AddingTargetEventArgs ev)
+        {
+            if (ev.Target.Role != RoleTypeId.Tutorial)
+                return;
+
+            ev.IsAllowed = false;
+        }
+
+        private void OnAddingObserver(Scp173AddingObserverEventArgs ev)
+        {
+            if (ev.Target.Role != RoleTypeId.Tutorial)
+                return;
+
+            ev.IsAllowed = false;
         }
 
         private void OnReceivedLoadout(PlayerReceivedLoadoutEventArgs ev)
