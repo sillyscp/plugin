@@ -55,6 +55,12 @@ namespace SillySCP.Commands.ScpSwap
                 return false;
             }
 
+            if (player.Role == role)
+            {
+                response = "You can't change to the role you already are.";
+                return false;
+            }
+
             AwaitingRequests.Remove(player);
 
             Player holder = Player.ReadyList.FirstOrDefault(p => p.Role == role);
