@@ -9,6 +9,7 @@ using LabApi.Features.Wrappers;
 using MapGeneration;
 using PlayerRoles;
 using PlayerRoles.FirstPersonControl;
+using PlayerRoles.PlayableScps.Scp096;
 using PlayerRoles.PlayableScps.Scp106;
 using Scp914;
 using SecretAPI.Extensions;
@@ -45,6 +46,8 @@ namespace SillySCP.Handlers
             Scp173Events.AddingObserver += OnAddingObserver;
 
             Scp096Events.AddingTarget += OnAddingTarget;
+
+            PlayerEvents.ValidatedVisibility += OnValidatedVisibility;
         }
 
         public void TryUnregister()
@@ -66,6 +69,19 @@ namespace SillySCP.Handlers
             Scp173Events.AddingObserver -= OnAddingObserver;
 
             Scp096Events.AddingTarget -= OnAddingTarget;
+
+            PlayerEvents.ValidatedVisibility -= OnValidatedVisibility;
+        }
+
+        private void OnValidatedVisibility(PlayerValidatedVisibilityEventArgs ev)
+        {
+            if (ev.Player.RoleBase is not Scp096Role role || role.StateController.RageState != Scp096RageState.Enraged)
+                return;
+
+            if (!ev.Target.IsSCP)
+                return;
+
+            ev.IsVisible = true;
         }
 
         private void OnAddingTarget(Scp096AddingTargetEventArgs ev)
@@ -153,12 +169,12 @@ namespace SillySCP.Handlers
             if (!ev.Reason.Contains("AFK")) return;
 
             RoleTypeId.Tutorial.GetRandomSpawnPosition(out Vector3 position, out float _);
-            
-            bool allowed = !(Vector3.Distance(position, ev.Player.Position) > 11f || ev.Player.IsSpeaking);
+
+            bool allowed = Vector3.Distance(ev.Player.Position, position) > 11 || !ev.Player.IsSpeaking;
 
             ev.IsAllowed = allowed;
 
-            if (!allowed) return;
+            if (!allowed || ev.Player.Role == RoleTypeId.Tutorial) return;
             LabApi.Features.Wrappers.Player player = LabApi.Features.Wrappers.Player.List.Where(player => player.Role == RoleTypeId.Spectator).GetRandomValue();
             if(player == null) return;
             player.Role = ev.Player.Role;
