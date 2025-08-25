@@ -41,7 +41,6 @@ namespace SillySCP.Commands.ScpSwap
                 response = "Can not switch";
                 return false;
             }
-
             
             if (!player.IsSCP || IsInvalidRole(player.Role))
             {
@@ -58,6 +57,12 @@ namespace SillySCP.Commands.ScpSwap
             if (player.Role == role)
             {
                 response = "You can't change to the role you already are.";
+                return false;
+            }
+
+            if (VolunteerSystem.Volunteers.Any(x => x.Replacement == role))
+            {
+                response = "You can not change to a role which is currently being volunteered for.";
                 return false;
             }
 
