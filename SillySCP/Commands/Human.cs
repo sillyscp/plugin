@@ -1,9 +1,15 @@
-﻿using CommandSystem;
+﻿using System.Diagnostics;
+using CommandSystem;
 using LabApi.Features.Extensions;
 using LabApi.Features.Wrappers;
+using MapGeneration;
+using MapGeneration.Distributors;
+using MapGeneration.Scenarios;
 using PlayerRoles;
 using PlayerRoles.RoleAssign;
 using SillySCP.API.Features;
+using UnityEngine;
+using Logger = LabApi.Features.Console.Logger;
 
 namespace SillySCP.Commands
 {
@@ -28,9 +34,9 @@ namespace SillySCP.Commands
                 return false;
             }
             
-            Player.TryGet(sender, out Player player);
+            Player player = Player.Get(sender);
             
-            if (!player.IsSCP)
+            if (!player!.IsSCP)
             {
                 response = "Only SCPs can use this command!";
                 return false;
@@ -46,6 +52,7 @@ namespace SillySCP.Commands
             VolunteerSystem.NewVolunteer(player.Role);
             player.Role = role;
             response = $"You have been changed into {role.GetFullName()}!";
+
             return true;
         }
     }
