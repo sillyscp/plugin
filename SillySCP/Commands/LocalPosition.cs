@@ -20,7 +20,7 @@ namespace SillySCP.Commands
                 return false;
             }
             Player player = Player.Get(sender);
-            response = $"{player?.Room?.Transform.InverseTransformPoint(player.Position).ToString()}, current room: {player.Room}";
+            response = $"{player?.Room?.Transform.InverseTransformPoint(player.Position).ToString()}, current room: {player.Room.GameObject.name}";
             return true;
         }
     }
