@@ -1,4 +1,5 @@
-﻿using CustomPlayerEffects;
+﻿using System.Net.Http;
+using CustomPlayerEffects;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Arguments.Scp096Events;
 using LabApi.Events.Arguments.Scp173Events;
@@ -11,6 +12,7 @@ using PlayerRoles;
 using PlayerRoles.FirstPersonControl;
 using PlayerRoles.PlayableScps.Scp096;
 using PlayerRoles.PlayableScps.Scp106;
+using PlayerStatsSystem;
 using Scp914;
 using SecretAPI.Extensions;
 using SecretAPI.Features;
@@ -18,6 +20,7 @@ using SillySCP.API.Extensions;
 using SillySCP.API.Features;
 using SillySCP.API.Modules;
 using UnityEngine;
+using Logger = LabApi.Features.Console.Logger;
 using Random = UnityEngine.Random;
 
 namespace SillySCP.Handlers
@@ -25,6 +28,9 @@ namespace SillySCP.Handlers
     public class Player : IRegister
     {
         public static Player Instance { get; private set; }
+        
+        // my ass is not putting the bee movie script in code.
+        public static string BeeMovieScript { get; private set; }
         
         public void TryRegister()
         {
@@ -48,6 +54,11 @@ namespace SillySCP.Handlers
             Scp096Events.AddingTarget += OnAddingTarget;
 
             PlayerEvents.ValidatedVisibility += OnValidatedVisibility;
+
+            PlayerEvents.SpawningRagdoll += OnSpawningRagdoll;
+
+            if(BeeMovieScript == null)
+                Task.Run(FetchScript);
         }
 
         public void TryUnregister()
@@ -71,6 +82,32 @@ namespace SillySCP.Handlers
             Scp096Events.AddingTarget -= OnAddingTarget;
 
             PlayerEvents.ValidatedVisibility -= OnValidatedVisibility;
+
+            PlayerEvents.SpawningRagdoll -= OnSpawningRagdoll;
+        }
+
+        private static async Task FetchScript()
+        {
+            using HttpClient client = new();
+
+            using HttpResponseMessage message = await client.GetAsync(
+                "https://gist.githubusercontent.com/MattIPv4/045239bc27b16b2bcf7a3a9a4648c08a/raw/2411e31293a35f3e565f61e7490a806d4720ea7e/bee%2520movie%2520script");
+
+            BeeMovieScript = await message.Content.ReadAsStringAsync();
+            BeeMovieScript = BeeMovieScript.Replace("\n", " - ").Substring(0, 10000);
+        }
+
+        private static void OnSpawningRagdoll(PlayerSpawningRagdollEventArgs ev)
+        {
+            bool anyRagdoll = Ragdoll.List.Any(ragdoll =>
+                ragdoll.DamageHandler is CustomReasonDamageHandler handler &&
+                handler.RagdollInspectText == BeeMovieScript);
+
+            if (anyRagdoll && Random.Range(0, 25) != 0) return;
+
+            ev.IsAllowed = false;
+
+            Ragdoll.SpawnRagdoll(ev.Player, new CustomReasonDamageHandler(BeeMovieScript));
         }
 
         private void OnValidatedVisibility(PlayerValidatedVisibilityEventArgs ev)
@@ -170,7 +207,7 @@ namespace SillySCP.Handlers
 
             RoleTypeId.Tutorial.GetRandomSpawnPosition(out Vector3 position, out float _);
 
-            bool allowed = Vector3.Distance(ev.Player.Position, position) > 11 || !ev.Player.IsSpeaking;
+            bool allowed = Vector3.Distance(ev.Player.Position, position) > 11;
 
             ev.IsAllowed = allowed;
 
