@@ -20,5 +20,7 @@ namespace SillySCP.API.Features
         
         public int? ScpKills { get; set; }
         public Display SpectatingKillsDisplay { get; set; }
+        
+        public int? PainkillersUsed { get; set; }
     }
 }

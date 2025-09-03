@@ -14,6 +14,7 @@ namespace SillySCP.API.Extensions
             {
                 Kills = player.DoNotTrack ? null : 0,
                 ScpKills = player.DoNotTrack ? null : 0,
+                PainkillersUsed = player.DoNotTrack ? null : 0
             };
             Plugin.Instance.PlayerStats.Add(playerStat);
             return playerStat;

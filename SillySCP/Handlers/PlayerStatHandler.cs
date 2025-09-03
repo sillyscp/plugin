@@ -1,5 +1,7 @@
 ﻿using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Arguments.ServerEvents;
+using LabApi.Events.Handlers;
+using LabApi.Features.Console;
 using PlayerRoles;
 using PlayerStatsSystem;
 using SecretAPI.Features;
@@ -15,22 +17,38 @@ namespace SillySCP.Handlers
         
         public void TryRegister()
         {
-            LabApi.Events.Handlers.PlayerEvents.Death += OnPlayerDead;
-            LabApi.Events.Handlers.PlayerEvents.Spawned += OnSpawned;
-            LabApi.Events.Handlers.ServerEvents.RoundEnded += OnRoundEnded;
-            LabApi.Events.Handlers.ServerEvents.RoundStarted += OnRoundStarted;
-            LabApi.Events.Handlers.PlayerEvents.Hurt += OnHurt;
-            LabApi.Events.Handlers.PlayerEvents.Escaping += OnEscape;
+            PlayerEvents.Death += OnPlayerDead;
+            PlayerEvents.Spawned += OnSpawned;
+            ServerEvents.RoundEnded += OnRoundEnded;
+            ServerEvents.RoundStarted += OnRoundStarted;
+            PlayerEvents.Hurt += OnHurt;
+            PlayerEvents.Escaping += OnEscape;
+
+            PlayerEvents.UsedItem += OnUsedItem;
         }
         
         public void TryUnregister()
         {
-            LabApi.Events.Handlers.PlayerEvents.Death -= OnPlayerDead;
-            LabApi.Events.Handlers.PlayerEvents.Spawned -= OnSpawned;
-            LabApi.Events.Handlers.ServerEvents.RoundEnded -= OnRoundEnded;
-            LabApi.Events.Handlers.ServerEvents.RoundStarted -= OnRoundStarted;
-            LabApi.Events.Handlers.PlayerEvents.Hurt -= OnHurt;
-            LabApi.Events.Handlers.PlayerEvents.Escaping -= OnEscape;
+            PlayerEvents.Death -= OnPlayerDead;
+            PlayerEvents.Spawned -= OnSpawned;
+            ServerEvents.RoundEnded -= OnRoundEnded;
+            ServerEvents.RoundStarted -= OnRoundStarted;
+            PlayerEvents.Hurt -= OnHurt;
+            PlayerEvents.Escaping -= OnEscape;
+
+            PlayerEvents.UsedItem -= OnUsedItem;
+        }
+
+        private static void OnUsedItem(PlayerUsedItemEventArgs ev)
+        {
+            if (ev.UsableItem.Type != ItemType.Painkillers)
+                return;
+
+            if (ev.Player.DoNotTrack)
+                return;
+
+            PlayerStat playerStat = ev.Player.FindOrCreatePlayerStat();
+            playerStat.PainkillersUsed++;
         }
 
         private void OnEscape(PlayerEscapingEventArgs ev)
@@ -86,6 +104,8 @@ namespace SillySCP.Handlers
                 .Instance.PlayerStats.Where(p => p.ScpKills > 0).OrderByDescending(p => p.ScpKills)
                 .FirstOrDefault();
             PlayerStat highestDamage = Plugin.Instance.PlayerStats.OrderByDescending(p => p.Damage).FirstOrDefault();
+            PlayerStat highestPainkillers =
+                Plugin.Instance.PlayerStats.Where(p => p.PainkillersUsed > 0).OrderByDescending(p => p.PainkillersUsed).FirstOrDefault();
             
             LabApi.Features.Wrappers.Server.FriendlyFire = true;
 
@@ -101,15 +121,19 @@ namespace SillySCP.Handlers
             string firstEscapeMessage = _firstPlayerEscaped != null
                 ? $"First to escape was {_firstPlayerEscaped.Nickname} in {_escapeTime.Minutes.ToString("D1")}m {_escapeTime.Seconds.ToString("D2")}s"
                 : null;
+            string painkillers = highestPainkillers != null
+                ? $"Highest HRT usage: {highestPainkillers.Player.Nickname} with {highestPainkillers.PainkillersUsed}"
+                : null;
             
-            string message = "";
+            string message = string.Empty;
             
-            if(normalMvpMessage != null) message += normalMvpMessage + "\n";
-            if(scpMvpMessage != null) message += scpMvpMessage + "\n";
-            if(damageMvpMessage != null) message += damageMvpMessage + "\n";
-            if(firstEscapeMessage != null) message += firstEscapeMessage;
+            if (normalMvpMessage != null) message += normalMvpMessage + "\n";
+            if (scpMvpMessage != null) message += scpMvpMessage + "\n";
+            if (damageMvpMessage != null) message += damageMvpMessage + "\n";
+            if (firstEscapeMessage != null) message += firstEscapeMessage + "\n";
+            if (painkillers != null) message += painkillers;
 
-            message = message.Trim();
+            message = "<size=1em>" + message.Trim() + "</size>";
 
             LabApi.Features.Wrappers.Server.SendBroadcast(
                 message,
