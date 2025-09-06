@@ -23,10 +23,7 @@ public class Scp079Handler : IRegister
 
     public static void OnOpenDoor(PlayerInteractingDoorEventArgs ev)
     {
-        if (ev.Player.Role != RoleTypeId.Scp079 && ev.Door.DoorName != DoorName.LczArmory)
-            return;
-        
-        if (ev.Door.IsOpened)
+        if (ev.Player.Role != RoleTypeId.Scp079)
             return;
 
         Room room = ev.Door.Rooms.FirstOrDefault(r => r.Name == RoomName.LczArmory);
