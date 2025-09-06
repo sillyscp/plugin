@@ -99,10 +99,13 @@ namespace SillySCP.Handlers
 
         private static void OnSpawningRagdoll(PlayerSpawningRagdollEventArgs ev)
         {
+            if (ev.DamageHandler is AttackerDamageHandler { Attacker.Role: RoleTypeId.Scp049 })
+                return;
+            
             bool anyRagdoll = Ragdoll.List.Any(ragdoll =>
                 ragdoll.DamageHandler is CustomReasonDamageHandler handler &&
                 handler.RagdollInspectText == BeeMovieScript);
-
+            
             if (anyRagdoll && Random.Range(0, 25) != 0) return;
 
             ev.IsAllowed = false;
