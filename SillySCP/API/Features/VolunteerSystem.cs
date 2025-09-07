@@ -40,8 +40,6 @@ namespace SillySCP.API.Features
             { "049-2", RoleTypeId.Scp0492 },
             { "492", RoleTypeId.Scp0492 },
             { "zombie", RoleTypeId.Scp0492 },
-            { "skeleton", RoleTypeId.Scp3114 },
-            { "3114", RoleTypeId.Scp3114 },
         };
         
         public static void NewVolunteer(RoleTypeId role)
