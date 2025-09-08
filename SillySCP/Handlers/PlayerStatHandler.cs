@@ -133,7 +133,7 @@ namespace SillySCP.Handlers
             if (firstEscapeMessage != null) message += firstEscapeMessage + "\n";
             if (painkillers != null) message += painkillers;
 
-            message = "<size=1em>" + message.Trim() + "</size>";
+            message = "<size=0.6em>" + message.Trim() + "</size>";
 
             LabApi.Features.Wrappers.Server.SendBroadcast(
                 message,
