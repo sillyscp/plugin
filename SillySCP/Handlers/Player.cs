@@ -101,6 +101,9 @@ namespace SillySCP.Handlers
         {
             if (ev.DamageHandler is AttackerDamageHandler { Attacker.Role: RoleTypeId.Scp049 })
                 return;
+
+            if (ev.DamageHandler is Scp049DamageHandler)
+                return;
             
             bool anyRagdoll = Ragdoll.List.Any(ragdoll =>
                 ragdoll.DamageHandler is CustomReasonDamageHandler handler &&
