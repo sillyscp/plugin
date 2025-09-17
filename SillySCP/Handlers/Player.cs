@@ -29,9 +29,6 @@ namespace SillySCP.Handlers
     {
         public static Player Instance { get; private set; }
         
-        // my ass is not putting the bee movie script in code.
-        public static string BeeMovieScript { get; private set; }
-        
         public void TryRegister()
         {
             Instance = this;
@@ -54,11 +51,6 @@ namespace SillySCP.Handlers
             Scp096Events.AddingTarget += OnAddingTarget;
 
             PlayerEvents.ValidatedVisibility += OnValidatedVisibility;
-
-            PlayerEvents.SpawningRagdoll += OnSpawningRagdoll;
-
-            if(BeeMovieScript == null)
-                Task.Run(FetchScript);
         }
 
         public void TryUnregister()
@@ -82,38 +74,6 @@ namespace SillySCP.Handlers
             Scp096Events.AddingTarget -= OnAddingTarget;
 
             PlayerEvents.ValidatedVisibility -= OnValidatedVisibility;
-
-            PlayerEvents.SpawningRagdoll -= OnSpawningRagdoll;
-        }
-
-        private static async Task FetchScript()
-        {
-            using HttpClient client = new();
-
-            using HttpResponseMessage message = await client.GetAsync(
-                "https://gist.githubusercontent.com/MattIPv4/045239bc27b16b2bcf7a3a9a4648c08a/raw/2411e31293a35f3e565f61e7490a806d4720ea7e/bee%2520movie%2520script");
-
-            BeeMovieScript = await message.Content.ReadAsStringAsync();
-            BeeMovieScript = BeeMovieScript.Replace("\n", " - ").Substring(0, 10000).Trim();
-        }
-
-        private static void OnSpawningRagdoll(PlayerSpawningRagdollEventArgs ev)
-        {
-            if (ev.DamageHandler is AttackerDamageHandler { Attacker.Role: RoleTypeId.Scp049 })
-                return;
-
-            if (ev.DamageHandler is Scp049DamageHandler)
-                return;
-            
-            bool anyRagdoll = Ragdoll.List.Any(ragdoll =>
-                ragdoll.DamageHandler is CustomReasonDamageHandler handler &&
-                handler._deathReason.Trim().Contains(BeeMovieScript));
-            
-            if (anyRagdoll && Random.Range(0, 25) != 0) return;
-
-            ev.IsAllowed = false;
-
-            Ragdoll.SpawnRagdoll(ev.Player, new CustomReasonDamageHandler(BeeMovieScript));
         }
 
         private void OnValidatedVisibility(PlayerValidatedVisibilityEventArgs ev)
