@@ -1,5 +1,6 @@
 ﻿using System.Net.Http;
 using CustomPlayerEffects;
+using InventorySystem.Items.ThrowableProjectiles;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Arguments.Scp096Events;
 using LabApi.Events.Arguments.Scp173Events;
@@ -20,6 +21,7 @@ using SillySCP.API.Extensions;
 using SillySCP.API.Features;
 using SillySCP.API.Modules;
 using UnityEngine;
+using Utils;
 using Logger = LabApi.Features.Console.Logger;
 using Random = UnityEngine.Random;
 
@@ -298,6 +300,16 @@ namespace SillySCP.Handlers
         {
             if (ev.KnobSetting == Scp914KnobSetting.Fine && ev.Item.Type == ItemType.Coin)
             {
+                if (Random.Range(0, 100) == 0)
+                {
+                    Pickup pickup = Pickup.Create(ItemType.GrenadeHE, Scp914Controller.Singleton.OutputChamber.position);
+                    if (pickup != null)
+                    {
+                        pickup.Spawn();
+                        ExplosionGrenade grenade = (ExplosionGrenade)pickup.Base;
+                        grenade.ServerActivate();
+                    }
+                }
                 int randomNum = Random.Range(1, 4);
                 ev.Player.RemoveItem(ev.Player.CurrentItem!);
                 ev.IsAllowed = false;
