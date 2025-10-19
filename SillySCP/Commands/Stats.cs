@@ -17,10 +17,10 @@ public class Stats : ICommand
             return false;
         }
         
-        PlayerStat stat = player.FindOrCreatePlayerStat();
+        PlayerStatDataStore statDataStore = player.GetDataStore<PlayerStatDataStore>();
 
         response =
-            $"Kills: {stat.Kills}\nSCP Kills: {stat.ScpKills}\nDamage: {stat.Damage}\nHRT Usage: {stat.PainkillersUsed}";
+            $"Kills: {statDataStore.Kills}\nSCP Kills: {statDataStore.ScpKills}\nDamage: {statDataStore.Damage}\nHRT Usage: {statDataStore.PainkillersUsed}";
         return true;
     }
 

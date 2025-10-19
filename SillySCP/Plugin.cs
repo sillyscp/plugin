@@ -5,6 +5,7 @@ using LabApi.Features.Wrappers;
 using LabApi.Loader.Features.Plugins;
 using MEC;
 using RueI;
+using SecretAPI.Attribute;
 using SecretAPI.Extensions;
 using SecretAPI.Features;
 using SillySCP.API.Features;
@@ -20,7 +21,6 @@ namespace SillySCP
         public override Version RequiredApiVersion { get; } = new(LabApiProperties.CompiledVersion);
         
         public static Plugin Instance;
-        public List<PlayerStat> PlayerStats;
         public Player Scp106;
         private Harmony Harmony { get; } = new("SillySCP-Plugin");
 
@@ -28,14 +28,15 @@ namespace SillySCP
         {
             Instance = this;
             IRegister.RegisterAll();
+            CallOnLoadAttribute.Load();
             
-            RueIMain.EnsureInit();
             Harmony.PatchAll();
         }
 
         public override void Disable()
         {
             IRegister.UnRegisterAll();
+            CallOnUnloadAttribute.Unload();
             
             Harmony.UnpatchAll();
         }

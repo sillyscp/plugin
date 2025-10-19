@@ -1,18 +1,18 @@
 ﻿using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Arguments.ServerEvents;
 using LabApi.Events.Handlers;
-using LabApi.Features.Console;
 using PlayerRoles;
 using PlayerStatsSystem;
 using SecretAPI.Features;
-using SillySCP.API.Extensions;
 using SillySCP.API.Features;
+using LabPlayer = LabApi.Features.Wrappers.Player;
 
 namespace SillySCP.Handlers
 {
+
     public class PlayerStatHandler : IRegister
     {
-        private LabApi.Features.Wrappers.Player _firstPlayerEscaped;
+        private LabPlayer _firstPlayerEscaped;
         private TimeSpan _escapeTime = TimeSpan.Zero;
         
         public void TryRegister()
@@ -20,7 +20,6 @@ namespace SillySCP.Handlers
             PlayerEvents.Death += OnPlayerDead;
             PlayerEvents.Spawned += OnSpawned;
             ServerEvents.RoundEnded += OnRoundEnded;
-            ServerEvents.RoundStarted += OnRoundStarted;
             PlayerEvents.Hurt += OnHurt;
             PlayerEvents.Escaping += OnEscape;
 
@@ -32,7 +31,6 @@ namespace SillySCP.Handlers
             PlayerEvents.Death -= OnPlayerDead;
             PlayerEvents.Spawned -= OnSpawned;
             ServerEvents.RoundEnded -= OnRoundEnded;
-            ServerEvents.RoundStarted -= OnRoundStarted;
             PlayerEvents.Hurt -= OnHurt;
             PlayerEvents.Escaping -= OnEscape;
 
@@ -47,8 +45,7 @@ namespace SillySCP.Handlers
             if (ev.Player.DoNotTrack)
                 return;
 
-            PlayerStat playerStat = ev.Player.FindOrCreatePlayerStat();
-            playerStat.PainkillersUsed++;
+            ev.Player.GetDataStore<PlayerStatDataStore>().PainkillersUsed++;
         }
 
         private void OnEscape(PlayerEscapingEventArgs ev)
@@ -65,25 +62,32 @@ namespace SillySCP.Handlers
             if (ev.Attacker == null) return;
             if (ev.Attacker.IsSCP) return;
             if (ev.DamageHandler is not StandardDamageHandler handler) return;
-            PlayerStat playerStat = ev.Attacker.FindOrCreatePlayerStat();
-            if(playerStat.Damage == null) playerStat.Damage = 0;
-            playerStat.Damage += handler.Damage;
+            PlayerStatDataStore store = ev.Attacker.GetDataStore<PlayerStatDataStore>();
+            store.Damage += handler.TotalDamageDealt;
         }
 
         private void OnPlayerDead(PlayerDeathEventArgs ev)
         {
             if (ev.DamageHandler is UniversalDamageHandler handler && handler.TranslationId == DeathTranslations.PocketDecay.Id)
             {
-                LabApi.Features.Wrappers.Player scp106 = Plugin.Instance.Scp106 ??
-                             LabApi.Features.Wrappers.Player.List.FirstOrDefault(p => p.Role == RoleTypeId.Scp106);
-                scp106.UpdateKills();
+                LabPlayer scp106 = Plugin.Instance.Scp106 ??
+                               LabPlayer.List.FirstOrDefault(p => p.Role == RoleTypeId.Scp106);
+                if (scp106 == null)
+                    return;
+                
+                PlayerStatDataStore scp106Store = scp106.GetDataStore<PlayerStatDataStore>();
+                scp106Store.ScpKills++;
             }
 
             if (ev.Attacker == null)
                 return;
             if (ev.Player == ev.Attacker)
                 return;
-            ev.Attacker.UpdateKills();
+            PlayerStatDataStore store = ev.Attacker.GetDataStore<PlayerStatDataStore>();
+            if (ev.Attacker.IsSCP)
+                store.ScpKills++;
+            else
+                store.Kills++;
         }
 
         private void OnSpawned(PlayerSpawnedEventArgs ev)
@@ -97,32 +101,56 @@ namespace SillySCP.Handlers
 
         private void OnRoundEnded(RoundEndedEventArgs _)
         {
-            PlayerStat highestKiller = Plugin
-                .Instance.PlayerStats.Where(p => p.Kills > 0).OrderByDescending(p => p.Kills)
-                .FirstOrDefault();
-            PlayerStat scpHighestKiller = Plugin
-                .Instance.PlayerStats.Where(p => p.ScpKills > 0).OrderByDescending(p => p.ScpKills)
-                .FirstOrDefault();
-            PlayerStat highestDamage = Plugin.Instance.PlayerStats.OrderByDescending(p => p.Damage).FirstOrDefault();
-            PlayerStat highestPainkillers =
-                Plugin.Instance.PlayerStats.Where(p => p.PainkillersUsed > 0).OrderByDescending(p => p.PainkillersUsed).FirstOrDefault();
+            PlayerStatDataStore highestKiller = null;
+            PlayerStatDataStore scpHighestKiller = null;
+            PlayerStatDataStore highestDamage = null;
+            PlayerStatDataStore highestPainkillers = null;
+            
+            foreach (LabPlayer player in LabPlayer.ReadyList)
+            {
+                PlayerStatDataStore store = player.GetDataStore<PlayerStatDataStore>();
+                
+                if(highestKiller == null || highestKiller.Kills < store.Kills)
+                    highestKiller = store;
+                
+                if(scpHighestKiller == null || scpHighestKiller.Kills < store.ScpKills)
+                    scpHighestKiller = store;
+                
+                if(highestDamage == null || highestDamage.Kills < store.Damage)
+                    highestDamage = store;
+                
+                if(highestPainkillers == null  || highestPainkillers.Kills < store.PainkillersUsed)
+                    highestPainkillers = store;
+            }
+            
+            if(highestKiller?.Kills == 0)
+                highestKiller = null;
+            
+            if(scpHighestKiller?.ScpKills == 0)
+                scpHighestKiller = null;
+            
+            if(highestDamage?.Damage == 0)
+                highestDamage = null;
+            
+            if(highestPainkillers?.PainkillersUsed == 0)
+                highestPainkillers = null;
             
             LabApi.Features.Wrappers.Server.FriendlyFire = true;
 
             string normalMvpMessage = highestKiller != null
-                ? $"Highest kills as a human was {highestKiller.Player.Nickname} with {highestKiller.Kills}"
+                ? $"Highest kills as a human was {highestKiller.Owner.Nickname} with {highestKiller.Kills}"
                 : null;
             string scpMvpMessage = scpHighestKiller != null
-                ? $"Highest kills as an SCP was {scpHighestKiller.Player.Nickname} with {scpHighestKiller.ScpKills}"
+                ? $"Highest kills as an SCP was {scpHighestKiller.Owner.Nickname} with {scpHighestKiller.ScpKills}"
                 : null;
             string damageMvpMessage = highestDamage != null
-                ? $"Highest damage was {highestDamage.Player.Nickname} with {Convert.ToInt32(highestDamage.Damage)}"
+                ? $"Highest damage was {highestDamage.Owner.Nickname} with {Convert.ToInt32(highestDamage.Damage)}"
                 : null;
             string firstEscapeMessage = _firstPlayerEscaped != null
                 ? $"First to escape was {_firstPlayerEscaped.Nickname} in {_escapeTime.Minutes.ToString("D1")}m {_escapeTime.Seconds.ToString("D2")}s"
                 : null;
             string painkillers = highestPainkillers != null
-                ? $"Highest HRT usage: {highestPainkillers.Player.Nickname} with {highestPainkillers.PainkillersUsed}"
+                ? $"Highest HRT usage: {highestPainkillers.Owner.Nickname} with {highestPainkillers.PainkillersUsed}"
                 : null;
             
             string message = string.Empty;
@@ -141,11 +169,6 @@ namespace SillySCP.Handlers
             );
 
             _firstPlayerEscaped = null;
-        }
-
-        private void OnRoundStarted()
-        {
-            Plugin.Instance.PlayerStats = new();
         }
     }
 }

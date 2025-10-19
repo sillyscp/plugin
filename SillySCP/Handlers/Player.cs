@@ -43,9 +43,6 @@ namespace SillySCP.Handlers
             
             // PlayerEvents.LeavingPocketDimension += OnLeavingPocketDimension;
             
-            PlayerEvents.Death += OnDeath;
-            PlayerEvents.ChangedSpectator += OnChangedSpectator;
-            
             PlayerEvents.ReceivedLoadout += OnReceivedLoadout;
 
             Scp173Events.AddingObserver += OnAddingObserver;
@@ -65,9 +62,6 @@ namespace SillySCP.Handlers
             PlayerEvents.Kicking -= OnKickingPlayer;
             
             // PlayerEvents.LeavingPocketDimension -= OnLeavingPocketDimension;
-            
-            PlayerEvents.Death -= OnDeath;
-            PlayerEvents.ChangedSpectator -= OnChangedSpectator;
             
             PlayerEvents.ReceivedLoadout -= OnReceivedLoadout;
             
@@ -156,18 +150,6 @@ namespace SillySCP.Handlers
         }
         
         private bool CheckIfNear(Vector3 position, Vector3 position2) => Vector3.Distance(position, position2) <= 15f;
-
-        private void OnDeath(PlayerDeathEventArgs ev)
-        {
-            PlayerStat stat = ev.Player.FindOrCreatePlayerStat();
-            stat.SpectatingKillsDisplay.Update();
-        }
-
-        private void OnChangedSpectator(PlayerChangedSpectatorEventArgs ev)
-        {
-            PlayerStat stat = ev.Player.FindOrCreatePlayerStat();
-            stat.SpectatingKillsDisplay.Update();
-        }
 
         private void OnKickingPlayer(PlayerKickingEventArgs ev)
         {
