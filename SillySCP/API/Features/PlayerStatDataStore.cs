@@ -1,7 +1,9 @@
 ﻿using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
+using LabApi.Features.Console;
 using LabApi.Features.Stores;
 using LabApi.Features.Wrappers;
+using MEC;
 using PlayerRoles;
 using RueI.API;
 using RueI.API.Elements;
@@ -10,13 +12,14 @@ using SillySCP.API.Modules;
 
 namespace SillySCP.API.Features
 {
-    public class PlayerStatDataStore : CustomDataStore
+    public class PlayerStatDataStore
     {
         [CallOnLoad]
         public static void Load()
         {
             PlayerEvents.ChangedRole += OnChangedRole;
             PlayerEvents.Joined += OnJoined;
+            PlayerEvents.Left += OnLeft;
         }
 
         [CallOnUnload]
@@ -24,32 +27,41 @@ namespace SillySCP.API.Features
         {
             PlayerEvents.ChangedRole -= OnChangedRole;
             PlayerEvents.Joined -= OnJoined;
+            PlayerEvents.Left -= OnLeft;
         }
 
-        public static void OnChangedRole(PlayerChangedRoleEventArgs ev)
-        {
+        public static void OnChangedRole(PlayerChangedRoleEventArgs ev) =>
             RueDisplay.Get(ev.Player).Update();
-        }
 
-        public static void OnJoined(PlayerJoinedEventArgs ev)
-        {
-            ev.Player.GetDataStore<PlayerStatDataStore>();
-        }
+        public static void OnJoined(PlayerJoinedEventArgs ev) =>
+            Get(ev.Player).Setup();
+
+        public static void OnLeft(PlayerLeftEventArgs ev) =>
+            _dictionary.Remove(ev.Player);
+
+        private static Dictionary<Player, PlayerStatDataStore> _dictionary = new();
+
+        public static PlayerStatDataStore Get(Player player) =>
+            _dictionary.GetOrAdd(player, () => new PlayerStatDataStore(player));
         
-        public PlayerStatDataStore(Player player)
-            : base(player)
+        private PlayerStatDataStore(Player player)
         {
+            Owner = player;
+            
             Element = new DynamicElement(300, ContentGetter)
             {
                 ShowToSpectators = true
             };
-            RueDisplay.Get(Owner).Show(new Tag("Kill Count Display"), Element);
             
             Kills = 0;
             ScpKills = 0;
             Damage = 0;
             PainkillersUsed = 0;
         }
+
+        public Player Owner { get; }
+        
+        private void Setup() => RueDisplay.Get(Owner).Show(new Tag("Kill Count Display"), Element);
 
         public int Kills
         {

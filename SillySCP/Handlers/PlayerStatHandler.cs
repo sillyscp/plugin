@@ -45,7 +45,7 @@ namespace SillySCP.Handlers
             if (ev.Player.DoNotTrack)
                 return;
 
-            ev.Player.GetDataStore<PlayerStatDataStore>().PainkillersUsed++;
+            PlayerStatDataStore.Get(ev.Player).PainkillersUsed++;
         }
 
         private void OnEscape(PlayerEscapingEventArgs ev)
@@ -62,7 +62,7 @@ namespace SillySCP.Handlers
             if (ev.Attacker == null) return;
             if (ev.Attacker.IsSCP) return;
             if (ev.DamageHandler is not StandardDamageHandler handler) return;
-            PlayerStatDataStore store = ev.Attacker.GetDataStore<PlayerStatDataStore>();
+            PlayerStatDataStore store = PlayerStatDataStore.Get(ev.Attacker);
             store.Damage += handler.TotalDamageDealt;
         }
 
@@ -75,7 +75,7 @@ namespace SillySCP.Handlers
                 if (scp106 == null)
                     return;
                 
-                PlayerStatDataStore scp106Store = scp106.GetDataStore<PlayerStatDataStore>();
+                PlayerStatDataStore scp106Store = PlayerStatDataStore.Get(scp106);
                 scp106Store.ScpKills++;
             }
 
@@ -83,7 +83,7 @@ namespace SillySCP.Handlers
                 return;
             if (ev.Player == ev.Attacker)
                 return;
-            PlayerStatDataStore store = ev.Attacker.GetDataStore<PlayerStatDataStore>();
+            PlayerStatDataStore store = PlayerStatDataStore.Get(ev.Attacker);
             if (ev.Attacker.IsSCP)
                 store.ScpKills++;
             else
@@ -108,7 +108,7 @@ namespace SillySCP.Handlers
             
             foreach (LabPlayer player in LabPlayer.ReadyList)
             {
-                PlayerStatDataStore store = player.GetDataStore<PlayerStatDataStore>();
+                PlayerStatDataStore store = PlayerStatDataStore.Get(player);
                 
                 if(highestKiller == null || highestKiller.Kills < store.Kills)
                     highestKiller = store;
