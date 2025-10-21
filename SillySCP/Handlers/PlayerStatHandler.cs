@@ -113,13 +113,13 @@ namespace SillySCP.Handlers
                 if(highestKiller == null || highestKiller.Kills < store.Kills)
                     highestKiller = store;
                 
-                if(scpHighestKiller == null || scpHighestKiller.Kills < store.ScpKills)
+                if(scpHighestKiller == null || scpHighestKiller.ScpKills < store.ScpKills)
                     scpHighestKiller = store;
                 
-                if(highestDamage == null || highestDamage.Kills < store.Damage)
+                if(highestDamage == null || highestDamage.Damage < store.Damage)
                     highestDamage = store;
                 
-                if(highestPainkillers == null  || highestPainkillers.Kills < store.PainkillersUsed)
+                if(highestPainkillers == null  || highestPainkillers.PainkillersUsed < store.PainkillersUsed)
                     highestPainkillers = store;
             }
             
