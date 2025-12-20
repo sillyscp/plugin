@@ -48,7 +48,7 @@ namespace SillySCP.API.Features
         {
             Owner = player;
             
-            Element = new DynamicElement(300, ContentGetter)
+            Element = new(300, ContentGetter)
             {
                 ShowToSpectators = true
             };
@@ -121,9 +121,9 @@ namespace SillySCP.API.Features
                 return string.Empty;
 
             if (Owner.DoNotTrack)
-                return $"Kill Count: Unknown";
+                return "Kill Count: Unknown";
             
-            int kills = hub.roleManager.CurrentRole.Team == Team.SCPs ? ScpKills : Kills;
+            int kills = Owner.Team == Team.SCPs ? ScpKills : Kills;
 
             return $"Kill Count: {kills}";
         }
