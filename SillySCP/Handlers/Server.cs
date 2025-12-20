@@ -63,16 +63,21 @@ namespace SillySCP.Handlers
             {
                 foreach (LabApi.Features.Wrappers.Player player in ev.Players)
                 {
+                    Vector3 pos = player.Position;
                     player.Role = ev.Wave.Faction == Faction.FoundationEnemy
                         ? RoleTypeId.ChaosFlamingo
                         : RoleTypeId.NtfFlamingo;
+                    player.Position = pos;
                 }
             }
             else
             {
-                ev.Players.GetRandomValue().Role = ev.Wave.Faction == Faction.FoundationEnemy
+                LabApi.Features.Wrappers.Player player = ev.Players.GetRandomValue();
+                Vector3 pos = player.Position;
+                player.Role = ev.Wave.Faction == Faction.FoundationEnemy
                     ? RoleTypeId.ChaosFlamingo
                     : RoleTypeId.NtfFlamingo;
+                player.Position = pos;
             }
         }
 
