@@ -11,11 +11,11 @@ namespace SillySCP.API.Modules
         {
             Recontainer.SetContainmentDoors(true, true);
             Recontainer._alreadyRecontained = true;
-            Recontainer._recontainLater = 3f;
             foreach (Scp079Generator generator in Scp079Recontainer.AllGenerators)
             {
                 generator.Engaged = true;
             }
+            Recontainer.Recontain(false);
         }
     }
 }
