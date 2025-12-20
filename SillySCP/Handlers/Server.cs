@@ -59,25 +59,24 @@ namespace SillySCP.Handlers
             if (ev.Wave.Faction is Faction.Flamingos or Faction.SCP)
                 return;
 
-            if (Random.Range(0, 100) < 1 && ev.Wave is MiniMtfWave or MiniChaosWave)
+            bool isMiniWave = ev.Wave is MiniMtfWave or MiniChaosWave;
+
+            if (Random.Range(0, 100) < 1 && isMiniWave)
             {
                 foreach (LabApi.Features.Wrappers.Player player in ev.Players)
                 {
-                    Vector3 pos = player.Position;
-                    player.Role = ev.Wave.Faction == Faction.FoundationEnemy
+                    player.SetRole(ev.Wave.Faction == Faction.FoundationEnemy
                         ? RoleTypeId.ChaosFlamingo
-                        : RoleTypeId.NtfFlamingo;
-                    player.Position = pos;
+                        : RoleTypeId.NtfFlamingo, RoleChangeReason.RespawnMiniwave, RoleSpawnFlags.None);
                 }
             }
             else
             {
-                LabApi.Features.Wrappers.Player player = ev.Players.GetRandomValue();
-                Vector3 pos = player.Position;
-                player.Role = ev.Wave.Faction == Faction.FoundationEnemy
-                    ? RoleTypeId.ChaosFlamingo
-                    : RoleTypeId.NtfFlamingo;
-                player.Position = pos;
+                ev.Players.GetRandomValue().SetRole(ev.Wave.Faction == Faction.FoundationEnemy
+                        ? RoleTypeId.ChaosFlamingo
+                        : RoleTypeId.NtfFlamingo,
+                    isMiniWave ? RoleChangeReason.RespawnMiniwave : RoleChangeReason.Respawn,
+                    RoleSpawnFlags.None);
             }
         }
 
