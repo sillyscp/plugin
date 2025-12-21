@@ -34,7 +34,7 @@ public class ZombieSnowball : CustomKeybindSetting
         if (KnownOwner.Role != RoleTypeId.Scp0492)
             return;
         
-        _cooldown.Trigger(5);
+        _cooldown.Trigger(7);
         
         Item item = KnownOwner.AddItem(ItemType.Snowball);
 

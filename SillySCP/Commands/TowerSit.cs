@@ -1,8 +1,8 @@
 ﻿using CommandSystem;
+using LabApi.Features.Extensions;
 using LabApi.Features.Stores;
 using LabApi.Features.Wrappers;
 using PlayerRoles;
-using SecretAPI.Extensions;
 using UnityEngine;
 
 namespace SillySCP.Commands
@@ -27,7 +27,7 @@ namespace SillySCP.Commands
             {
                 player.SendBroadcast("If you go to Settings, Server-specific, you can set a bind for proximity chat",10);
             }
-            RoleTypeId.Tutorial.GetRandomSpawnPosition(out Vector3 position, out float _);
+            RoleTypeId.Tutorial.TryGetRandomSpawnPoint(out Vector3 position, out float _);
             player.Position = position;
         }
         private static bool RestorePlayer(Player player)

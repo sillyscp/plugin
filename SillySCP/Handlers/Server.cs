@@ -61,7 +61,7 @@ namespace SillySCP.Handlers
 
             bool isMiniWave = ev.Wave is MiniMtfWave or MiniChaosWave;
 
-            if (Random.Range(0, 100) < 1 && isMiniWave)
+            if (Random.Range(0, 100) < 5 && isMiniWave)
             {
                 foreach (LabApi.Features.Wrappers.Player player in ev.Players)
                 {

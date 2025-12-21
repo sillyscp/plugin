@@ -13,7 +13,6 @@ using PlayerRoles;
 using PlayerRoles.FirstPersonControl;
 using PlayerRoles.PlayableScps.Scp096;
 using PlayerRoles.PlayableScps.Scp106;
-using PlayerStatsSystem;
 using Scp914;
 using SecretAPI.Extensions;
 using SecretAPI.Features;
@@ -21,8 +20,6 @@ using SillySCP.API.Extensions;
 using SillySCP.API.Features;
 using SillySCP.API.Modules;
 using UnityEngine;
-using Utils;
-using Logger = LabApi.Features.Console.Logger;
 using Random = UnityEngine.Random;
 
 namespace SillySCP.Handlers
@@ -154,8 +151,8 @@ namespace SillySCP.Handlers
         private void OnKickingPlayer(PlayerKickingEventArgs ev)
         {
             if (!ev.Reason.Contains("AFK")) return;
-
-            RoleTypeId.Tutorial.GetRandomSpawnPosition(out Vector3 position, out float _);
+            
+            RoleTypeId.Tutorial.TryGetRandomSpawnPoint(out Vector3 position, out float _);
 
             bool allowed = Vector3.Distance(ev.Player.Position, position) > 11;
 

@@ -23,6 +23,6 @@
         <Reference Include="NorthwoodLib" HintPath="$(SL_REFERENCES)\NorthwoodLib.dll" Private="false" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Northwood.LabAPI" Version="1.1.1" />
+        <PackageReference Include="Northwood.LabAPI" Version="1.1.4" />
     </ItemGroup>
 </Project>
