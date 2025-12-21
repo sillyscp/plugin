@@ -5,6 +5,7 @@ using PlayerRoles.Subroutines;
 using SecretAPI.Features.UserSettings;
 using SillySCP.API.Modules;
 using UnityEngine;
+using Logger = LabApi.Features.Console.Logger;
 
 namespace SillySCP.API.Settings;
 
@@ -25,6 +26,9 @@ public class ZombieSnowball : CustomKeybindSetting
 
     protected override void HandleSettingUpdate()
     {
+        if (!IsPressed)
+            return;
+        
         if (KnownOwner == null)
             return;
 

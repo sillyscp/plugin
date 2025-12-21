@@ -6,6 +6,7 @@ using PlayerRoles.Subroutines;
 using SecretAPI.Features.UserSettings;
 using SillySCP.API.Modules;
 using UnityEngine;
+using Logger = LabApi.Features.Console.Logger;
 using Random = UnityEngine.Random;
 
 namespace SillySCP.API.Settings
@@ -20,16 +21,19 @@ namespace SillySCP.API.Settings
 
         protected override void HandleSettingUpdate()
         {
+            if (!IsPressed)
+                return;
+            
             if (KnownOwner == null)
                 return;
             
             if (!Cooldown.IsReady)
                 return;
             
-            Cooldown.Trigger(5);
-            
             if (KnownOwner.CurrentItem is not FirearmItem { Type: ItemType.GunRevolver } firearm) return;
             if(!firearm.Base.TryGetModules(out RevolverRouletteModule revolver, out DoubleActionModule actionModule)) return;
+            
+            Cooldown.Trigger(5);
             revolver.SendRpc();
             Timing.RunCoroutine(Shoot(KnownOwner, firearm, revolver, actionModule));
         }
