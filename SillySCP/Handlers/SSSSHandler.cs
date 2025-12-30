@@ -11,6 +11,7 @@ using VoiceChat;
 
 namespace SillySCP.Handlers
 {
+    // ReSharper disable once InconsistentNaming
     public class SSSSHandler : IRegister
     { 
         public void TryRegister()
@@ -24,8 +25,6 @@ namespace SillySCP.Handlers
             
             AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "kali 1.ogg"), "jailbird meow 1");
             AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "kali 2.ogg"), "jailbird meow 2");
-            AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "cyn 1.ogg"), "jailbird meow 3");
-            AudioClipStorage.LoadClip(Path.Combine(sillyAudiosLocation, "cyn 2.ogg"), "jailbird meow 4");
 
             // intercom handler
             PlayerEvents.ReceivingVoiceMessage += OnReceivingVoiceMessage;
@@ -54,7 +53,7 @@ namespace SillySCP.Handlers
             ev.IsAllowed = setting.IsOptionB;
         }
 
-        internal static void OnJailbirdEvent(PlayerProcessedJailbirdMessageEventArgs ev)
+        private static void OnJailbirdEvent(PlayerProcessedJailbirdMessageEventArgs ev)
         {
             if (ev.Message != JailbirdMessageType.AttackTriggered)
                 return;
@@ -69,9 +68,9 @@ namespace SillySCP.Handlers
                 }, 
                 onIntialCreation: p =>
                 {
-                    p.transform.parent = ev.Player.GameObject.transform;
+                    p.transform.parent = ev.Player.GameObject?.transform;
                     Speaker speaker = p.AddSpeaker("Jailbird Speaker", isSpatial: true, minDistance: 5f, maxDistance: 15f);
-                    speaker.transform.parent = ev.Player.GameObject.transform;
+                    speaker.transform.parent = ev.Player.GameObject?.transform;
                     speaker.transform.localPosition = Vector3.zero;
                 }
             );
