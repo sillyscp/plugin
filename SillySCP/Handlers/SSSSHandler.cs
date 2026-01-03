@@ -22,7 +22,7 @@ namespace SillySCP.Handlers
             IsSpatial = true,
             MaxDistance = 15,
             MinDistance = 5,
-            Volume = 1
+            Volume = 2
         };
 
         public void TryRegister()
