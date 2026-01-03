@@ -23,14 +23,13 @@
     <Reference Include="UnityEngine.CoreModule" HintPath="$(SL_REFERENCES)\UnityEngine.CoreModule.dll" Private="false" />
     <Reference Include="UnityEngine.PhysicsModule" HintPath="$(SL_REFERENCES)\UnityEngine.PhysicsModule.dll" Private="false" />
     <Reference Include="NorthwoodLib" HintPath="$(SL_REFERENCES)\NorthwoodLib.dll" Private="false" />
-    <!-- Can be got from: https://github.com/Killers0992/AudioPlayerApi -->
-    <Reference Include="AudioPlayerApi" HintPath="..\dependencies\AudioPlayerApi.dll" Private="false" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.2.2" />
     <PackageReference Include="Northwood.LabAPI" Version="1.1.4" />
     <PackageReference Include="RueI" Version="3.1.2" />
     <PackageReference Include="SecretAPI" Version="2.0.3" />
+    <PackageReference Include="SecretLabNAudio.Core" Version="2.0.0-alpha1" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2" PrivateAssets="all" ExcludeAssets="runtime" ReferenceOutputAssembly="false" Private="true" />
   </ItemGroup>
