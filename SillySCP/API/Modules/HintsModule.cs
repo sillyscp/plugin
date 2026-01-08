@@ -1,4 +1,5 @@
 ﻿using LabApi.Features.Wrappers;
+using MEC;
 using RueI.API;
 using RueI.API.Elements;
 
@@ -8,7 +9,10 @@ namespace SillySCP.API.Modules
     {
         public static void ShowString(this ReferenceHub hub, string text, float duration = 3f, float? position = null)
         {
-            RueDisplay.Get(hub).Show(new BasicElement(position ?? 300, text), TimeSpan.FromSeconds(duration));
+            Tag tag = new();
+            RueDisplay display = RueDisplay.Get(hub);
+            display.Show(tag, new BasicElement(position ?? 300, text));
+            Timing.CallDelayed(duration, () => display.Remove(tag));
         }
 
         public static void ShowString(this Player player, string text, float duration = 3f, float? position = null)
