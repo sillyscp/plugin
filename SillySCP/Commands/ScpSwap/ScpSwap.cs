@@ -48,6 +48,12 @@ namespace SillySCP.Commands.ScpSwap
                 return false;
             }
 
+            if (PlayerStatDataStore.Get(player)?.ScpKills > 0)
+            {
+                response = "You can not switch to another SCP when you have a kill.";
+                return false;
+            }
+
             if (!VolunteerSystem.VaildScps.TryGetValue(arguments.At(0), out RoleTypeId role) || IsInvalidRole(role))
             {
                 response = "Can not switch to an invalid SCP.";
