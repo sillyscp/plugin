@@ -1,6 +1,7 @@
 <Project>
     <PropertyGroup>
         <SharedBinPath>$(MSBuildThisFileDirectory)bin\</SharedBinPath>
+        <NoWarn>$(NoWarn);MSB3277</NoWarn>
     </PropertyGroup>
 
     <Target Name="CopyToSharedBin" AfterTargets="Build">
