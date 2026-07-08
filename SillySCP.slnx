@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="LogAssistant\LogAssistant.csproj" />
+  <Project Path="QA/QA.csproj" />
+  <Project Path="SillySCP/SillySCP.csproj" />
+</Solution>
