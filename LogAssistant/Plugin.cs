@@ -19,8 +19,6 @@ public class Plugin : Plugin<Config>
 
     public override void Enable()
     {
-        Logger.Info("Enable");
-        
         Instance = this;
 
         Client.SocketClient.ChannelCreated += DiscordEvents.OnChannelCreated;
@@ -31,11 +29,8 @@ public class Plugin : Plugin<Config>
 
     public override void Disable()
     {
-        if (Events != null)
-        {
-            CustomHandlersManager.UnregisterEventsHandler(Events);
-            Events = null;
-        }
+        CustomHandlersManager.UnregisterEventsHandler(Events!);
+        Events = null;
 
         Client.SocketClient.ChannelCreated -= DiscordEvents.OnChannelCreated;
     }
