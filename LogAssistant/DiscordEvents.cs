@@ -101,16 +101,16 @@ public static class DiscordEvents
                 }
             }
 
-            string sendable;
+            string sendable = builder.GetSendableContent();
 
-            do
+            while (!string.IsNullOrEmpty(sendable))
             {
-                sendable = builder.GetSendableContent();
-
                 await thread.SendMessageAsync(embed: embedBuilder.BuildEmbed(sendable, builder.Length != 0));
-
+                
                 embedBuilder.Title = null;
-            } while (!string.IsNullOrEmpty(sendable));
+
+                sendable = builder.GetSendableContent();
+            }
             
             StringBuilderPool.Shared.Return(builder);
 
