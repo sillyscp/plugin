@@ -7,7 +7,6 @@ namespace LogAssistant;
 
 public class Events : CustomEventsHandler
 {
-    private static string GetRoomName(Room? room) => room?.GameObject.name.Replace("(Clone)", "") ?? "Unknown";
     private static string ListToCorrectEnglish<T>(IEnumerable<T> items, Func<T, string> itemGetter, string emptyResult = "")
     {
         IEnumerable<T> enumerable = items as T[] ?? items.ToArray();
