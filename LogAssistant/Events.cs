@@ -8,6 +8,26 @@ namespace LogAssistant;
 public class Events : CustomEventsHandler
 {
     private static string GetRoomName(Room? room) => room?.GameObject.name.Replace("(Clone)", "") ?? "Unknown";
+    private static string ListToCorrectEnglish<T>(IEnumerable<T> items, Func<T, string> itemGetter, string emptyResult = "")
+    {
+        IEnumerable<T> enumerable = items as T[] ?? items.ToArray();
+        switch (enumerable.Count())
+        {
+            case 0:
+                return emptyResult;
+            case 1:
+                return itemGetter(enumerable.ElementAt(0));
+        }
+
+        T? lastItem = enumerable.LastOrDefault();
+        
+        if (lastItem == null)
+            return emptyResult;
+        
+        IEnumerable<T> itemsToJoin = enumerable.Take(enumerable.Count() - 1);
+
+        return $"{string.Join(", ", itemsToJoin.Select(itemGetter))} and {itemGetter(lastItem)}";
+    }
     
     public override void OnPlayerDroppedItem(PlayerDroppedItemEventArgs ev)
     {
