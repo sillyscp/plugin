@@ -1,7 +1,7 @@
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.CustomHandlers;
 using LabApi.Features.Extensions;
-using LabApi.Features.Wrappers;
+using LogAssistant.Extensions;
 
 namespace LogAssistant;
 
@@ -49,20 +49,20 @@ public class Events : CustomEventsHandler
     {
         if (ev.Attacker != null)
         {
-            LogEntry.Create($"Player {ev.Player.Nickname} has been killed by {ev.Attacker.Nickname} with {ev.DamageHandler.GetType().Name} in {GetRoomName(ev.Player.CachedRoom)}. They had {string.Join(", ", ev.Player.Items.Select(item => item.Type))} items",
+            LogEntry.Create($"Player {ev.Player.Nickname} has been killed by {ev.Attacker.Nickname} with {ev.DamageHandler.Reason} in {ev.Player.CachedRoom.ShortName}. They had {ListToCorrectEnglish(ev.Player.Items, item => item.Name, "no")} items",
                 ev.Player.UserId, ev.Attacker.UserId).CreateForRelated();
         }
         else
         {
             LogEntry.Create(
-                $"Player {ev.Player.Nickname} has died in {GetRoomName(ev.Player.CachedRoom)}. They had {string.Join(", ", ev.Player.Items.Select(item => item.Type))} items",
+                $"Player {ev.Player.Nickname} has died in {ev.Player.CachedRoom.ShortName} due to {ev.DamageHandler.Reason}. They had {ListToCorrectEnglish(ev.Player.Items, item => item.Name, "no")} items",
                 ev.Player.UserId);
         }
     }
 
     public override void OnPlayerUsedItem(PlayerUsedItemEventArgs ev)
     {
-        LogEntry.Create($"Player {ev.Player.Nickname} has used {ev.UsableItem.Type}", ev.Player.UserId);
+        LogEntry.Create($"Player {ev.Player.Nickname} has used {ev.UsableItem.Name}", ev.Player.UserId);
     }
 
     public override void OnPlayerEscaping(PlayerEscapingEventArgs ev)
@@ -84,14 +84,14 @@ public class Events : CustomEventsHandler
     public override void OnPlayerInteractedDoor(PlayerInteractedDoorEventArgs ev)
     {
         LogEntry.Create(
-            $"Player {ev.Player.Nickname} has interacted with a door in rooms {string.Join(", ", ev.Door.Rooms.Select(GetRoomName))}",
+            $"Player {ev.Player.Nickname} has interacted with a door in rooms {ListToCorrectEnglish(ev.Door.Rooms, room => room.ShortName, "none")}",
             ev.Player.UserId);
     }
 
     public override void OnPlayerInteractedElevator(PlayerInteractedElevatorEventArgs ev)
     {
         LogEntry.Create(
-            $"Player {ev.Player.Nickname} has interacted with an elevator in rooms {string.Join(", ", ev.Elevator.Rooms.Select(GetRoomName))}",
+            $"Player {ev.Player.Nickname} has interacted with an elevator in rooms {ListToCorrectEnglish(ev.Elevator.Rooms, room => room.ShortName, "none")}",
             ev.Player.UserId);
     }
 
