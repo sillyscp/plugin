@@ -97,7 +97,7 @@ public static class DiscordEvents
                     if (!entry.InWindow(other))
                         continue;
 
-                    builder.AppendLine($"\t{other.BaseMessage}");
+                    builder.AppendLine($"  {other.BaseMessage}");
                 }
             }
 
