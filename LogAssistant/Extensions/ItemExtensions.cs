@@ -16,13 +16,30 @@ public static class ItemExtensions
                     return item.Base switch
                     {
                         IItemNametag name => name.Name,
-                        IItemNickname nickname => nickname.Nickname,
                         _ => item.Type.GetName() ?? item.Type.ToString()
                     };
                 }
                 catch (NullReferenceException)
                 {
                     return item.Type.ToString();
+                }
+            }
+        }
+    }
+
+    extension(Pickup pickup)
+    {
+        public string Name
+        {
+            get
+            {
+                try
+                {
+                    return pickup.Type.GetName() ?? pickup.Type.ToString();
+                }
+                catch (NullReferenceException)
+                {
+                    return pickup.Type.ToString();
                 }
             }
         }
