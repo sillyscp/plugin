@@ -1,36 +1,17 @@
+using Humanizer;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.CustomHandlers;
 using LabApi.Features.Extensions;
+using LabApi.Features.Wrappers;
 using LogAssistant.Extensions;
 
 namespace LogAssistant;
 
 public class Events : CustomEventsHandler
 {
-    private static string ListToCorrectEnglish<T>(IEnumerable<T> items, Func<T, string> itemGetter, string emptyResult = "")
-    {
-        IEnumerable<T> enumerable = items as T[] ?? items.ToArray();
-        switch (enumerable.Count())
-        {
-            case 0:
-                return emptyResult;
-            case 1:
-                return itemGetter(enumerable.ElementAt(0));
-        }
-
-        T? lastItem = enumerable.LastOrDefault();
-        
-        if (lastItem == null)
-            return emptyResult;
-        
-        IEnumerable<T> itemsToJoin = enumerable.Take(enumerable.Count() - 1);
-
-        return $"{string.Join(", ", itemsToJoin.Select(itemGetter))} and {itemGetter(lastItem)}";
-    }
-    
     public override void OnPlayerDroppedItem(PlayerDroppedItemEventArgs ev)
     {
-        LogEntry.Create($"Player {ev.Player.Nickname} has dropped a {ev.Pickup.Type}", ev.Player.UserId);
+        LogEntry.Create($"Player {ev.Player.Nickname} has dropped a {ev.Pickup.Name}", ev.Player.UserId);
     }
 
     public override void OnPlayerCuffed(PlayerCuffedEventArgs ev)
@@ -45,17 +26,24 @@ public class Events : CustomEventsHandler
             ev.Target.UserId).CreateForRelated();
     }
 
+    private static string ItemsString(Player player)
+    {
+        Item[] items = player.Items.ToArray();
+        
+        return $"{items.Humanize(item => item.Name).OrIfEmpty("no")} {"item".MaybePluralise(items)}";
+    }
+
     public override void OnPlayerDying(PlayerDyingEventArgs ev)
     {
         if (ev.Attacker != null)
         {
-            LogEntry.Create($"Player {ev.Player.Nickname} has been killed by {ev.Attacker.Nickname} with {ev.DamageHandler.Reason} in {ev.Player.CachedRoom.ShortName}. They had {ListToCorrectEnglish(ev.Player.Items, item => item.Name, "no")} items",
+            LogEntry.Create($"Player {ev.Player.Nickname} has been killed by {ev.Attacker.Nickname} with {ev.DamageHandler.Reason} in {ev.Player.CachedRoom.ShortName}. They had {ItemsString(ev.Player)}",
                 ev.Player.UserId, ev.Attacker.UserId).CreateForRelated();
         }
         else
         {
             LogEntry.Create(
-                $"Player {ev.Player.Nickname} has died in {ev.Player.CachedRoom.ShortName} due to {ev.DamageHandler.Reason}. They had {ListToCorrectEnglish(ev.Player.Items, item => item.Name, "no")} items",
+                $"Player {ev.Player.Nickname} has died in {ev.Player.CachedRoom.ShortName} due to {ev.DamageHandler.Reason}. They had {ItemsString(ev.Player)}",
                 ev.Player.UserId);
         }
     }
@@ -81,17 +69,24 @@ public class Events : CustomEventsHandler
         }
     }
 
+    private static string RoomsString(IEnumerable<Room> rooms)
+    {
+        Room[] arr = rooms.ToArray();
+        
+        return $"{"room".MaybePluralise(arr)} {arr.Humanize(room => room.ShortName).OrIfEmpty("none")}";
+    }
+
     public override void OnPlayerInteractedDoor(PlayerInteractedDoorEventArgs ev)
     {
         LogEntry.Create(
-            $"Player {ev.Player.Nickname} has interacted with a door in rooms {ListToCorrectEnglish(ev.Door.Rooms, room => room.ShortName, "none")}",
+            $"Player {ev.Player.Nickname} has interacted with a door in {RoomsString(ev.Door.Rooms)}",
             ev.Player.UserId);
     }
 
     public override void OnPlayerInteractedElevator(PlayerInteractedElevatorEventArgs ev)
     {
         LogEntry.Create(
-            $"Player {ev.Player.Nickname} has interacted with an elevator in rooms {ListToCorrectEnglish(ev.Elevator.Rooms, room => room.ShortName, "none")}",
+            $"Player {ev.Player.Nickname} has interacted with an elevator in {RoomsString(ev.Elevator.Rooms)}",
             ev.Player.UserId);
     }
 
