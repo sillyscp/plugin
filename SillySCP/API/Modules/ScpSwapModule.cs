@@ -1,5 +1,7 @@
 using LabApi.Features.Wrappers;
+using MEC;
 using PlayerRoles;
+using SillySCP.Commands.ScpSwap;
 using UnityEngine;
 
 namespace SillySCP.API.Modules
@@ -31,6 +33,8 @@ namespace SillySCP.API.Modules
             player1.Position = requesterPos;
             player1.Health -= requesterHealthDrain;
             player1.HumeShield -= requesterShieldDrain;
+            
+            RemovePlayer(player1);
         }
 
         /// <summary>
@@ -46,6 +50,8 @@ namespace SillySCP.API.Modules
             player.Role = role;
             player.Health -= healthDrain;
             player.HumeShield -= shieldDrain;
+            
+            RemovePlayer(player);
         }
 
         /// <summary>
@@ -61,6 +67,31 @@ namespace SillySCP.API.Modules
             modify.Role = data.Role;
             modify.Health -= healthDrain;
             modify.HumeShield -= shieldDrain;
+            
+            RemovePlayer(modify);
+        }
+
+        public static bool Cancel(Player player)
+        {
+            if (!ScpSwap.AwaitingRequests.Remove(player))
+            {
+                return false;
+            }
+            
+            RemovePlayer(player);
+
+            return true;
+        }
+
+        public static void RemovePlayer(Player player)
+        {
+            ScpSwap.AwaitingRequests.Remove(player);
+            
+            if (!ScpSwap.Handles.TryGetValue(player, out CoroutineHandle handle))
+                return;
+
+            Timing.KillCoroutines(handle);
+            ScpSwap.Handles.Remove(player);
         }
     }
 }
