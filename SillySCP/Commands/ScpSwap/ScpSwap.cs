@@ -60,6 +60,12 @@ namespace SillySCP.Commands.ScpSwap
                 return false;
             }
 
+            if (role == RoleTypeId.Scp079 && Player.ReadyList.Count(p => p.IsSCP) == 1)
+            {
+                response = "You can't switch to SCP-079 when you are the only SCP.";
+                return false;
+            }
+
             if (player.Role == role)
             {
                 response = "You can't change to the role you already are.";
