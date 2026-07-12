@@ -18,6 +18,12 @@ namespace SillySCP.Commands.ScpSwap
                 return false;
             }
 
+            if (!player.IsSCP)
+            {
+                response = "You aren't an SCP";
+                return false;
+            }
+
             if (!ScpSwap.AwaitingRequests.ContainsValue(player))
             {
                 response = "No requests found";
