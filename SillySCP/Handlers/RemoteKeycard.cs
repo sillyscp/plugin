@@ -1,5 +1,8 @@
-﻿using LabApi.Events.Arguments.PlayerEvents;
+﻿using Interactables.Interobjects.DoorUtils;
+using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
+using LabApi.Features.Enums;
+using LabApi.Features.Wrappers;
 using SecretAPI.Enums;
 using SecretAPI.Extensions;
 using SecretAPI.Features;
@@ -27,7 +30,23 @@ namespace SillySCP.Handlers
         {
             if (ev.CanOpen) return;
             if (ev.Door.IsLocked) return;
-            ev.CanOpen = ev.Player.HasDoorPermission(ev.Door, DoorPermissionCheck.FullInventory);
+
+            IDoorPermissionRequester door = ev.Door.Base;
+            
+            ev.CanOpen = ev.Player.HasDoorPermission(door, DoorPermissionCheck.FullInventory);
+
+            if (ev.Door.DoorName is not (DoorName.EzGateA or DoorName.EzGateB)) return;
+            
+            IEnumerable<Item> keycards = ev.Player.Items.Where(item =>
+                item.Base is IDoorPermissionProvider provider &&
+                door.PermissionsPolicy.CheckPermissions(provider.GetPermissions(door))).ToArray();
+
+            if (keycards.Count() >= 2)
+                return;
+                
+            Item oneTimeUse = keycards.FirstOrDefault(item => item.Type == ItemType.SurfaceAccessPass);
+
+            oneTimeUse?.DropItem().Destroy();
         }
 
         private static void OnUnlockingGenerator(PlayerUnlockingGeneratorEventArgs ev)
