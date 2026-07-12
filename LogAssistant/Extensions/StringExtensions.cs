@@ -1,5 +1,3 @@
-using Humanizer;
-
 namespace LogAssistant.Extensions;
 
 public static class StringExtensions
@@ -8,16 +6,17 @@ public static class StringExtensions
     {
         public string OrIfEmpty(string replace) => string.IsNullOrEmpty(str) ? replace : str;
 
-        public string MaybePluralise<T>(IEnumerable<T> collection)
-        {
-            int count = collection.Count();
+        /// <summary>
+        /// Will pluralise based on quantity. Relies on the input string being singular
+        /// </summary>
+        /// <param name="quantity">The quantity</param>
+        /// <returns>The plural or singular string dependent on quantity.</returns>
+        public string MaybePluralise(int quantity) => quantity is 1 or -1 ? str : str.Pluralise();
 
-            return count switch
-            {
-                0 => str.Pluralize(),
-                1 => str.Singularize(),
-                _ => str.Pluralize()
-            };
-        }
+        /// <summary>
+        /// Pluralise a string
+        /// </summary>
+        /// <returns>Only returns the string + an s. Might need to be changed depending on the word</returns>
+        public string Pluralise() => str + "s";
     }
 }
