@@ -1,4 +1,3 @@
-using Humanizer;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.CustomHandlers;
 using LabApi.Features.Extensions;
@@ -30,7 +29,7 @@ public class Events : CustomEventsHandler
     {
         Item[] items = player.Items.ToArray();
         
-        return $"{items.Humanize(item => item.Name).OrIfEmpty("no")} {"item".MaybePluralise(items)}";
+        return $"{items.Humanise(item => item.Name).OrIfEmpty("no")} {"item".MaybePluralise(items.Length)}";
     }
 
     public override void OnPlayerDying(PlayerDyingEventArgs ev)
@@ -73,7 +72,7 @@ public class Events : CustomEventsHandler
     {
         Room[] arr = rooms.ToArray();
         
-        return $"{"room".MaybePluralise(arr)} {arr.Humanize(room => room.ShortName).OrIfEmpty("none")}";
+        return $"{"room".MaybePluralise(arr.Length)} {arr.Humanise(room => room.ShortName).OrIfEmpty("none")}";
     }
 
     public override void OnPlayerInteractedDoor(PlayerInteractedDoorEventArgs ev)
