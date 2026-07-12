@@ -8,10 +8,6 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <DebugType>embedded</DebugType>
-    </PropertyGroup>
-
     <ItemGroup>
         <Reference Include="Assembly-CSharp" Publicize="true" />
         <Reference Include="Assembly-CSharp-firstpass" />
@@ -26,8 +22,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="DiscordLab.Bot" Version="2.6.1" />
-      <PackageReference Include="Northwood.LabAPI" Version="1.1.7" />
+        <PackageReference Include="DiscordLab.Bot" Version="2.6.1" />
+        <PackageReference Include="Northwood.LabAPI" Version="1.1.7" />
         <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2" PrivateAssets="all" ExcludeAssets="runtime" ReferenceOutputAssembly="false" Private="true" />
     </ItemGroup>
     
