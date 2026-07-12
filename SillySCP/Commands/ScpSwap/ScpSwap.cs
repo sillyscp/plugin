@@ -72,7 +72,17 @@ namespace SillySCP.Commands.ScpSwap
                 return false;
             }
 
-            AwaitingRequests.Remove(player);
+            Player potentialExistingRequester = AwaitingRequests.FirstOrDefault(pair => pair.Value == player).Key;
+
+            if (AwaitingRequests.ContainsValue(player) && potentialExistingRequester != null &&
+                potentialExistingRequester.Role == role)
+            {
+                ScpSwapModule.Switch(potentialExistingRequester, player);
+                response = $"Successfully swapped to {role.GetFullName()}";
+                return true;
+            }
+
+            ScpSwapModule.Cancel(player);
 
             Player holder = Player.ReadyList.FirstOrDefault(p => p.Role == role);
             if (holder == null)
