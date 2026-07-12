@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using CommandSystem;
 using LabApi.Features.Wrappers;
 using MEC;
+using SillySCP.API.Modules;
 
 namespace SillySCP.Commands.ScpSwap
 {
@@ -15,16 +16,10 @@ namespace SillySCP.Commands.ScpSwap
                 return false;
             }
 
-            if (!ScpSwap.AwaitingRequests.Remove(player))
+            if (!ScpSwapModule.Cancel(player))
             {
                 response = "You have no pending SCP Swap requests.";
                 return false;
-            }
-            
-            if (ScpSwap.Handles.TryGetValue(player, out CoroutineHandle handle))
-            {
-                Timing.KillCoroutines(handle);
-                ScpSwap.Handles.Remove(player);
             }
 
             response = "Successfully cancelled your SCP Swap request.";
