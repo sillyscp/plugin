@@ -27,7 +27,6 @@
 
     <ItemGroup>
       <PackageReference Include="DiscordLab.Bot" Version="2.6.1" />
-      <PackageReference Include="Humanizer.Core" Version="3.0.10" />
       <PackageReference Include="Northwood.LabAPI" Version="1.1.7" />
         <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2" PrivateAssets="all" ExcludeAssets="runtime" ReferenceOutputAssembly="false" Private="true" />
     </ItemGroup>
