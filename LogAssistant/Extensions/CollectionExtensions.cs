@@ -19,15 +19,19 @@ public static class CollectionExtensions
             
             int count = arr.Length;
 
-            if (count == 0)
-                return "";
+            switch (count)
+            {
+                case 0:
+                    return "";
+                case 1:
+                    return getter(arr[0]);
+                default:
+                {
+                    T[] toJoin = arr.PopLast(out T last);
 
-            if (count == 1)
-                return getter(arr[0]);
-
-            T[] toJoin = arr.PopLast(out T last);
-
-            return string.Join(", ", toJoin.Select(getter)) + getter(last);
+                    return string.Join(", ", toJoin.Select(getter)) + " and " + getter(last);
+                }
+            }
         }
     }
 }
