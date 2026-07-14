@@ -3,6 +3,7 @@ using LabApi.Events.CustomHandlers;
 using LabApi.Features.Extensions;
 using LabApi.Features.Wrappers;
 using LogAssistant.Extensions;
+using PlayerRoles;
 
 namespace LogAssistant;
 
@@ -54,6 +55,9 @@ public class Events : CustomEventsHandler
 
     public override void OnPlayerEscaping(PlayerEscapingEventArgs ev)
     {
+        if (ev.NewRole == RoleTypeId.None)
+            return;
+        
         if (ev.Player.IsDisarmed)
         {
             LogEntry.Create(
